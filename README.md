@@ -12,9 +12,9 @@ Module for Ab Initio Structure Evolution (MAISE) features
 
 MAISE has been developed by
 
-<bra /> Alexey Kolmogorov <kolmogorov@binghamton.edu>
-<bra /> Samad Hajinazar <shajina1@binghamton.edu>
-<bra /> Ernesto Sandoval <esandov1@binghamton.edu>
+<bra /> Alexey Kolmogorov <kolmogorov@binghamton.edu>  
+<bra /> Samad Hajinazar <shajina1@binghamton.edu>  
+<bra /> Ernesto Sandoval <esandov1@binghamton.edu>  
 
 ---
 ## General info
