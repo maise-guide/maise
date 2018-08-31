@@ -1,0 +1,5 @@
+A cell optimization job with a neural network model for Cu-Pd built in https://doi.org/10.1103/PhysRevB.95.014114   
+
+Run 'maise' to relax the structure specified in POSCAR. The run will produce OUTCAR, OSZICAR, and CONTCAR files in the VASP format.
+
+For comparison, the corresponding reference output files are provided in the output/ directory.

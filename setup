@@ -1,0 +1,100 @@
+=============================================================================================================
+                                        JOB/MODEL types
+=============================================================================================================
+JOBT  20                structure analysis   (00) use analysis tools specified by flags
+                        evolutionary search  (10) run  (11) soft exit  (12) hard exit (13) analysis
+                        cell simulation      (20) relaxation (21) molecular dynamics
+			data parsing         (30) prepare inputs for NN training
+			NN training          (40) full training (41) stratified training
+MODT  1                 model type           (1)  NN  (3)  Sutton-Chen  (4) Gupta
+=============================================================================================================
+                                    OPTIMIZATION parameters
+=============================================================================================================
+NPAR  1                 number of cores for parallel NN training or cell simulation
+MINT  0                 gsl minimier type (0) BFGS2 (1) CG-FR (2) CG-PR (3) steepest descent 
+MITR  10                maximum N for NN training or cell opimization steps
+RLXT  2                 cell optimization type (2) force only (3) full cell (7) volume (ISIF in VASP)
+STOP  0                 stop as soon as distances are shorter than the table file
+ETOL  1e-8              error tolerance for NN training or cell optimization convergence
+COUT  12                output options (00) E  final step (01) E  first/final steps (02) E  all steps
+                                       (10) EF final step (11) EF first/final steps (12) EF all steps
+=============================================================================================================
+                               STRUCTURE/DESCRIPTOR/NN parameters
+=============================================================================================================
+NMAX  80                max number of atoms
+MMAX  250               max number of neighbors within cutoff radius
+NSPC  1                 number of species types
+TSPC  47                speceis types
+ASPC  80                atom number of each species in evolutionary searches
+NSYM  35                number of Behler-Parrinello symmetry functions
+NCMP  82                total number of NN inputs
+TEFS  0                 train NN for (0) E (1) EF
+FMRK  0.25              fraction of atoms used for EF training
+NTRN -10                number of structures for training (negative means percentage)
+NTST -10                number of structures for testing  (negative means percentage)
+NNNN  2                 number of hidden layers in MLP
+NNNU  15 15             number of neurons in hidden layers in MLP
+EMAX  0.90              parse only this fraction of lowest-energy structures
+FMAX  100.0             do not parse data with larger force
+VMIN  0.0               do not parse data with lower  volume
+VMAX  45.0              do not parse data with larger volume
+=============================================================================================================
+                               EVOLUTIONARY SEARCH settings
+=============================================================================================================
+NDIM  3                 (3) crystal (2) film (0) particle
+LBOX  20.0              box size for particle calculations (ignored for crystals)
+NPOP  10                population size
+SITR  1                 starting iteration (0) start from random or specified structures
+NITR  2                 number of iterations
+TINI  0                 starting options if SITR=0
+TIME  200               max time per relaxation
+PGPA  0.0               pressure in GPa
+DENE  0.030             store distinct structures in POOL within this energy/atom window
+KMSH  0.06              k-mesh: 0.30 for s/c, 0.05 for metals
+
+TETR  0.00              random using tetris
+PLNT  0.00              seeded
+PACK  0.00              biased
+BLOB  0.00              random using blob shape
+MATE  0.50              crossover using two halves
+SWAP  0.00              crossover using core-shell
+RUBE  0.00              Rubik's cube operation
+REFL  0.00              symmetrization via reflection
+INVS  0.00              symmetrization via inversion
+CHOP  0.00              chop to make facets
+MUTE  0.50              distortion
+
+MCRS  0.50              mutation rate in crossover
+SCRS  0.00              crossover:  swapping rate
+LCRS  0.10              crossover:  mutation strength for lattice vectors
+ACRS  0.10              crossover:  mutation strength for atomic positions
+SDST  0.00              distortion: swapping rate
+LDST  0.00              distortion: mutation strength for lattice vectors
+ADST  0.15              distortion: mutation strength for atomic positions
+ELPS  0.15              random:     nanoparticle ellipticity
+
+=============================================================================================================
+                                      INITIAL SEED
+=============================================================================================================
+SEED  5                 starting seed for the random number generator - 0 uses time as seed
+RAND  5                 optional for fixed parsing
+
+=============================================================================================================
+                                    THERMOSTAT parameters
+=============================================================================================================
+TMIN  1000.0            min temperature in MD runs
+TMAX  1000.0            max temperature in MD runs
+TSTP  50                tempterature step in MD runs
+DELT  1.0               time step in femtoseconds
+NSTP  10                number of steps
+COPL  25.0              coupling constant
+THRM  1                 thermostat (0) molecular dynamics (1) Nose-Hoover thermostat
+
+=============================================================================================================
+                                   INPUT/OUTPUT directories
+=============================================================================================================
+DEPO  ./DATA            location of DFT data
+DATA  ./PARS            location of parsed data
+OTPT  ./NNET            directory for storing model parameters and outputs
+WDIR  .                 work directory (e.g., '.', MD, RUN)
+=============================================================================================================

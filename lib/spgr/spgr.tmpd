@@ -1,0 +1,20 @@
+lib/libspgr.a: lib/spgr/spgr.c inc/cdef.h inc/edef.h inc/ndef.h \
+ inc/cell.h inc/nutl.h inc/cutl.h inc/util.h inc/cfnc.h inc/spgr.h
+
+inc/cdef.h:
+
+inc/edef.h:
+
+inc/ndef.h:
+
+inc/cell.h:
+
+inc/nutl.h:
+
+inc/cutl.h:
+
+inc/util.h:
+
+inc/cfnc.h:
+
+inc/spgr.h:

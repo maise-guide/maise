@@ -1,0 +1,5 @@
+Processing of a dataset for neural network training.
+
+Run 'maise' to parse structures in DATA/. The run will produce PARS/ with e* parsed files, stamp.dat, index.dat, ve.dat, and RDF0.dat.
+
+For comparison, the corresponding reference output files are provided in pars/ directory.

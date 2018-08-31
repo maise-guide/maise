@@ -1,0 +1,25 @@
+=============================================================================================================
+                                        JOB/MODEL types
+=============================================================================================================
+JOBT  20                structure analysis   (00) use analysis tools specified by flags
+                        evolutionary search  (10) run  (11) soft exit  (12) hard exit (13) analysis
+                        cell simulation      (20) relaxation (21) molecular dynamics
+			data parsing         (30) prepare inputs for NN training
+			NN training          (40) full training (41) stratified training
+MODT  1                 model type           (1)  NN  (3)  Sutton-Chen  (4) Gupta
+=============================================================================================================
+                                    OPTIMIZATION parameters
+=============================================================================================================
+NPAR  1                 number of cores for parallel NN training or cell simulation
+MINT  0                 gsl minimier type (0) BFGS2 (1) CG-FR (2) CG-PR (3) steepest descent 
+MITR  10                maximum N for NN training or cell opimization steps
+RLXT  3                 cell optimization type (2) force only (3) full cell (7) volume (ISIF in VASP)
+STOP  0                 stop as soon as distances are shorter than the table file
+ETOL  1e-8              error tolerance for NN training or cell optimization convergence
+COUT  12                output options (00) E  final step (01) E  first/final steps (02) E  all steps
+                                       (10) EF final step (11) EF first/final steps (12) EF all steps
+=============================================================================================================
+                               EVOLUTIONARY SEARCH settings
+=============================================================================================================
+NDIM  3                 (3) crystal (2) film (0) particle
+=============================================================================================================

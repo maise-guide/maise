@@ -1,0 +1,5 @@
+make --jobs
+cp maise examples/parsing
+cp maise examples/training
+cp maise examples/relaxing
+
