@@ -18,15 +18,15 @@ Current beta version 2.0 works on Linux platforms and combines 3 modules for des
 
 1 The neural network (NN) module builds, tests, and uses NN models to describe interatomic interactions with near-ab initio accuracy at a low computational cost compared to density functional theory calculations.
 
-With the primary goal of uning NN models to accelerate structure search, the main function of the module is to relax given structures. To simplify the NN application, we cloasely matched the input and output file formats with those used in the VASP software. Previously parameterized NN models available in the 'MODELS' directory have been generated and extensively tested for crystalline and/or nanostructured materials.
+With the primary goal of using NN models to accelerate structure search, the main function of the module is to relax given structures. To simplify the NN application, we closely matched the input and output file formats with those used in the VASP software. Previously parameterized NN models available in the 'models/' directory have been generated and extensively tested for crystalline and/or nanostructured materials.
 
-Users can create their own NN models with MAISE which are typically trained on density functional theory (DFT) total energy and atomic force data for relatively small structures. The generation of relevant and diverse andconfigurations is done separately with an 'evolutionary sampling' protocol detailed in our published work [1]. The code introduces a unique feature, 'stratified training', of how to build robust NNs for chemical systems with several elements [1]. NN models are developed in a hierarchical fashion, first for elements, then for binaries, and so on, which enables generation of reusable libraries for extended blocks in the periodic table. 
+Users can create their own NN models with MAISE which are typically trained on density functional theory (DFT) total energy and atomic force data for relatively small structures. The generation of relevant and diverse configurations is done separately with an 'evolutionary sampling' protocol detailed in our published work [1]. The code introduces a unique feature, 'stratified training', of how to build robust NNs for chemical systems with several elements [1]. NN models are developed in a hierarchical fashion, first for elements, then for binaries, and so on, which enables generation of reusable libraries for extended blocks in the periodic table. 
 
 2 The implemented evolutionary algorithm (EA) enables an efficient identification of ground state configurations at a given chemical composition. Our studies have shown that the EA is particularly advantageous in dealing with large structures when no experimental structural input is available [2,3]. 
 
 The searches can be performed for 3D bulk crystals, 2D films, and 0D nanoparticles. Population of structures can be generated either randomly or predefined based on prior information. Essential operations are 'crossover', when a new configuration is created based on two parent structures in the previous generation, and 'mutation', when a parent structure is randomly distorted. For 0D nanoparticles we have introduced a range of alternative evolution operations which will be described in an upcoming paper. 
 
-3 The analysis functions include the comparion of structures based on the radial distribution function (RDF), the determination of the space group and the Wyckoff positions with an external ISOTROPY package, etc. In particular, the RDF-based structure dot product is essential for eliminating duplicate structures in EA searches and selecting different configurations in the pool of low-energy structures. 
+3 The analysis functions include the comparison of structures based on the radial distribution function (RDF), the determination of the space group and the Wyckoff positions with an external ISOTROPY package, etc. In particular, the RDF-based structure dot product is essential for eliminating duplicate structures in EA searches and selecting different configurations in the pool of found low-energy structures. 
 <br />
 <br /> [1] https://journals.aps.org/prb/abstract/10.1103/PhysRevB.95.014114
 <br /> [2] https://journals.aps.org/prl/abstract/10.1103/PhysRevLett.109.075501
@@ -35,11 +35,11 @@ The searches can be performed for 3D bulk crystals, 2D films, and 0D nanoparticl
 ---
 ## Installation
 
-The code has been extensively tested on Linux platforms. We will appreciate the feedback on the installation and performance of the package on different platforms.
+The code has been extensively tested on Linux platforms. We will appreciate users' feedback on the installation and performance of the package on different platforms.
 
-1 For full functionality, MAISE requires the [GSL library](https://www.gnu.org/software/gsl/) to be compiled and the [ISOTROPY package](http://stokes.byu.edu/iso/isotropy.php) (version Version 6, January 2018) to be installed prior to MAISE compilation.
+1 For full functionality, MAISE requires the [GSL library](https://www.gnu.org/software/gsl/) to be compiled and the [ISOTROPY package](http://stokes.byu.edu/iso/isotropy.php) (Version 6, January 2018) to be installed prior to MAISE compilation.
 
-Please copy libgsl.a, libgslcblas.a, and all gsl/.h into maise/lib subdirectory and specify the path to ISOTROPY in the maise/makefile (e.g., IPATH := ~/bin/isotropy)
+Please copy libgsl.a, libgslcblas.a, and all gsl/\*.h into maise/lib subdirectory and specify the path to ISOTROPY in the maise/makefile (e.g., IPATH := ~/bin/isotropy)
 
 2 By default, the code will be compiled for parallel execution with OpenMP. If you do not wish to compile the parallel version set 'SERIAL    ?= 1' in maise/makefile
 
@@ -90,13 +90,13 @@ Main input files that define a simulation are 'setup' with job settings, 'model'
 </table>
 
 --- 
-The structure examination and manupulation functions are run by calling maise with a flag:
+The structure examination and manipulation functions are run by calling maise with a flag:
 
 ```
 maise -flag
 ```
 
-The structure examination and manupulation functions are defined as
+The structure examination and manipulation functions are defined as
 
 |Flag| Flag Description|
 |:---:|:-|
