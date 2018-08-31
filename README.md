@@ -146,13 +146,13 @@ Directory 'examples/' has samples of maise jobs for parsing data, training neura
 [ASPC](#aspc) [NSPC](#nspc) [TSPC](#tspc) 
 ### I/O 
 [COUT](#cout) [DATA](#data) [DEPO](#depo) [EVAL](#eval) [OTPT](#otpt) [WDIR](#wdir)
-## Neural Network model
+### Neural Network model
 [MODT](#modt) [NCMP](#ncmp) [NNGT](#nngt) [NNNN](#nnnn) [NNNU](#nnnu) [NSYM](#nsym) 
-## Neural Network training    
+### Neural Network training    
 [FMRK](#fmrk) [LREG](#lreg) [NTRN](#ntrn) [NTST](#ntst) [TEFS](#tefs) [NPAR](#npar)
 ## Parsing
 [EMAX](#emax) [FMAX](#fmax) [FMIN](#fmin) [VMAX](#vmax) [VMIN](#vmin) [MMAX](#mmax) 
-## Cell Relaxation
+### Cell Relaxation
 [ETOL](#etol) [MINT](#mint) [MITR](#mitr) [PGPA](#pgpa) [RLXT](#rlxt) [STOP](#stop) [TIME](#time)
 
 ---
