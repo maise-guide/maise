@@ -69,13 +69,13 @@ Main input files that define a simulation are 'setup' with job settings, 'model'
     align="center"><a href="https://github.com/maise-guide/maise/blob/master/bin/setup">setup</td> <td align="center">+</td> <td align="center">+</td> <td align="center">+</td> <td align="center">+</td> <td align="center">+</td> <td align="center">+</td> <td align="center"> </td> 
   </tr>
   <tr>
-    <td align="center"><a href="https://github.com/maise-guide/maise/blob/master/bin/INI/table">table</td> <td align="center">+</td> <td align="center"> </td> <td align="center"> </td> <td align="center">+</td> <td align="center"> </td> <td align="center"> </td> <td align="center"> </td>
+    <td align="center"><a href="https://github.com/maise-guide/maise/blob/master/bin/table">table</td> <td align="center">+</td> <td align="center"> </td> <td align="center"> </td> <td align="center">+</td> <td align="center"> </td> <td align="center"> </td> <td align="center"> </td>
   </tr>
   <tr>
-    <td align="center"><a href="https://github.com/maise-guide/maise/blob/master/bin/INI/model">model</td> <td align="center"> </td> <td align="center"> </td> <td align="center"> </td> <td align="center">+*</td> <td align="center">+#</td> <td align="center">+#</td> <td align="center"> </td>
+    <td align="center"><a href="https://github.com/maise-guide/maise/blob/master/bin/model">model</td> <td align="center"> </td> <td align="center"> </td> <td align="center"> </td> <td align="center">+*</td> <td align="center">+#</td> <td align="center">+#</td> <td align="center"> </td>
   </tr>
   <tr>
-    <td align="center"><a href="https://github.com/maise-guide/maise/blob/master/bin/INI/basis">basis</td> <td align="center"> </td> <td align="center"> </td> <td align="center">+</td> <td align="center">$</td> <td align="center"> </td> <td align="center"> </td> <td align="center"> </td>
+    <td align="center"><a href="https://github.com/maise-guide/maise/blob/master/bin/basis">basis</td> <td align="center"> </td> <td align="center"> </td> <td align="center">+</td> <td align="center">$</td> <td align="center"> </td> <td align="center"> </td> <td align="center"> </td>
   </tr>
   <tr>
     <td colspan="8" class="divider"><hr /></td>
