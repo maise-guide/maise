@@ -1,4 +1,3 @@
- MAISE
 Module for Ab Initio Structure Evolution (MAISE) features 
 <br /> * neural network-based description of interatomic interactions
 <br /> * evolutionary optimization
@@ -23,7 +22,7 @@ Current beta version 2.0 works on Linux platforms and combines 3 modules for des
 
 1 The neural network (NN) module builds, tests, and uses NN models to describe interatomic interactions with near-ab initio accuracy at a low computational cost compared to density functional theory calculations.
 
-With the primary goal of using NN models to accelerate structure search, the main function of the module is to relax given structures. To simplify the NN application, we closely matched the input and output file formats with those used in the VASP software. Previously parameterized NN models available in the 'models/' directory have been generated and extensively tested for crystalline and/or nanostructured materials.
+With the primary goal of using NN models to accelerate structure search, the main function of the module is to relax given structures. To simplify the NN application and comparison, we closely matched the input and output file formats with those used in the VASP software. Previously parameterized NN models available in the 'models/' directory have been generated and extensively tested for crystalline and/or nanostructured materials.
 
 Users can create their own NN models with MAISE which are typically trained on density functional theory (DFT) total energy and atomic force data for relatively small structures. The generation of relevant and diverse configurations is done separately with an 'evolutionary sampling' protocol detailed in our published work [1]. The code introduces a unique feature, 'stratified training', of how to build robust NNs for chemical systems with several elements [1]. NN models are developed in a hierarchical fashion, first for elements, then for binaries, and so on, which enables generation of reusable libraries for extended blocks in the periodic table. 
 
@@ -67,16 +66,16 @@ Main input files that define a simulation are 'setup' with job settings, 'model'
   </tr>
   <tr>
     <td
-    align="center"><a href="https://github.com/ak-lab/maise/blob/master/bin/setup">setup</td> <td align="center">+</td> <td align="center">+</td> <td align="center">+</td> <td align="center">+</td> <td align="center">+</td> <td align="center">+</td> <td align="center"> </td> 
+    align="center"><a href="https://github.com/maise-guide/maise/blob/master/bin/setup">setup</td> <td align="center">+</td> <td align="center">+</td> <td align="center">+</td> <td align="center">+</td> <td align="center">+</td> <td align="center">+</td> <td align="center"> </td> 
   </tr>
   <tr>
-    <td align="center"><a href="https://github.com/ak-lab/maise/blob/master/bin/INI/table">table</td> <td align="center">+</td> <td align="center"> </td> <td align="center"> </td> <td align="center">+</td> <td align="center"> </td> <td align="center"> </td> <td align="center"> </td>
+    <td align="center"><a href="https://github.com/maise-guide/maise/blob/master/bin/INI/table">table</td> <td align="center">+</td> <td align="center"> </td> <td align="center"> </td> <td align="center">+</td> <td align="center"> </td> <td align="center"> </td> <td align="center"> </td>
   </tr>
   <tr>
-    <td align="center"><a href="https://github.com/ak-lab/maise/blob/master/bin/INI/model">model</td> <td align="center"> </td> <td align="center"> </td> <td align="center"> </td> <td align="center">+*</td> <td align="center">+#</td> <td align="center">+#</td> <td align="center"> </td>
+    <td align="center"><a href="https://github.com/maise-guide/maise/blob/master/bin/INI/model">model</td> <td align="center"> </td> <td align="center"> </td> <td align="center"> </td> <td align="center">+*</td> <td align="center">+#</td> <td align="center">+#</td> <td align="center"> </td>
   </tr>
   <tr>
-    <td align="center"><a href="https://github.com/ak-lab/maise/blob/master/bin/INI/basis">basis</td> <td align="center"> </td> <td align="center"> </td> <td align="center">+</td> <td align="center">$</td> <td align="center"> </td> <td align="center"> </td> <td align="center"> </td>
+    <td align="center"><a href="https://github.com/maise-guide/maise/blob/master/bin/INI/basis">basis</td> <td align="center"> </td> <td align="center"> </td> <td align="center">+</td> <td align="center">$</td> <td align="center"> </td> <td align="center"> </td> <td align="center"> </td>
   </tr>
   <tr>
     <td colspan="8" class="divider"><hr /></td>
