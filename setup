@@ -13,7 +13,7 @@ MODT  1                 model type           (1)  NN  (3)  Sutton-Chen  (4) Gupt
 NPAR  1                 number of cores for parallel NN training or cell simulation
 MINT  0                 gsl minimier type (0) BFGS2 (1) CG-FR (2) CG-PR (3) steepest descent 
 MITR  10                maximum N for NN training or cell opimization steps
-RLXT  2                 cell optimization type (2) force only (3) full cell (7) volume (ISIF in VASP)
+RLXT  3                 cell optimization type (2) force only (3) full cell (7) volume (ISIF in VASP)
 STOP  0                 stop as soon as distances are shorter than the table file
 ETOL  1e-8              error tolerance for NN training or cell optimization convergence
 COUT  12                output options (00) E  final step (01) E  first/final steps (02) E  all steps
@@ -30,10 +30,12 @@ NSYM  35                number of Behler-Parrinello symmetry functions
 NCMP  82                total number of NN inputs
 TEFS  0                 train NN for (0) E (1) EF
 FMRK  0.25              fraction of atoms used for EF training
-NTRN -10                number of structures for training (negative means percentage)
+LREG  1e-6              regularization parameter
+NTRN -90                number of structures for training (negative means percentage)
 NTST -10                number of structures for testing  (negative means percentage)
 NNNN  2                 number of hidden layers in MLP
-NNNU  15 15             number of neurons in hidden layers in MLP
+NNNU  10 10             number of neurons in hidden layers in MLP
+NNGT  1  1              activation function type for hidden layers
 EMAX  0.90              parse only this fraction of lowest-energy structures
 FMAX  100.0             do not parse data with larger force
 VMIN  0.0               do not parse data with lower  volume
