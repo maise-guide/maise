@@ -1440,6 +1440,7 @@ void READ_MAIN(Tribe *T, ANN *R, PRS *P, Cell *C, int J, int ARGC)
 
     C->A=0;
     READ_CELL(C,"POSCAR");
+    R->A=C->A;
 
     P->NSYM=R->NSYM=i;
     P->D=R->D=R->NU[0];
