@@ -359,32 +359,31 @@ void ABC_LT(Cell *C)
 //-------------------------------------------------------------------------
 void KMESHOLD(Cell *C, int N, char name[])
 {
-  int i,q,K[3],M;
+  int i,q,K[3];
   double a[3],b[3];
   FILE *out;
 
   if( N==1 )
     K[0] = K[1] = K[2] = 1;
   else
+  {
+    N = (int)( (double)N/(double)C->N );
+    for(i=0;i<3;i++)
+      a[i] = VectorLen(C->L[i],3);
+    
+    for(i=1,q=0;i<3;i++)
+      if(a[i]<(a[q]-1e-10))
+	q = i;
+    
+    for(q=0;q<3;q++)
     {
-      N = (int)( (double)N/(double)C->N );
-      for(i=0;i<3;i++)
-	a[i] = VectorLen(C->L[i],3);
-
-      for(i=1,q=0;i<3;i++)
-	if(a[i]<(a[q]-1e-10))
-	  q = i;
-
-      for(q=0;q<3;q++)
-	{
-	  b[q] = pow( (double)N*(a[(q+1)%3]*a[(q+2)%3])/(a[q]*a[q]),1.0/3.0);
-	  K[q] = floor(b[q]+0.5);
-	  if(K[q]<2 && a[q] < 25.0 )
-	    K[q] = 2;
-	}
-      M = K[0]*K[1]*K[2]*C->N;
+      b[q] = pow( (double)N*(a[(q+1)%3]*a[(q+2)%3])/(a[q]*a[q]),1.0/3.0);
+      K[q] = floor(b[q]+0.5);
+      if(K[q]<2 && a[q] < 25.0 )
+	K[q] = 2;
     }
-
+  }
+  
   out = fopen(name,"w");
   fprintf(out,"KPOINTS file\n0\n");
   if( fabs(a[0]-a[1])<1e-10 && fabs(COS(C->L[0],C->L[1],3)+0.5)<1e-10 )

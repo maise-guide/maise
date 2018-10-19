@@ -25,7 +25,7 @@ Cell *CCC;
 LNK  *LLL;
 
 //======================================================================
-void STR_BUF_BFGS(gsl_vector *x)
+void STR_BUF(gsl_vector *x)
 {
   int i,q,j=0;
   
@@ -50,10 +50,9 @@ void STR_BUF_BFGS(gsl_vector *x)
   return;
 }
 //======================================================================
-void BUF_STR_BFGS(const gsl_vector *x)
+void BUF_STR(const gsl_vector *x)
 {
   int i,q,j=0;
-
 
   if(CCC->RLXT!=7)
   for(i=0;i<CCC->N;i++)
@@ -86,10 +85,10 @@ double cfunc_gsl(const gsl_vector *x, void *params)
   EFS = PPP->EFS;
   PPP->EFS = 0;
 
-  BUF_STR_BFGS(x);
+  BUF_STR(x);
   E = CELL_ENE(RRR,PPP,WWW,CCC,LLL);  
   PPP->EFS = EFS;
-  STR_BUF_BFGS((gsl_vector*) x);
+  STR_BUF((gsl_vector*) x);
 
   ECNT++;
   return E;
@@ -101,7 +100,7 @@ void cdfunc_gsl(const gsl_vector *x, void* params, gsl_vector *d)
   double V,s[3];
 
   FCNT++;
-  BUF_STR_BFGS(x);
+  BUF_STR(x);
   V = Cell_VOLUME(CCC);
   Reciprocal(CCC);
   CELL_FRC(RRR,PPP,WWW,CCC,LLL);
@@ -115,7 +114,7 @@ void cdfunc_gsl(const gsl_vector *x, void* params, gsl_vector *d)
 
   if(CCC->RLXT==2)
   {
-    STR_BUF_BFGS((gsl_vector*) x);
+    STR_BUF((gsl_vector*) x);
     return;
   }
   //  0  1  2  3  4  5
@@ -146,7 +145,7 @@ void cdfunc_gsl(const gsl_vector *x, void* params, gsl_vector *d)
     if(fabs(d(i))<1e-10)
       set(d,i,0.0);
 
-  STR_BUF_BFGS((gsl_vector *) x);
+  STR_BUF((gsl_vector *) x);
 
   return;
 }
@@ -160,7 +159,7 @@ void cfdfunc_gsl(const gsl_vector *x, void *params, double *f, gsl_vector *df)
 }
 //======================================================================
 //======================================================================
-double CELL_BFGS(ANN *R, PRS *P, PRS *W, Cell *C, LNK *L)
+double CELL_MIN(ANN *R, PRS *P, PRS *W, Cell *C, LNK *L)
 {
   gsl_vector *p;
   void *params;
@@ -207,7 +206,7 @@ double CELL_BFGS(ANN *R, PRS *P, PRS *W, Cell *C, LNK *L)
   gsl_fdf.params = params;
 
   p = gsl_vector_alloc (N);
-  STR_BUF_BFGS(p);
+  STR_BUF(p);
   O = cfunc_gsl(p, params);
   iter = 0;
 
@@ -223,30 +222,32 @@ double CELL_BFGS(ANN *R, PRS *P, PRS *W, Cell *C, LNK *L)
 
   s = gsl_multimin_fdfminimizer_alloc (T, N);
   printf("%5d %24.16lf\n",iter, C->H);
-  double tol=1e-3;
-  gsl_multimin_fdfminimizer_set (s, &gsl_fdf, p, 0.01, tol);
+
+  E = O;
+
+  gsl_multimin_fdfminimizer_set (s, &gsl_fdf, p, 0.01, 0.001);
   do
   {
     C->it++;
     iter++;
     status = gsl_multimin_fdfminimizer_iterate (s);
-    
-    if (status)
-      break;
-    
-    status = gsl_multimin_test_gradient (s->gradient, 2.27e-30);
-    printf("%5d %24.16lf\n",iter, cfunc_gsl(s->x, params));
-    
-    if (status == GSL_SUCCESS)
-      printf ("Minimum found at:\n");
+
+    status = gsl_multimin_test_size( fabs(C->H-E), RRR->ETOL);
+
+    printf("%5d % 24.16lf % 24.16lf\n",iter, C->H,C->H-E);
+    E = C->H;
 
     if( C->OUT%10==2)
+    {
+      Real(C);
       CELL_OUT(C);    
+      Relative(C);
+    }
   }
   while (status == GSL_CONTINUE && iter < RRR->MITR );
 
-  E = cfunc_gsl(s->x, params);
-  BUF_STR_BFGS(s->x);
+  E = C->H;
+  BUF_STR(s->x);
 
   printf("\n  ENERGY CALLS = %5ld\n"  ,ECNT);
   printf(  "  FORCE  CALLS = %5ld\n\n",FCNT);

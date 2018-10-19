@@ -43,8 +43,6 @@ typedef struct
   double K;       // kinetic energy
   double H;       // to be used in future
 
-  double time[2]; // to store optimization time
-
   double **L;     // lattice vectors
   double **R;     // reciprical lattice vectors
   int    NM;      // max # of nearest neighbors

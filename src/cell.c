@@ -85,13 +85,12 @@ void LIST(Cell *C)
 {
   int i,j,k,q,q1,j1;
   int ic[3],N[3];
-  double r,x,*R,a[3],cut,RC;
-
-  cut = 1.0E-14;
+  double r,x,*R,a[3],RC;
 
   RC = C->Rc*C->Rc;
 
-  JAR(C);
+  if( C->ND>0 )
+    JAR(C);
   N[0] = N[1] = N[2] = 0;
   Reciprocal(C);
   for(q=0;q<C->ND;q++)
@@ -234,6 +233,15 @@ double NDX(Cell *C, int i, int n)
     r += x*x;
   }
   return sqrt(r);
+}
+//=========================================================================
+//  Returns either periodic or non-periodic distance
+//=========================================================================
+double NDD(Cell *C, int i, int n)
+{
+  if( C->ND==0 )
+    return NDR(C,i,n);
+  return NDX(C,i,n);
 }
 //=========================================================================
 // Gives cos of the angle formed by atom i and its nearest neighbors .j. and .k.

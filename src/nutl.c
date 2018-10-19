@@ -558,7 +558,7 @@ void SAVE_ANN(ANN *R, double TIME)
   out=fopen(s,"w");
 
   fprintf(out,"%s|                    neural network general information                     |\n%s",b,b);
-  sprintf(t," %014lX",(long)(sum*1e11));
+  sprintf(t," %08lX",(long)(sum*1e11)%(long)(1e8));
   fprintf(out,"|  model unique ID      | %s%s",t,e+22+strlen(t));
 
   sprintf(t," %d",R->NSPC);
@@ -588,11 +588,11 @@ void SAVE_ANN(ANN *R, double TIME)
   sprintf(t," %d",R->N);
   fprintf(out,"|  train energy data    | %s%s",t,e+22+strlen(t));
   sprintf(t," %d",R->TN);
-  fprintf(out,"|  test  Energy data    | %s%s",t,e+22+strlen(t));
+  fprintf(out,"|  test  energy data    | %s%s",t,e+22+strlen(t));
   sprintf(t," %d",R->NF);
   fprintf(out,"|  train force  data    | %s%s",t,e+22+strlen(t));
   sprintf(t," %d",R->TNF);
-  fprintf(out,"|  test  Force  data    | %s%s",t,e+22+strlen(t));
+  fprintf(out,"|  test  force  data    | %s%s",t,e+22+strlen(t));
   sprintf(t," %d",R->STR);
   fprintf(out,"|  total structures     | %s%s",t,e+22+strlen(t));
   sprintf(t," %d",R->A);

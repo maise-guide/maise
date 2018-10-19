@@ -1,6 +1,7 @@
 #include <string.h>
 #include <stdio.h>
 #include <stdlib.h>
+#include <unistd.h>
 #include <math.h>
 #include "cdef.h"
 #include "edef.h"
@@ -110,7 +111,8 @@ int FIND_WYC(Cell *C, Cell *D, double tol, char *ISO, int J)
 
   Relative(C);
 
-  out = fopen("wyckoff.in","w");
+  sprintf(buf,"%s/findsym > wyckoff",ISO);
+  out = popen(buf,"w");
 
   fprintf(out,"%s\n",C->TAG);
   fprintf(out,"%lf\n%lf\n0.00\n",tol,tol);
@@ -119,7 +121,7 @@ int FIND_WYC(Cell *C, Cell *D, double tol, char *ISO, int J)
   for(i=0;i<3;i++)
   {
     for(q=0;q<D3;q++)
-      fprintf(out,"% 4.14lf ",C->L[i][q]/C->R0);
+      fprintf(out,"% 4.14lf ",C->L[i][q]);
     fprintf(out,"\n");
   }
   fprintf(out,"1\n");
@@ -141,68 +143,59 @@ int FIND_WYC(Cell *C, Cell *D, double tol, char *ISO, int J)
       fprintf(out,"% 4.14lf ",C->X[i][q]);
     fprintf(out,"\n");
   }
-  fclose(out);
+  pclose(out);
 
   out = fopen("str.cif","w");
   fclose(out);
+  sprintf(buf,"wyckoff");
+  in=fopen(buf,"r");
 
-  sprintf(buf,"%s/findsym wyckoff.in> wyckoff",ISO);
-  system(buf);
-  system("grep _symmetry_Int_Tables_number wyckoff >> str.cif");
-  system("grep _cell_length_a wyckoff >> str.cif");
-  system("grep _cell_length_b wyckoff >> str.cif");
-  system("grep _cell_length_c wyckoff >> str.cif");
-  system("grep _cell_angle_alpha wyckoff >> str.cif");
-  system("grep _cell_angle_beta wyckoff >> str.cif");
-  system("grep _cell_angle_gamma wyckoff >> str.cif");
   system("grep _symmetry_Int_Tables_number wyckoff >> str.cif");
 
-  sprintf(buf,"grep Wyckoff wyckoff");
-  in = popen(buf,"r");
+  out = fopen("str.cif","a");
+
   i = 0;
   while(fgets(buf,100,in))
   {
-    sscanf(buf,"%s %s %s",s1,s1,w[i]);
-    w[i++][1] = 0;
-  }
-  pclose(in);
-
-  sprintf(buf,"grep _symmetry_Int_Tables_number wyckoff");
-  in = popen(buf,"r");
-  fgets(buf,100,in);
-  sscanf(buf,"%s %d",s1,&SGN);
-  Real(C);
-  if(J==0)
-    return SGN;
-  D->SGN = SGN;
-  READ_SG(D);
-  D->NS = 1;
-  pclose(in);
-
-  out = fopen("str.cif","a");
-  fprintf(out,"_chemical_formula_sum\n");
-  fprintf(out,"'");
-  for(i=0;i<C->ATMN[C->N-1]+1;i++)
-  {
-    if(C->SPCZ[0]>0)
+    if(strstr(buf,"_cell_length_"))
+        fprintf(out,"%s",buf);
+    if(strstr(buf,"_cell_angle_"))
+        fprintf(out,"%s",buf);
+    if(strstr(buf,"_symmetry_Int_Tables_number"))
     {
-      atom_symb(C->SPCZ[i],s1);    
-      fprintf(out,"%s ",s1);
+      fprintf(out,"%s",buf);
+      sscanf(buf,"%s %d",s1,&SGN);
+      Real(C);
+      if(J==0)
+        return SGN;
+      D->SGN = SGN;
+      READ_SG(D);
+      D->NS = 1;
     }
-    else
-      fprintf(out,"%c ",65+i);
-  }
-  fprintf(out,"'\n");
-  fprintf(out,"_atom_site_occupancy wyckoff\n");
-
-  in = fopen("wyckoff","r");
-  while(fgets(buf,200,in))
-  {
-    if(strncmp("_atom_site_occupancy",buf,19)==0)
+    if(strstr(buf,"Wyckoff position"))
     {
+      sscanf(buf,"%s %s %s",s1,s1,w[i]);
+      w[i++][1] = 0;
+    }  
+    if(strstr(buf,"_atom_site_occupancy"))
+    {
+      fprintf(out,"_chemical_formula_sum\n");
+      fprintf(out,"'");
+      for(i=0;i<C->ATMN[C->N-1]+1;i++)
+      {
+        if(C->SPCZ[0]>0)
+        {
+          atom_symb(C->SPCZ[i],s1);    
+          fprintf(out,"%s ",s1);
+        }
+        else
+          fprintf(out,"%c ",65+i);
+      }
+      fprintf(out,"'\n");
+      fprintf(out,"_atom_site_occupancy wyckoff\n");
       i = 0;
       while(fgets(buf,200,in))
-	if(strlen(buf)> 5)
+	if(strlen(buf)> 5 && !strstr(buf,"end of cif"))
 	{
           sscanf(buf,"%s %s %d %s %lf %lf %lf",s1,s2,&m,w[i],&D->W[0][0],&D->W[0][1],&D->W[0][2]);
 	  for(k=0; k<10 && s2[0]!=65+k ;k++);
@@ -222,8 +215,10 @@ int FIND_WYC(Cell *C, Cell *D, double tol, char *ISO, int J)
 	}
     }
   }
-  fprintf(out,"loop_\n");
+
   fclose(in);
+  
+  fprintf(out,"loop_\n");
   fclose(out);
 
   for(i=0;i<C->ATMN[C->N-1]+1;i++)
@@ -612,10 +607,21 @@ void COMP_STR(Cell *C, Cell *D, int argc, char **argv)
 //==================================================================
 void INIT_CELL(Cell *C, char filename[], int N, int NM, int J)
 {
+  FILE *in;
   C->MODT = 0;
   C->A    = 0;
+
   if(J==1)
+  {
+    if((in=fopen(filename,"r"))==0)
+    {
+      perror(filename);
+      exit(1);
+    }
+
     READ_CELL(C,filename);
+  }
+    
   C->N   *= N;
   C->A    = C->N;
   C->NM   = NM;
@@ -730,10 +736,8 @@ void CELL_EXAM(Cell *C, Cell *D, int argc, char **argv)
     INIT_CELL(C,"POSCAR",1,NM,1);
     C->ND = FIND_NDIM(C);
     if( C->ND!= 0)
-    {
-      fprintf(stderr,"POSCAR is periodic\n");
-      exit(1);
-    }
+      printf("WARNING POSCAR is periodic\n");
+
     if( argc<3 )
     {
       fprintf(stderr,"Please provide new box size\n");

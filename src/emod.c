@@ -149,7 +149,7 @@ void INIT_TR(Tribe *T)
   sprintf(buf,"%lf\n",T->VOL);
   Print_LOG(buf);
 
-  //If this is the first step of a GA run then generate structures
+  //If this is the first step of a EVOS run then generate structures
   if(T->n<=0)                   // if T->n < 0 the particles will be re-generated for REFL and INVS
     for(p=T->N;p<2*T->N;p++)    //fill the second half of the array of cells (first half is for energy ordering)
     {
@@ -202,16 +202,16 @@ void INIT_TR(Tribe *T)
       T->C[p].P=0.0;
       T->C[p].dE = -0.02;
     }
-  if(T->n>0)  //If this is not the first step in the GA then read in from last step
+  if(T->n>0)  //If this is not the first step in the EVOS then read in from last step
     for(p=0;p<2*T->N;p++)
     {
-      sprintf(buf,"GA/G%03d/M%03d/CONTCAR.1",T->n-1,p);
+      sprintf(buf,"EVOS/G%03d/M%03d/CONTCAR.1",T->n-1,p);
       if(READ_CELL(&T->C[p],buf)==0)
       {
 	printf("ERROR: specified generation to restart from does not exist\n");
 	exit(0);
       }
-      sprintf(buf,"GA/G%03d/M%03d/OSZICAR.1",T->n-1,p);
+      sprintf(buf,"EVOS/G%03d/M%03d/OSZICAR.1",T->n-1,p);
       T->C[p].P = Read_OSZI(buf);
       if( fabs(T->C[p].P-1.0)<1e-15 )
       {
@@ -246,7 +246,7 @@ void EXIT_TR(Tribe *T)
     exit(1);
   }
   while(fgets(buf,200,in))
-    if(strncmp(buf,"RUNT",4)==0) 
+    if(strncmp(buf,"JOBT",4)==0) 
       sscanf(buf+4,"%d" ,&T->JOBT);
   fclose(in);
 
@@ -255,7 +255,7 @@ void EXIT_TR(Tribe *T)
 
   for(p=T->N;p<T->N*2;p++)
   {
-    sprintf(buf,"GA/G%03d/M%03d/jobid",T->n,p);
+    sprintf(buf,"EVOS/G%03d/M%03d/jobid",T->n,p);
     if( (in = fopen(buf,"r"))!=0 )
     {
       fgets(buf,200,in);
@@ -271,7 +271,7 @@ void EXIT_TR(Tribe *T)
       fclose(in);
     }
   }
-  sprintf(buf,"rm -r GA/G%03d/",T->n);
+  sprintf(buf,"rm -r EVOS/G%03d/",T->n);
   system(buf);
   sprintf(buf,"Hard exit at iteration %3d \n",T->n);
   fprintf(stderr,"Hard exit at iteration %3d \n",T->n);
@@ -422,11 +422,11 @@ void PLOT_TR(Tribe *T)
   FILE *out1, *out2, *out3, *out4;
 
   if(T->n==0)
-    system("rm -f aarank.dat aalink.dat aabest.dat aaplot.dat");
-  out1 = fopen("aarank.dat","a");
-  out2 = fopen("aalink.dat","a");
-  out3 = fopen("aabest.dat","a");
-  out4 = fopen("aaplot.dat","a");
+    system("rm -f erank.dat elink.dat ebest.dat eplot.dat");
+  out1 = fopen("erank.dat","a");
+  out2 = fopen("elink.dat","a");
+  out3 = fopen("ebest.dat","a");
+  out4 = fopen("eplot.dat","a");
 
   for(p=0;p<T->N;p++)
     fprintf(out1,"%4d % 15.9lf\n",T->n,T->E[p]/(double)T->C[p].N);
@@ -452,18 +452,18 @@ void QSUB_TR(Tribe *T, int p)
 {
   char buf[200];
 
-  sprintf(buf,"mkdir -p GA/G%03d/M%03d",T->n,p);
+  sprintf(buf,"mkdir -p EVOS/G%03d/M%03d",T->n,p);
   system(buf);
   if(T->CODE==1) //===== for VASP =====
   {
-    sprintf(buf,"cp INI/POTCAR GA/G%03d/M%03d",T->n,p);
+    sprintf(buf,"cp INI/POTCAR EVOS/G%03d/M%03d",T->n,p);
     system(buf);
-    sprintf(buf,"cp INI/INCAR GA/G%03d/M%03d",T->n,p);
+    sprintf(buf,"cp INI/INCAR EVOS/G%03d/M%03d",T->n,p);
     system(buf);
-    sprintf(buf,"GA/G%03d/M%03d/KPOINTS",T->n,p);
+    sprintf(buf,"EVOS/G%03d/M%03d/KPOINTS",T->n,p);
     KMESH(&T->C[p],T->KM,buf,T->ND);
   }
-  sprintf(buf,"GA/G%03d/M%03d/POSCAR",T->n,p);
+  sprintf(buf,"EVOS/G%03d/M%03d/POSCAR",T->n,p);
   SAVE_CELL(&T->C[p],buf,0);
   if( DEBUG==1 )
     return;
@@ -473,7 +473,7 @@ void QSUB_TR(Tribe *T, int p)
   system(buf);
   sprintf(buf,"sed -i 's/MMMM/M%03d/' g%03d",p,p);
   system(buf);
-  sprintf(buf,"qsub g%03d >> GA/G%03d/M%03d/jobid",p,T->n,p);
+  sprintf(buf,"qsub g%03d >> EVOS/G%03d/M%03d/jobid",p,T->n,p);
   system(buf);  
 
 }
@@ -509,19 +509,20 @@ void RELX_INT(Tribe *T)
   EXIT_TR(T);
   for(p=T->N;p<T->N*2;p++)
   {
-    sprintf(buf,"mkdir GA/G%03d/M%03d",T->n,p);
+    sprintf(buf,"mkdir EVOS/G%03d/M%03d",T->n,p);
     system(buf);
-    sprintf(buf,"GA/G%03d/M%03d/POSCAR.1",T->n,p);
+    sprintf(buf,"EVOS/G%03d/M%03d/POSCAR.1",T->n,p);
     SAVE_CELL(&T->C[p],buf,0);
 
     Copy_C(&T->C[p],&T->C[2*T->N+1]);    
+
     CELL_RELX(RR,PP,WW,&T->C[2*T->N+1],LL);
 
-    sprintf(buf,"GA/G%03d/M%03d/CONTCAR.1",T->n,p);
+    sprintf(buf,"EVOS/G%03d/M%03d/CONTCAR.1",T->n,p);
     SAVE_CELL(&T->C[2*T->N+1],buf,0);
-    sprintf(buf,"mv OUTCAR GA/G%03d/M%03d/OUTCAR.1",T->n,p);
+    sprintf(buf,"mv OUTCAR EVOS/G%03d/M%03d/OUTCAR.1",T->n,p);
     system(buf);
-    sprintf(buf,"mv OSZICAR GA/G%03d/M%03d/OSZICAR.1",T->n,p);
+    sprintf(buf,"mv OSZICAR EVOS/G%03d/M%03d/OSZICAR.1",T->n,p);
     system(buf);
   }
 }
@@ -530,37 +531,36 @@ void RELX_INT(Tribe *T)
 //==================================================================
 void RELX_TR(Tribe *T)
 {
-  int i,p,Q,t1,t2,*I,N,FAIL,m;
+  int i,p,Q,t1,t2,*I,FAIL,m;
   char buf[200],s[200];
   FILE *in;
 
-  N = 2*T->N;
   I = make_i1D(2*T->N);
 
   system("sleep 3");      // to allow completion of PLOT_TR output
 
-  sprintf(buf,"GA/G%03d",T->n);
+  sprintf(buf,"EVOS/G%03d",T->n);
   if(chdir(buf)==0)
   {
     chdir("../../");
-    sprintf(buf,"Directory GA/G%03d already exists!\n",T->n);
+    sprintf(buf,"Directory EVOS/G%03d already exists!\n",T->n);
     Print_LOG(buf);
-    fprintf(stderr,"Directory GA/G%03d already exists!\n",T->n);
+    fprintf(stderr,"Directory EVOS/G%03d already exists!\n",T->n);
     exit(1);
   }
-  sprintf(buf,"mkdir GA/G%03d",T->n);
+  sprintf(buf,"mkdir EVOS/G%03d",T->n);
   system(buf);
   if(T->n>0)
   {
     for(p=0;p<T->N;p++)
     {
-      sprintf(buf,"mkdir GA/G%03d/M%03d",T->n,p);
+      sprintf(buf,"mkdir EVOS/G%03d/M%03d",T->n,p);
       system(buf);
-      sprintf(buf,"GA/G%03d/M%03d/CONTCAR.1",T->n,p);
+      sprintf(buf,"EVOS/G%03d/M%03d/CONTCAR.1",T->n,p);
       SAVE_CELL(&T->C[p],buf,0);
-      sprintf(buf,"cp GA/G%03d/M%03d/OSZICAR.1 GA/G%03d/M%03d",T->n-1,T->S[p],T->n,p);
+      sprintf(buf,"cp EVOS/G%03d/M%03d/OSZICAR.1 EVOS/G%03d/M%03d",T->n-1,T->S[p],T->n,p);
       system(buf);
-      sprintf(buf,"cp GA/G%03d/M%03d/OUTCAR.1 GA/G%03d/M%03d",T->n-1,T->S[p],T->n,p);
+      sprintf(buf,"cp EVOS/G%03d/M%03d/OUTCAR.1 EVOS/G%03d/M%03d",T->n-1,T->S[p],T->n,p);
       system(buf);
     }
   }
@@ -590,14 +590,14 @@ void RELX_TR(Tribe *T)
       for(p=T->N;p<2*T->N;p++)
 	if(I[p]==0)
 	{
-	  sprintf(buf,"GA/G%03d/M%03d/OUTCAR.1",T->n,p);
+	  sprintf(buf,"EVOS/G%03d/M%03d/OUTCAR.1",T->n,p);
 	  Q=Check_OUTCAR(&T->C[p],buf);
-	  sprintf(buf,"GA/G%03d/M%03d/stamp",T->n,p);
+	  sprintf(buf,"EVOS/G%03d/M%03d/stamp",T->n,p);
 	  t2 = TIME(buf);
 	  if( Q==1 )
 	  {
 	    I[p] = 1;
-	    sprintf(buf,"GA/G%03d/M%03d/CONTCAR.1",T->n,p);
+	    sprintf(buf,"EVOS/G%03d/M%03d/CONTCAR.1",T->n,p);
 	    READ_CELL(&T->C[p],buf);
 	  }
 	  if( Q==0 || (Q<0 && t1>=0 && t2>=0 && ( (int)(t1-t2) >T->time ) ) || (Q==1 && CHCK_Rm(&T->C[p],T->Rm,0.7)==0) )
@@ -608,7 +608,7 @@ void RELX_TR(Tribe *T)
 	    I[p] = -1;
 	    if( Q<0 )
 	    {
-	      sprintf(buf,"GA/G%03d/M%03d/jobid",T->n,p);
+	      sprintf(buf,"EVOS/G%03d/M%03d/jobid",T->n,p);
 	      if( (in = fopen(buf,"r"))!=0 )
 	      {
 		fgets(buf,200,in);
@@ -625,7 +625,7 @@ void RELX_TR(Tribe *T)
 		fclose(in);
 	      }
 	    }
-	    sprintf(buf,"if [ -e GA/G%03d/M%03d/POOL ] ; then cp GA/G%03d/M%03d/POOL/F* FAIL/POS%03d%03d-%03d ; fi;", T->n, p, T->n, p, T->n, p, FAIL++);
+	    sprintf(buf,"if [ -e EVOS/G%03d/M%03d/POOL ] ; then cp EVOS/G%03d/M%03d/POOL/F* FAIL/POS%03d%03d-%03d ; fi;", T->n, p, T->n, p, T->n, p, FAIL++);
 	    system(buf);
 	  }
 	}
@@ -662,17 +662,17 @@ void RELX_TR(Tribe *T)
 	    if(I[i]==1)
 	      break;
 	  }
-	sprintf(buf,"rm -r GA/G%03d/M%03d/*",T->n,p);
+	sprintf(buf,"rm -r EVOS/G%03d/M%03d/*",T->n,p);
 	system(buf);
-	sprintf(buf,"cp    GA/G%03d/M%03d/* GA/G%03d/M%03d",T->n,i,T->n,p);
+	sprintf(buf,"cp    EVOS/G%03d/M%03d/* EVOS/G%03d/M%03d",T->n,i,T->n,p);
 	system(buf);
       }
   }
   for(p=T->N;p<2*T->N;p++)
   {
-    sprintf(buf,"GA/G%03d/M%03d/CONTCAR.1",T->n,p);
+    sprintf(buf,"EVOS/G%03d/M%03d/CONTCAR.1",T->n,p);
     READ_CELL(&T->C[p],buf);
-    sprintf(buf,"GA/G%03d/M%03d/OSZICAR.1",T->n,p);
+    sprintf(buf,"EVOS/G%03d/M%03d/OSZICAR.1",T->n,p);
     T->C[p].P = Read_OSZI(buf);
     if(T->ND==0)
       NANO_ROT(&T->C[p],0);
@@ -684,13 +684,13 @@ void RELX_TR(Tribe *T)
   if(T->n==0)
     for(p=0;p<T->N;p++)
     {
-      sprintf(buf,"mkdir GA/G%03d/M%03d",T->n,p);
+      sprintf(buf,"mkdir EVOS/G%03d/M%03d",T->n,p);
       system(buf);
-      sprintf(buf,"cp GA/G%03d/M%03d/CONTCAR.1 GA/G%03d/M%03d",T->n,T->N+p,T->n,p);
+      sprintf(buf,"cp EVOS/G%03d/M%03d/CONTCAR.1 EVOS/G%03d/M%03d",T->n,T->N+p,T->n,p);
       system(buf);
-      sprintf(buf,"cp GA/G%03d/M%03d/OSZICAR.1 GA/G%03d/M%03d",T->n,T->N+p,T->n,p);
+      sprintf(buf,"cp EVOS/G%03d/M%03d/OSZICAR.1 EVOS/G%03d/M%03d",T->n,T->N+p,T->n,p);
       system(buf);
-      sprintf(buf,"cp GA/G%03d/M%03d/OUTCAR.1  GA/G%03d/M%03d",T->n,T->N+p,T->n,p);
+      sprintf(buf,"cp EVOS/G%03d/M%03d/OUTCAR.1  EVOS/G%03d/M%03d",T->n,T->N+p,T->n,p);
       system(buf);
       Copy_C(&T->C[T->N+p],&T->C[p]);
     }
@@ -701,11 +701,11 @@ void RELX_TR(Tribe *T)
       sprintf(buf,"rm -f g%03d*",p);
       system(buf);
     }
-    sprintf(buf,"rm -f GA/G%03d/M*/OUT* GA/G%03d/M*/POTCAR* GA/G%03d/M*/INCAR* GA/G%03d/M*/KPOINTS*",T->n-2,T->n-2,T->n-2,T->n-2);
+    sprintf(buf,"rm -f EVOS/G%03d/M*/OUT* EVOS/G%03d/M*/POTCAR* EVOS/G%03d/M*/INCAR* EVOS/G%03d/M*/KPOINTS*",T->n-2,T->n-2,T->n-2,T->n-2);
     if(T->CODE==1)
       system(buf);
   }
-  sprintf(buf,"cp GA/G%03d/M000/CONTCAR.1 poscar",T->n);
+  sprintf(buf,"cp EVOS/G%03d/M000/CONTCAR.1 poscar",T->n);
 
   free_i1D(I);
 }
@@ -758,7 +758,7 @@ void EVLV_TR(Tribe *T, int J)
   }
 }
 //==================================================================
-void ANA_GA(Tribe *T, Cell *C, Cell *D)
+void ANA_EVOS(Tribe *T, Cell *C, Cell *D)
 {
   int i,n,N,m,M,g,G,*I;
   double E0,*E,*V,tol;
@@ -767,7 +767,7 @@ void ANA_GA(Tribe *T, Cell *C, Cell *D)
 
   tol = 0.1;
 
-  sprintf(s,"tail -1 %s/aabest.dat",C->WDIR);
+  sprintf(s,"tail -1 %s/ebest.dat",C->WDIR);
   in = popen(s,"r");
   fscanf(in,"%d %lf\n",&i,&E0);
   pclose(in);
@@ -856,7 +856,7 @@ void ANA_GA(Tribe *T, Cell *C, Cell *D)
 //==================================================================
 // build the tribe; the Cell number T->N is for tmp
 //==================================================================
-void INIT_GA(Tribe *T, Cell *C)
+void INIT_EVOS(Tribe *T, Cell *C)
 {
   int k,n,i,j;
   char buf[200];
@@ -909,8 +909,12 @@ void INIT_GA(Tribe *T, Cell *C)
     Copy_C(C,&T->C[n]);
   }
 
+  if(T->JOBT>10)
+    return;
+
   if(T->CODE==0)
-    READ_MOD(C,"INI");
+    READ_POT(C,".");
+
   T->C[2*T->N+1] = *C;
 
   //===== for planting seed structures =====
@@ -946,7 +950,8 @@ void EVOS_MAIN(Tribe *T, ANN *R, PRS *P, Cell *C)
   RR = R;
   PP = P;
 
-  INIT_GA(T,C);
+  INIT_EVOS(T,C);
+  R->MODT = C->MODT;
 
   if(T->seed==0)         // Check if seed is by hand or auto if so:
     T->seed=time(NULL);  // SET TO TIME
@@ -956,7 +961,7 @@ void EVOS_MAIN(Tribe *T, ANN *R, PRS *P, Cell *C)
 
   if(T->JOBT==13)
   {    
-    ANA_GA(T,&T->C[0],&T->C[1]);
+    ANA_EVOS(T,&T->C[0],&T->C[1]);
     exit(0);
   }
 

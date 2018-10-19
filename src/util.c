@@ -922,6 +922,12 @@ void SAVE_CELL(Cell *C, char filename[], int SD)
   fprintf(out,"\ndirect\n"); 
 
   Relative(C); 
+
+  for(i=0; i<C->N && SD==0 ; i++)
+    for(q=0; q<3; q++)
+      if( C->FF[i][q] == 0 )
+	SD = 1;
+
   for(i=0; i < C->N;i++) 
   { 
     for(q=0; q < D3;q++) 
@@ -1086,7 +1092,7 @@ void READ_ATM(ANN *R, Cell *C)
   fclose(in);
 }
 //==============================================================================
-//    reads in GA parameters from "setup" file
+//    reads in EVOS parameters from "setup" file
 //==============================================================================
 void READ_MAIN(Tribe *T, ANN *R, PRS *P, Cell *C, int J, int ARGC)
 {
@@ -1159,6 +1165,8 @@ void READ_MAIN(Tribe *T, ANN *R, PRS *P, Cell *C, int J, int ARGC)
   C->RLXT  = 0;
   R->MODT  = 1;
   C->MODT  = 1;
+  C->ND    = -1;
+  T->ND    = -1;
   strcpy(C->WDIR,".");
 
   while( fgets(buf,200,in) )
@@ -1319,7 +1327,6 @@ void READ_MAIN(Tribe *T, ANN *R, PRS *P, Cell *C, int J, int ARGC)
   R->seed=T->seed;
   PlantSeeds(T->seed);
 
-
   C->p = T->p/eV2GPa;
 
   if( R->MODT == 1 )
@@ -1351,7 +1358,7 @@ void READ_MAIN(Tribe *T, ANN *R, PRS *P, Cell *C, int J, int ARGC)
     T->FES[n] = T->FES[n-1] + T->TES[n  ];
   }
   //===== For INVS the only odd number of atoms allowed is for 1 species in the core =====
-  if( T->JOBT/10 == 1 && T->ND == 0 && T->TES[8] > 0 )
+  if( T->JOBT == 1 && T->ND == 0 && T->TES[8] > 0 )
   {
     for(n=i=0; i < T->NSPC;i++)
       n += T->SPCN[i]%2;
@@ -1364,12 +1371,12 @@ void READ_MAIN(Tribe *T, ANN *R, PRS *P, Cell *C, int J, int ARGC)
       T->TES[8]  = 0;
     }
   }      
-  if( T->JOBT/10 == 1 )
+  if( T->JOBT == 1 )
     for(n=0; n < 11;n++)
       if( T->TES[n] > 0 )
         printf("EVLV %3d %s %3d %3d %3d\n",n,T->NES[n],T->TES[n],T->SES[n],T->FES[n]);
 
-  if( T->ND == 0 && T->JOBT/10 == 1 && T->FES[10] != 2*T->N )
+  if( T->ND == 0 && T->JOBT == 1 && T->FES[10] != 2*T->N )
   {
     printf("Please make sure that the sum of all operations for nanoparticles is 1\n");
     fprintf(stderr,"Please make sure that the sum of all operations for nanoparticles is 1\n");
@@ -1386,13 +1393,32 @@ void READ_MAIN(Tribe *T, ANN *R, PRS *P, Cell *C, int J, int ARGC)
   //===== If the job is a cell operation, this will overwrite the setup and basis =====
   //===== parameters with those in the "model" file in the current directory. =====
   
-  if( (R->JOBT/10==2 ) && (R->MODT==1) )
+  if( R->JOBT/10==2 )
   {
     if( (in=fopen("model","r")) == 0 )
     {
       fprintf(stderr,"ERROR opening %s\n",s);
       exit(1);
     }
+    R->MODT = 0;
+    fgets(s,200,in);
+    fgets(s,200,in);
+    sscanf(s+2,"%s",s);
+    if( strncmp(s,"neural",6) == 0 )
+      C->MODT = R->MODT = 1;
+    if( strncmp(s,"Sutton-Chen",11) == 0 )
+      C->MODT = R->MODT = 2;
+    if( strncmp(s,"Lennard-Jones",13) == 0 )
+      C->MODT = R->MODT = 3;
+    if( strncmp(s,"Gupta",5) == 0 )
+      C->MODT = R->MODT = 4;
+
+    if( R->MODT==0 )
+    {
+      fprintf(stderr,"ERROR reading %s\n",s);
+      exit(1);
+    }
+
     R->NSPC = 0;
 
     while( fgets(s,200,in) )
@@ -1401,7 +1427,7 @@ void READ_MAIN(Tribe *T, ANN *R, PRS *P, Cell *C, int J, int ARGC)
 	sscanf(s+26,"%d" ,&R->NSPC);
 	break;
       }
-
+    
     while( fgets(s,200,in) )
       if( strncmp(s,"|  species types        |",25) == 0 )
       {
@@ -1409,45 +1435,48 @@ void READ_MAIN(Tribe *T, ANN *R, PRS *P, Cell *C, int J, int ARGC)
 	  sscanf(s+k,"%d%n",&R->SPCZ[i],&n);
 	break;
       }
+    
+    if( R->MODT==1 )
+    {
+      while( fgets(s,200,in) )
+	if( strncmp(s,"|  number of layers     |",25) == 0 )
+	{
+	  sscanf(s+26,"%d",&R->NL);
+	  break;
+	}
+      
+      while( fgets(s,200,in) )
+	if( strncmp(s,"|  architecture         |",25) == 0 )
+	{
+	  for(i=0,n=0,k=26; i < R->NL;i++,k+=n)
+	    sscanf(s+k,"%d%n",&R->NU[i],&n);
+	  break;
+	}
+      
+      while( fgets(s,200,in) )
+	if( strncmp(s,"  B2A",5) == 0 )
+	  break;
+      for(i=0; i < 4;i++)
+	fgets(s,200,in);
+      i = -1;
+      while( fgets(s,200,in) )
+	if( strncmp(s," Rc  ",5) == 0 )
+	  break;
+	else
+	  i++;
+      P->NSYM = R->NSYM = i;
+      P->D    = R->NU[0];
+      R->D    = R->NU[0];
+    }
 
-    while( fgets(s,200,in) )
-      if( strncmp(s,"|  number of layers     |",25) == 0 )
-      {
-	sscanf(s+26,"%d",&R->NL);
-	break;
-      }
-
-    while( fgets(s,200,in) )
-      if( strncmp(s,"|  architecture         |",25) == 0 )
-      {
-	for(i=0,n=0,k=26; i < R->NL;i++,k+=n)
-	  sscanf(s+k,"%d%n",&R->NU[i],&n);
-	break;
-      }
-
-    while( fgets(s,200,in) )
-      if( strncmp(s,"  B2A",5) == 0 )
-	break;
-    for(i=0; i < 4;i++)
-      fgets(s,200,in);
-    i=-1;
-    while( fgets(s,200,in) )
-      if( strncmp(s," Rc  ",5) == 0 )
-        break;
-      else
-	i++;
     fclose(in);
-
-    C->A=0;
+    C->A = 0;
     READ_CELL(C,"POSCAR");
-    R->A=C->A;
-
-    P->NSYM=R->NSYM=i;
-    P->D=R->D=R->NU[0];
-    P->NSPC=R->NSPC;
-    C->nspc=R->NSPC;
+    R->A = C->A;
+    P->NSPC = R->NSPC;
+    C->nspc = R->NSPC;
     for(i=0;i<C->nspc;i++)
-      C->spcz[i]=P->SPCZ[i]=R->SPCZ[i];
+      C->spcz[i] = P->SPCZ[i] = R->SPCZ[i];
   }
 }
 //==============================================================================
@@ -1494,7 +1523,7 @@ static long seed[STREAMS] = {DEFAULT};  /* current state of each stream   */
 static int  stream        = 0;          /* stream index, 0 is the default */
 static int  initialized   = 0;          /* test for stream initialization */
 
-
+//==============================================================================
 double Random(void)
 //==============================================================================
 // Random returns a pseudo-random real number uniformly distributed 
@@ -1512,7 +1541,7 @@ double Random(void)
     seed[stream] = t + MODULUS;
   return ((double) seed[stream] / MODULUS);
 }
-
+//==============================================================================
 void PlantSeeds(long x)
 //==============================================================================
 // Use this function to set the state of all the random number generator 
@@ -1540,8 +1569,7 @@ void PlantSeeds(long x)
       seed[j] = x + MODULUS;
    }
 }
-
-
+//==============================================================================
 void PutSeed(long x)
 //==============================================================================
 // Use this function to set the state of the current random number 
@@ -1567,8 +1595,7 @@ void PutSeed(long x)
     }
   seed[stream] = x;
 }
-
-
+//==============================================================================
 void GetSeed(long *x)
 //==============================================================================
 // Use this function to get the state of the current random number 
@@ -1577,8 +1604,7 @@ void GetSeed(long *x)
 {
   *x = seed[stream];
 }
-
-
+//==============================================================================
 void SelectStream(int index)
 //==============================================================================
 //
@@ -1590,24 +1616,20 @@ void SelectStream(int index)
   if ((initialized == 0) && (stream != 0))   /* protect against        */
     PlantSeeds(DEFAULT);                     /* un-initialized streams */
 }
-
-
+//==============================================================================
 void TestRandom(void)
 //==============================================================================
-//
 // Use this (optional) function to test for a correct implementation.
-//
 //==============================================================================
 {
   long   i;
   long   x;
-  double u;
   char   ok = 0;  
 
   SelectStream(0);                  /* select the default stream */
   PutSeed(1);                       /* and set the state to 1    */
   for(i = 0; i < 10000; i++)
-    u = Random();
+    Random();
   GetSeed(&x);                      /* get the new state value   */
   ok = (x == CHECK);                /* and check for correctness */
 

@@ -100,7 +100,7 @@ double CELL_ENE(ANN *R, PRS *P, PRS *W, Cell *C, LNK *L)
 {   
   int i;
 
-  if(R->MODT==1)
+  if( R->MODT==1 )
   {
     P->EFS = 0;
     PARS_STR(P,W,C,L,0,"."); 
@@ -112,12 +112,8 @@ double CELL_ENE(ANN *R, PRS *P, PRS *W, Cell *C, LNK *L)
     for(i=0;i<C->N;i++)
       C->EA[i] = L->EA[i]+R->E0[C->ATMZ[i]];
   }
-  if(R->MODT==2)
-    C->E = ENE_LJ(C);
-  if(R->MODT==3)
-    C->E = ENE_SC(C,1);
-  if(R->MODT==4)
-    C->E = ENE_GP(C,1);
+  if( R->MODT>1 )
+    C->E = ENE_POT(C);
 
   C->H = C->E;
   if(C->ND==3)
@@ -129,7 +125,7 @@ double CELL_FRC(ANN *R, PRS *P, PRS *W, Cell *C, LNK *L)
 {
   int i,q;
 
-  if(R->MODT==1)
+  if( R->MODT==1 )
   {
     P->EFS = 3;
     PARS_STR(P,W,C,L,0,".");
@@ -146,12 +142,17 @@ double CELL_FRC(ANN *R, PRS *P, PRS *W, Cell *C, LNK *L)
     for(q=0;q<6;q++)
       C->U[q] = L->s[q];
   }
-  if(R->MODT==2)
-    C->E = FRC_LJ(C);
-  if(R->MODT==3)
-    C->E = FRC_SC(C,1);
-  if(R->MODT==4)
-    C->E = FRC_GP(C,1);
+  if( R->MODT>1 )
+    C->E = FRC_POT(C);
+
+  //=====  remove noise to preserve symmetry in some cases =====
+  for(i=0;i<C->N;i++)
+    for(q=0;q<3;q++)
+      if( fabs(C->F[i][q])<1e-8 )
+	C->F[i][q] = 0.0;
+  for(q=0;q<6;q++)
+    if( fabs(C->U[q])<1e-8 )
+      C->U[q] = 0.0;
 
   C->H = C->E;
 
@@ -401,7 +402,6 @@ void CELL_OUT(Cell *C)
   struct tm * timeinfo;
 
   a   = 180.0/Pi;
-  C->time[1]=cpu_time();
 
   sprintf(s,"OUTCAR");
   out = fopen(s,"a");
@@ -456,7 +456,6 @@ void CELL_OUT(Cell *C)
   }
   fprintf(out,"  iter %3d   total enthalpy= % 14.8lf   energy=  % 14.8lf   % 14.8lf  % 14.8lf\n%s\n\n\n",C->it,C->H,C->E,C->H/(double)C->N,C->E/(double)C->N,b);
 
-  fprintf(out,"  \n Total CPU time used (sec):  % 14.8lf \n",C->time[1]-C->time[0]);
   fclose(out);
   sprintf(s,"OSZICAR");
   out = fopen(s,"a");
@@ -488,6 +487,8 @@ void CELL_RELX(ANN *R, PRS *P, PRS *W, Cell *C, LNK *L)
 {
     int    i;
     double H;
+    FILE  *out;
+    double time;
 
     if(C->RLXT == 0 && R->MITR > 0)
     {
@@ -497,7 +498,8 @@ void CELL_RELX(ANN *R, PRS *P, PRS *W, Cell *C, LNK *L)
     
     system("rm -f OUTCAR OSZICAR");
     C->stop = 0;
-    C->time[0]=cpu_time();
+
+    time=cpu_time();
     H = CELL_FRC(R,P,W,C,L);
 
     if(R->MITR==0)
@@ -508,7 +510,7 @@ void CELL_RELX(ANN *R, PRS *P, PRS *W, Cell *C, LNK *L)
     {
       if(R->MINT>=0 && R->MINT<4)
       {
-       	CELL_BFGS(R,P,W,C,L);
+       	CELL_MIN(R,P,W,C,L);
       }
       else
       {
@@ -525,10 +527,60 @@ void CELL_RELX(ANN *R, PRS *P, PRS *W, Cell *C, LNK *L)
     if(!CELL_OK(C,R->Rm))
       system("echo >> OUTCAR;echo ERROR distances are too short >> OUTCAR");
 
+    out=fopen("OUTCAR","a");
+    fprintf(out,"  \n Total CPU time used (sec):  % 14.8lf \n",cpu_time()-time);
+    fclose(out);
+
     return;
     for(i=0;i<C->N;i++)
       C->Nn[i] = 12;
     Print_List(C);
+}
+//======================================================
+//
+//======================================================
+void CELL_TEST(ANN *R, PRS *P, PRS *W, Cell *C, LNK *L)
+{
+  int    i,q,OK;
+  double t,dx,Em,Ep,**F;
+
+  dx = 0.00001;
+  F  = make_d2D(C->N,3);
+
+  OK = 1;
+  for(i=0;i<C->N;i++)
+    for(q=0;q<3;q++)
+    {
+      t = C->X[i][q];
+      C->X[i][q] += dx;
+      Ep = CELL_ENE(R,P,W,C,L);
+      C->X[i][q] -= 2.0*dx;
+      Em = CELL_ENE(R,P,W,C,L);
+      F[i][q] = -(Ep-Em)/(dx*2.0);
+      C->X[i][q] += dx;
+    }
+  CELL_FRC(R,P,W,C,L);
+
+  for(i=0;i<C->N;i++,printf("\n"))
+  {
+    for(q=0,printf("NUM  ");q<3;q++)
+      printf("% 24.12lf ",F[i][q]);
+    printf("\n");
+    for(q=0,printf("ANA  ");q<3;q++)
+      printf("% 24.12lf ",C->F[i][q]);
+    printf("\n");
+    for(q=0,printf("DIF  ");q<3;q++)
+      printf("% 24.12lf ",C->F[i][q]-F[i][q]);
+    printf("\n");
+    for(q=0;q<3;q++)
+      if( fabs(C->F[i][q]-F[i][q])>1e-6 )
+      	OK = 0;
+  }
+  if( OK==0 )
+    printf("CHECK FAILED\n");
+  else
+    printf("CHECK PASSED\n");
+  free_d2D(F,C->N);
 }
 //======================================================
 //
@@ -553,7 +605,10 @@ void CELL_MAIN(ANN *R, PRS *P, Cell *C)
   {
     Build_ANN(R);
     READ_ANN(R);
+    Build_PRS(P,W,0);
   }
+  else
+    READ_POT(C,".");
 
   READ_CELL(C,"POSCAR");
   if( C->ND < 0 )
@@ -562,10 +617,6 @@ void CELL_MAIN(ANN *R, PRS *P, Cell *C)
     exit(1);
   }
 
-  if(R->MODT%10==3||R->MODT%10==4)
-    READ_MOD(C,R->otpt);
-
-  Build_PRS(P,W,0);
   P->IO = 0;
   for(i=0;i<C->N;i++)
     L.MRK[i]=1;
@@ -577,6 +628,7 @@ void CELL_MAIN(ANN *R, PRS *P, Cell *C)
 
   if( R->JOBT==20 ) CELL_RELX(R,P,W,C,&L);
   if( R->JOBT==21 ) CELL_MD(R,P,W,C,&L);
+  if( R->JOBT==22 ) CELL_TEST(R,P,W,C,&L);
 
   JAR(C);
 

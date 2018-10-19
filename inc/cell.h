@@ -9,6 +9,7 @@ double NDR(Cell *C, int i, int j);
 double DX(Cell *C, int i, int n, int q);
 double ndx(Cell *C, int i, int j, int k);
 double NDX(Cell *C, int i, int n);
+double NDD(Cell *C, int i, int n);
 double Cos(Cell *C, int i, int j, int k);
 int    NN(Cell *C, int i, int j);
 void   SCALE_Cell(Cell *C, double a);

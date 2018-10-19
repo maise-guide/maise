@@ -16,5 +16,5 @@ double func_gsl(const gsl_vector *x, void *params) ;
 void   dfunc_num_gsl(gsl_vector *x, void *params, gsl_vector *d) ;
 void   dfunc_gsl(const gsl_vector *x, void* params, gsl_vector *d) ;
 void   fdfunc_gsl(const gsl_vector *x, void *params, double *f, gsl_vector *df) ;
-double bfgs_mlp(ANN *R, LNK *L);
+double MLP_MIN(ANN *R, LNK *L);
 #endif

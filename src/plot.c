@@ -337,6 +337,6 @@ void PLOT(ANN *R, int type, int N1, int N2, int M, char *test, char *CMP)
     fprintf(out,"plot \"%s\" using 1:2 with linespoints t \"DFT\" ls 1, \"%s\" using 1:3 with linespoints t \"MLP\" ls 2\n","tmp_srf","tmp_srf");
     fprintf(out,"unset multiplot\n");
     fclose(out);
-
+    system("rm -f tmp_srf");
   }
 }

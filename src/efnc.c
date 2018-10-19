@@ -519,7 +519,7 @@ void NANO_PLNT(Tribe *T, int J, int P)
 void NANO_PACK(Tribe *T, int J, Cell *C, int P)
 {
   int i,j,q,m,M,*I,*II,N0,N,ic[3],S,p;
-  double a[3],R,*D,*DD,L[3][3],dr,b[3],c[3],B[4][3],**X,t;
+  double a[3],R,*D,*DD,L[3][3],b[3],c[3],B[4][3],**X,t;
   char buf[200];
 
   for(i=0,R=0.0;i<T->NSPC;i++)
@@ -572,8 +572,6 @@ void NANO_PACK(Tribe *T, int J, Cell *C, int P)
     I = make_i1D(M);
     D = make_d1D(M);
   
-    dr = 0.02;
-
     for(i=0;i<3;i++)
       for(q=0;q<3;q++)
 	C->L[i][q] = 0.0;
@@ -638,7 +636,7 @@ void NANO_PACK(Tribe *T, int J, Cell *C, int P)
 //==================================================================
 void NANO_SWAP(Tribe *T, int J)
 {
-  int i,j,m,q,k1,k2,p,N,*TN1,*TN2,qq,po,u,s,*PM,*SM,**I,N1,N2,qr;
+  int i,j,m,q,k1,k2,p,N,*TN1,*TN2,qq,po,u,s,*PM,*SM,**I,N1,qr;
   double t,r,**R,ar,x,y;
   char buf[200];
 
@@ -692,7 +690,6 @@ void NANO_SWAP(Tribe *T, int J)
     for(qq=0;qq<T->NSPC;qq++)
       TN1[qq] = 0;
     N1 = (int)((0.4+0.2*Random())*(double)T->C[k1].N);
-    N2 = T->C[k1].N - N1;
 
     for(i=0;i<N1;i++)
     {
@@ -1350,14 +1347,19 @@ void NANO_SYMM(Tribe *T, int J)
 //==================================================================
 void NANO_MUTE(Tribe *T, int J)
 {
-  int i,j,k,p,m,N,q,s,o;
-  double V,r,*f,*D;
+  int i,j,k,p,m,q,s,o;
+  double r,*f,*D,R,V,b[3];
   char buf[200];
 
   s = 0;
-  N = 2*T->N;
   f = make_d1D(T->N+1);
   D = make_d1D(T->C[0].N);
+
+  for(i=0,V=0.0;i<T->NSPC;i++)
+    V += pow(T->Rm[i],3.0)*(double)T->SPCN[i];
+  R = pow(V,1.0/3.0)*1.5;
+  for(q=0;q<3;q++)
+    b[q] = 1.0;
 
   for(m=0,p=T->N;p<2*T->N&&m<T->Nm;p++,m++)
   if( p>=T->SES[J] && p<T->FES[J] )
@@ -1370,7 +1372,6 @@ void NANO_MUTE(Tribe *T, int J)
     for(k=0;k<T->N-1&&f[k+1]<r;k++); //selects random k
 
     Copy_C(&T->C[k],&T->C[p]);
-    V = Cell_VOLUME(&T->C[p]);
 
     if( SHKE_CL(&T->C[p],T->cl,T->C[p].R0*T->ca)==0 )
       p--;
@@ -1397,7 +1398,7 @@ void NANO_MUTE(Tribe *T, int J)
 	    }
 	  }
       }
-      if(CHCK_Rm(&T->C[p],T->Rm,1.0)==1)
+      if(CHCK_Rm(&T->C[p],T->Rm,1.0)==1||ADJT_NP(&T->C[p],T->Rm,R,b,3))
       {
 	T->P1[p] = T->P2[p] = T->C[k].P;
 	sprintf(buf,"%3d %3d %s %3d %3d %3d swaps\n",T->n,p,T->NES[J],k,k,s);
@@ -1708,13 +1709,12 @@ void BULK_MATE(Tribe *T, int J)
 //==================================================================
 void BULK_MUTE(Tribe *T, int J)
 {
-  int i,j,k,p,m,N,q,s;
+  int i,j,k,p,m,q,s;
   double V,r,*f;
   char buf[200];
   long SEED;
 
   s = 0;
-  N = 2*T->N;
   f = make_d1D(T->N+1);
 
   for(m=0,p=T->N;p<2*T->N&&m<T->Nm;p++)
