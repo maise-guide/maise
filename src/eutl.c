@@ -487,11 +487,9 @@ void CNTR_CL(Cell *C)
 //==================================================================
 void TEMP_CL(Tribe *T, Cell *C, int p)
 {
-  int i,j,m,N,q,s;
+  int i,j,m,q,s;
   double V;
   char buf[200];
-
-  N  = 2*T->N;
 
   for(m=0,s=0;m<T->Nm;m++)
   {

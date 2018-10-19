@@ -1,9 +1,11 @@
 #=============================================================================#
 EXE        = maise
 CC         = gcc
-VER        = 2.0
+VER        = maise.2.1
 IPATH     := ~/bin/isotropy
 CFLAGS     = -O3 -Wall 
+GSL_H      = /home/erni/bin/include
+GSL_LIB    = /home/erni/bin/lib
 #=============================================================================#
 #                 !!! DO NOT CHANGE BELOW THIS LINE!!!                        # 
 #=============================================================================#
@@ -15,21 +17,21 @@ DDIR      := $(ODIR)/dep
 #=============================================================================#
 _SRC      := $(shell cd $(SDIR); ls *.c; cd ../)
 _OBJ       = $(subst .c,.o,$(_SRC))
-_LIB       = libgsl.a libgslcblas.a libspgr.a
+_LIB       = libspgr.a
 OBJ        = $(patsubst %,$(ODIR)/%,$(_OBJ))
 LIB        = $(patsubst %,$(LDIR)/%,$(_LIB)) 
 #=============================================================================#
 SERIAL    ?= 0
-LIB       += -lstdc++
-INCLUDE    = -I./inc -I./lib
-LDFLAGS    = -lm -fopenmp
-CPPFLAGS   = -DISOPATH='"$(IPATH)"' -DSERIAL=$(SERIAL) -DVERSION='"$(VER)"'
+LIB       += -lgsl -lgslcblas -lstdc++
+INCLUDE    = -I./inc -I./lib -I$(GSL_H) -L$(GSL_LIB)
+LDFLAGS    =  -lm -fopenmp
+CPPFLAGS   = -DISOPATH='"$(IPATH)"' -DSERIAL=$(SERIAL) -DVERSION='"$(VER)"' 
 CFLAGS    += $(LDFLAGS) $(INCLUDE) $(CPPFLAGS)
 DFLAGS     = -MT $@ -MMD -MP -MF 
 #=============================================================================#
 $(EXE): $(LDIR)/libspgr.a $(OBJ) 
 	@printf "Linking $(_OBJ) and $(_LIB)...\n";
-	@$(CC) $(CFLAGS) -o $@ $^ $(LIB);
+	$(CC) $(CFLAGS) -o $@ $^ $(LIB);
 	@if [ -e $@ ]; then cp ./$@ ./bin/$@;fi; printf "$@ is ready!\n";
 
 $(LDIR)/libspgr.a: $(ADIR)/spgr.c

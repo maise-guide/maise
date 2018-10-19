@@ -11,7 +11,7 @@ void   RELX_STOP(Tribe *T);
 void   RELX_INT(Tribe *T);
 void   RELX_TR(Tribe *T);
 void   EVLV_TR(Tribe *T, int J);
-void   ANA_GA(Tribe *T, Cell *C, Cell *D);
-void   INIT_GA(Tribe *T, Cell *C);
+void   ANA_EVOS(Tribe *T, Cell *C, Cell *D);
+void   INIT_EVOS(Tribe *T, Cell *C);
 void   EVOS_MAIN(Tribe *T, ANN *R, PRS *P, Cell *C);
 #endif

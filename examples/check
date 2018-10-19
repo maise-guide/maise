@@ -1,0 +1,50 @@
+echo "   === Benchmarking script for the MAISE code ==="
+echo ""
+
+cd parse
+maise > out.dat
+diff PARS/e000014 pars &> res.dat
+n=$(wc -l res.dat|awk '{print $1}')
+if [ $n -eq 0 ]
+then
+rm -r PARS out.dat res.dat
+echo " PARSE test OK!"
+else
+more out.dat >> res.dat
+mv res.dat ../issue_parse
+echo " PARSE test ERROR!"
+fi
+cd ..
+
+
+cd train
+maise > out.dat
+diff NNET/error.dat nnet/ &> res.dat
+n=$(wc -l res.dat|awk '{print $1}')
+if [ $n -eq 0 ]
+then
+rm NNET/model NNET/e* NNET/out* out.dat res.dat
+echo " TRAIN test OK!"
+else
+more out.dat >> res.dat
+mv res.dat ../issue_train
+echo " TRAIN test ERROR!"
+fi
+cd ..
+
+cd relax
+maise >> out.dat
+diff CONTCAR output/ &> res.dat
+n=$(wc -l res.dat|awk '{print $1}')
+if [ $n -eq 0 ]
+then
+rm CO* O* out.dat res.dat
+echo " RELAX test OK!"
+else
+more out.dat >> res.dat
+mv res.dat ../issue_relax
+echo " RELAX test ERROR!"
+fi
+cd ..
+
+echo ""

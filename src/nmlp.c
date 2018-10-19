@@ -402,32 +402,6 @@ if(!SERIAL)
   return E;
 }
 //======================================================
-//   numerical force for testing
-//======================================================
-void frc_ann(ANN *R, PRS *P, PRS *W, Cell *C, LNK *L)
-{
-  int i,q,EFS,IO;
-  double t,dx,Em,Ep;
-
-  EFS = P->EFS;
-  IO  = P->IO;
-  P->EFS = 0;
-  dx = 0.001;
-  for(i=0;i<C->N;i++)
-    for(q=0;q<3;q++)
-    {
-      t = C->X[i][q];
-      C->X[i][q] += dx;
-      Ep = CELL_ENE(R,P,W,C,L);
-      C->X[i][q] = t - dx;
-      Em = CELL_ENE(R,P,W,C,L);
-      L->f[i][q] = -(Ep-Em)/(dx*2.0);
-      C->X[i][q] = t;
-    }
-  P->EFS = EFS;
-  P->IO  = IO;
-}
-//======================================================
 double FRC_ANN(ANN *R, LNK *L)
 {
   int i,j,k,n,m,l,q,nij,sij,spc,nth;
@@ -649,7 +623,7 @@ void V2W(ANN *R, double *V)
 //================================================================
 void TRAN_MLP(ANN *R, Cell *C, LNK *L)
 {
-  int n,i,N;
+  int n,i;
 
   FILE *out;
   char s[200];
@@ -671,8 +645,7 @@ void TRAN_MLP(ANN *R, Cell *C, LNK *L)
 
   sprintf(s,"%s/out.dat",R->otpt);
 
-  // Train the MLP here
-  if(R->MIX==1) N=R->nw; else N=R->NW;
+  //=====  Train the MLP here =====
   for(i=0;i<1;i++)
   {
     Random();
@@ -683,7 +656,7 @@ void TRAN_MLP(ANN *R, Cell *C, LNK *L)
     fclose(out);
     
     if(R->MINT>=0 && R->MINT<4)
-      bfgs_mlp(R,L);
+      MLP_MIN(R,L);
     else
     {
       fprintf(stderr,"Error: Enter valid value for MINT (0-3)\n");
@@ -693,3 +666,4 @@ void TRAN_MLP(ANN *R, Cell *C, LNK *L)
   }
   return;
 }
+//================================================================

@@ -1,0 +1,42 @@
+=============================================================================================================
+                                        JOB/MODEL types
+=============================================================================================================
+JOBT  41                structure analysis   (00) use analysis tools specified by flags
+                        evolutionary search  (10) run  (11) soft exit  (12) hard exit (13) analysis
+                        cell simulation      (20) relaxation (21) molecular dynamics
+			data parsing         (30) prepare inputs for NN training
+			NN training          (40) full training (41) stratified training
+=============================================================================================================
+                                    OPTIMIZATION parameters
+=============================================================================================================
+NPAR  1                 number of cores for parallel NN training or cell simulation
+MINT  0                 gsl minimier type (0) BFGS2 (1) CG-FR (2) CG-PR (3) steepest descent 
+MITR  10                maximum N for NN training or cell opimization steps
+=============================================================================================================
+                               STRUCTURE/DESCRIPTOR/NN parameters
+=============================================================================================================
+NSPC  2                 number of species types
+TSPC  29 47             speceis types
+NSYM  30                number of Behler-Parrinello symmetry functions
+NCMP  82                total number of NN inputs
+TEFS  1                 train NN for (0) E (1) EF
+LREG  1e-6              regularization parameter
+NTRN -10                number of structures for training (negative means percentage)
+NTST -10                number of structures for testing  (negative means percentage)
+NNNN  2                 number of hidden layers in MLP
+NNNU  10 10             number of neurons in hidden layers in MLP
+NNGT  1  1              activation function type for hidden layers
+=============================================================================================================
+                               EVOLUTIONARY SEARCH settings
+=============================================================================================================
+NDIM  3                 (3) crystal (2) film (0) particle
+=============================================================================================================
+                                      INITIAL SEED
+=============================================================================================================
+SEED  5                 starting seed for the random number generator - 0 uses time as seed
+=============================================================================================================
+                                   INPUT/OUTPUT directories
+=============================================================================================================
+DATA  ./PARS            location of parsed data
+OTPT  ./NNET            directory for storing model parameters and outputs
+=============================================================================================================

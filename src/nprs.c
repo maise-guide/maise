@@ -473,7 +473,7 @@ void PRS_STOP(Cell *C)
 void PRS_BP(PRS *P, PRS *W, Cell *C, LNK *L, int o, char *path)
 {
   int    i,j,k,n,q,*I,ii,jj;
-  double t,A0,A1,A2,A3,A4,A5,A6,A7,B1,B2,B3,T0,T1,F0,F1,F2,R01,R02,R12,n01,n02,n12;
+  double t,A0,A1,A2,A3,A4,A5,A6,A7,B1,B2,B3,T0,F0,F1,F2,R01,R02,R12,n01,n02,n12;
   double fcijk,lzijk[10][10],a2ijk[10][10],a3ijk[10][10],n2ijk[10],a52,a53,a62,a63,ndxjk,fcij,dfcij;
   double dxij[3],dxik[3],dxji[3],dxjk[3],dqij[3],dqik[3];
   int    l,z,n2,n4,n6,n7; 
@@ -575,7 +575,7 @@ void PRS_BP(PRS *P, PRS *W, Cell *C, LNK *L, int o, char *path)
   if(P->EFS>0) 
   {
     if(!SERIAL)
-#pragma omp parallel private(j,n,q,I,jj,ii,fcij,dfcij,dxji,g2,t,spc0,m,k,A0,dxjk,n2,n2ijk,z,l,a2ijk,a3ijk,spc1,spc2,a52,a53,a63,ndxjk,g4,n4,n6,n7,A2,A3,A4,A5,A6,A7,dxij,dqij,dxik,dqik,T0,T1,F0,F1,F2,a62,B1,A1,B2,B3) num_threads(C->NP)
+#pragma omp parallel private(j,n,q,I,jj,ii,fcij,dfcij,dxji,g2,t,spc0,m,k,A0,dxjk,n2,n2ijk,z,l,a2ijk,a3ijk,spc1,spc2,a52,a53,a63,ndxjk,g4,n4,n6,n7,A2,A3,A4,A5,A6,A7,dxij,dqij,dxik,dqik,T0,F0,F1,F2,a62,B1,A1,B2,B3) num_threads(C->NP)
   {
     I = make_i1D(C->N);
   if(!SERIAL)
@@ -706,7 +706,6 @@ void PRS_BP(PRS *P, PRS *W, Cell *C, LNK *L, int o, char *path)
 	    spc2 = C->ATMN[C->Ni[i][k]];
 	    A0   = fc(P->GP[0][P->GF[g2][1]],C->NDX[i][j])*fc(P->GP[0][P->GF[g2][1]],C->NDX[i][k]);
 	    T0   = fc(P->GP[0][P->GF[g2][1]],C->ndx[i][j][k]);
-	    T1   = A0*T0;
 	    F0   = dfc(P->GP[0][P->GF[g2][1]],C->NDX[i][j])* fc(P->GP[0][P->GF[g2][1]],C->NDX[i][k])* fc(P->GP[0][P->GF[g2][1]],C->ndx[i][j][k]);
 	    F1   =  fc(P->GP[0][P->GF[g2][1]],C->NDX[i][j])*dfc(P->GP[0][P->GF[g2][1]],C->NDX[i][k])* fc(P->GP[0][P->GF[g2][1]],C->ndx[i][j][k]);
 	    F2   =  fc(P->GP[0][P->GF[g2][1]],C->NDX[i][j])* fc(P->GP[0][P->GF[g2][1]],C->NDX[i][k])*dfc(P->GP[0][P->GF[g2][1]],C->ndx[i][j][k]);

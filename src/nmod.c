@@ -67,16 +67,8 @@ void TRAN_ANN(ANN *R, Cell *C)
   
   LOAD_LNK(R,C,L);
 
-  if(R->MODT==1)
-    INIT_MLP(R);
-
-  if(R->MODT==3||R->MODT==4)
-    INIT_MOD(R,C);
-
-  if(R->MODT==1)
-    TRAN_MLP(R,C,L);
-  if(R->MODT==3)
-    TRAN_SC(R,C,L);
+  INIT_MLP(R);
+  TRAN_MLP(R,C,L);
   
   CHCK_ERR(R,L);
   time2=cpu_time();
@@ -93,7 +85,7 @@ void TRAN_ANN(ANN *R, Cell *C)
 void CHCK_ERR(ANN *R, LNK *L)
 {
   int n,ii,i,j,NF,q,N1,N2,N3,N4;
-  double **F,ave;
+  double **F;
   FILE *out;
   char s[200];
   
@@ -127,35 +119,35 @@ void CHCK_ERR(ANN *R, LNK *L)
   R->ET *= R->WE;
   
   if(R->EFS==1||R->EFS==3)
+  {
+    for(n=0;n<R->N+R->TN;n++)
     {
-      for(n=0,ave=0.0;n<R->N+R->TN;n++)
-	{
-	  for(ii=0;ii<L[n].NF;ii++)
-	    for(q=0;q<3;q++)
-	      F[L[n].Fi[ii]][q] = L[n].F[L[n].Fi[ii]][q];
-	  FRC_ANN(R,&L[n]);
-	  
-	  for(ii=0;ii<L[n].NF;ii++)
-	    {
-	      i = L[n].Fi[ii];
-	      for(q=0;q<3;q++)
-		if(n<R->N)
-		  {
-		    R->RF += pow( L[n].f[i][q] - F[i][q], 2.0);
-		    N3++;
-		  }
-		else
-		  {
-		    R->EF += pow( L[n].f[i][q] - F[i][q], 2.0);
-		    N4++;
-		  }
-	    }
-	}
-      R->RT += R->RF*R->WF*R->WF;
-      R->ET += R->EF*R->WF*R->WF;
-      R->RF  = sqrt( R->RF/(double)N3 );
-      R->EF  = sqrt( R->EF/(double)N4 );
+      for(ii=0;ii<L[n].NF;ii++)
+	for(q=0;q<3;q++)
+	  F[L[n].Fi[ii]][q] = L[n].F[L[n].Fi[ii]][q];
+      FRC_ANN(R,&L[n]);
+      
+      for(ii=0;ii<L[n].NF;ii++)
+      {
+	i = L[n].Fi[ii];
+	for(q=0;q<3;q++)
+	  if(n<R->N)
+	  {
+	    R->RF += pow( L[n].f[i][q] - F[i][q], 2.0);
+	    N3++;
+	  }
+	  else
+	  {
+	    R->EF += pow( L[n].f[i][q] - F[i][q], 2.0);
+	    N4++;
+	  }
+      }
     }
+    R->RT += R->RF*R->WF*R->WF;
+    R->ET += R->EF*R->WF*R->WF;
+    R->RF  = sqrt( R->RF/(double)N3 );
+    R->EF  = sqrt( R->EF/(double)N4 );
+  }
   
   R->RT = sqrt( R->RT /(double)(N1+N3)) ;
   R->ET = sqrt( R->ET /(double)(N2+N4)) ;
@@ -190,11 +182,10 @@ double CPU_TIME(double ti, char buf[200])
 //==================================================================
 void LOAD_LNK(ANN *R, Cell *C, LNK *L)
 {
-  int n,l,i,*A,spc;
+  int n,l,i,spc;
   FILE *in;
   char s[200];
   
-  A=make_i1D(R->STR);
   sprintf(s,"%s/index.dat",R->data);   //Reading e-files index 
   printf("%s\n",s);
   in=fopen(s,"r");
@@ -264,9 +255,6 @@ void OUT_ANN(ANN *R, double time, char *s1,char *s2, char *s3)
   char   s[200];
   int    i;
   FILE*  out;
-  double *V;
-  
-  V = make_d1D(R->NW);
   
   if(R->EFS==0)
   {
@@ -322,11 +310,9 @@ double EVAL_ENE(ANN *R, PRS *P, PRS *W, Cell *C, LNK *L)
   int    i;
   char   buf[200];
 
-  if(R->MODT==3)
-    return E = ENE_SC(C,1)/(double)C->N;
-  if(R->MODT==4)
-    return E = ENE_GP(C,1)/(double)C->N;
-    P->IO = 1;
+  if( R->MODT>1 )
+    return ENE_POT(C)/(double)C->N;
+  P->IO = 1;
   for(i=0;i<C->N;i++)
     L->MRK[i]=1;
   sprintf(L->path,"%s",buf);
@@ -351,6 +337,12 @@ void EVAL_ANN(ANN *R, PRS *P, Cell *C, LNK *L)
   PRS    W[9];
   struct Node *temp;
 
+  if(strlen(R->eval)==1)
+  {
+    printf("Error in \"setup\" file EVAL directory not specified!\n");
+    exit(1);
+  }
+
   sprintf(nntp[ 1],"M");
   sprintf(nntp[ 3],"S");
   sprintf(nntp[ 4],"G");
@@ -360,14 +352,15 @@ void EVAL_ANN(ANN *R, PRS *P, Cell *C, LNK *L)
   if(R->NSPC==3) Q = 7;  // ternary systems
 
   //===== CAUTION does not check setup with 'model' file for NCMP and ... ! =====
-  if(R->MODT%10==3||R->MODT%10==4)
-    READ_MOD(C,R->otpt);
-
-  R->STR=1; 
-  Build_ANN(R); 
-  READ_ANN(R);
-  Build_PRS(P,W,0);
-
+  R->STR=1;
+  if( R->MODT>1 )
+    READ_POT(C,R->otpt);
+  else
+  {
+    Build_ANN(R); 
+    READ_ANN(R);
+    Build_PRS(P,W,0);
+  }
   Adft = Bdft = Aann = Bann = 0.0;
   
   // ===== EVALUATE EOS (eval/EOS) =====
@@ -403,6 +396,9 @@ void EVAL_ANN(ANN *R, PRS *P, Cell *C, LNK *L)
       N++;
     }
     pclose(out);
+
+    sprintf(s1,"mkdir -p %s",R->otpt);
+    system(s1);
 
     if(N>0)
     {     
@@ -467,8 +463,12 @@ void EVAL_ANN(ANN *R, PRS *P, Cell *C, LNK *L)
 	}
 	fclose(f1);
 	fclose(in);
-	for(i=0;i<rindex;i++) tenr+=ener[i]; tenr=tenr/(double)rindex;
-	for(i=0;i<rindex;i++) tenr2+=pow(ener[i]-tenr,2.0); stdev=sqrt(tenr2/(double)rindex);
+	for(i=0;i<rindex;i++) 
+	  tenr+=ener[i]; 
+	tenr=tenr/(double)rindex;
+	for(i=0;i<rindex;i++) 
+	  tenr2+=pow(ener[i]-tenr,2.0); 
+	stdev=sqrt(tenr2/(double)rindex);
 	printf(" %24.16lf   %24.16lf   %24.16lf   %s\n",tenr,stdev,sqrt(averr/(double)rindex),fname);
 	fprintf(out," %24.16lf   %24.16lf   %24.16lf   %s\n",tenr,stdev,sqrt(averr/(double)rindex),fname);
 	sprintf(s,"%s%02d%s.dat",nntp[R->MODT],n,str);
