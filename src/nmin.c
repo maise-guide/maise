@@ -119,27 +119,29 @@ double tot_err_gsl()
     RRR->RE = E;
   }
 
-  omp_set_num_threads(RRR->NP);
-  if(!SERIAL)
-  #pragma omp parallel private(nth)
+  if(RRR->EFS==1||RRR->EFS==3)
   {
-    nth = omp_get_thread_num();
+    omp_set_num_threads(RRR->NP);
     if(!SERIAL)
-    #pragma omp for reduction(+:E) schedule(dynamic,RRR->NB)
+    #pragma omp parallel private(nth)
+    {
+      nth = omp_get_thread_num();
+      if(!SERIAL)
+      #pragma omp for reduction(+:E) schedule(dynamic,RRR->NB)
 //    for(nth=0;nth<RRR->NP;nth++)
       for(n=N=0;n<RRR->N;n++)
         E += pow( (LLL[n].E-FRC_ANN_PARA(RRR,&LLL[n],OOO[nth].e,OOO[nth].d))/(double)LLL[n].N,2.0 );
-  }
-  RRR->RE = E;
-  
-  for(n=N=0;n<RRR->N;n++)
-  {
-    for(ii=0;ii<LLL[n].NF;ii++) // consider only 'marked' atoms
-      for(q=0;q<3;q++)
-	RRR->RT += pow( LLL[n].F[LLL[n].Fi[ii]][q] - LLL[n].f[LLL[n].Fi[ii]][q], 2.0);
-    N += LLL[n].NF*3;
-  }
-  
+    }
+    RRR->RE = E;
+    
+    for(n=N=0;n<RRR->N;n++)
+    {
+      for(ii=0;ii<LLL[n].NF;ii++) // consider only 'marked' atoms
+	for(q=0;q<3;q++)
+	  RRR->RT += pow( LLL[n].F[LLL[n].Fi[ii]][q] - LLL[n].f[LLL[n].Fi[ii]][q], 2.0);
+      N += LLL[n].NF*3;
+    }
+  }  
   
   RRR->RT = (RRR->RE*RRR->WE + RRR->RT*RRR->WF)/(double)RRR->N;
   
