@@ -1,0 +1,30 @@
+		|=======================================================================|
+		|									|
+       	       	|            Interatomic potentials library for MAISE code              |
+		|	     		    	   	      	       	     		|
+		|		  Aleksey Kolmogorov's research group			|
+		|	   	         Binghamton University				|
+		|									|
+		|                  https://github.com/maise-guide/maise			|
+		|=======================================================================|
+
+
+a) nn_* models are neural network based potentials, trained with the MAISE code. They are named as:
+
+   nn_(system name: series of elements)_(dimensionality of the dataset used for the training)(model version)
+
+   e.g.:   nn_CuPdAg_30 is a NN model for the Cu-Pd-Ag ternary constructed using the 3D (bulk) dataset.
+           nn_CuAu_00   is a NN model for the Cu-Au system trained on the bulk and nanoparticle datasets.
+
+   note:   1- Currently, models named as *0 are trained using 30-component input vector and with 6 Ang cut-off; 
+      while *1 models are trained using 51-component input vector and 7.5 Ang cut- off.
+
+
+
+b) gp_* models are Gupta potential parameters, collected from the literature, and named as:
+
+   gp_(system name: series of elements)_(dimensionality of the system that model is prepared for)(model version)
+
+   note:   1- GP models are collected from the literature (cited in the reference entry in the model file)
+              and were originally for nanoparticles.
+           2- The cut-off range of the models are adjusted to be usable for the bulk systems, hence _3# models are created.
