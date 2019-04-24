@@ -1,6 +1,16 @@
 echo "   === Benchmarking script for the MAISE code ==="
 echo ""
 
+if [ ! -e ../maise ]
+then
+echo "Error: no compiled version of MAISE is found!"
+exit
+fi
+
+cp ../maise parse
+cp ../maise train
+cp ../maise relax
+
 cd parse
 maise > out.dat
 diff PARS/e000014 pars &> res.dat
