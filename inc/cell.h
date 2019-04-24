@@ -17,7 +17,7 @@ void   SCALE_LATTICE(Cell *C, double a);
 void   MATCH_LATTICE(Cell *C, Cell *D);
 void   Print_RDF(Cell *C, char *file);
 void   Print_RDF_FULL(Cell *C, char *file);
-void   RDF(Cell *C);
+void   RDF(Cell *C, int J);
 double CxC(Cell *C, Cell *D);
 void   Reciprocal(Cell *C);
 void   Relative(Cell *C);

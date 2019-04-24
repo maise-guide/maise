@@ -314,6 +314,17 @@ void Copy_C(Cell *C, Cell *C1)
     for(q=0;q<D3;q++)
       C1->R[i][q] = C->R[i][q];
   sprintf(C1->TAG,"%s",C->TAG);
+
+  if(C1->EVOK==1&&C->EVOK==0)
+    exit(0);
+
+  if(C1->EVOK==1&&C->EVOK==1)
+    for(i=0;i<C->N*D3;i++)
+    {
+      C1->ev[i] = C->ev[i];
+      for(j=0;j<C->N*D3;j++)
+	C1->EV[i][j] = C->EV[i][j];      
+    }
 }
 //------------------------------------------------------------------------- 
 void Clone(Cell *C, Cell *C1, int N0, int N1, int N2) 

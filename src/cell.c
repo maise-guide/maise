@@ -51,6 +51,7 @@ void Build_Cell(Cell *C, int J)
   C->SG   = make_d2D(200,12);
   C->SL   = make_i1D(2);
   C->NDX  = make_d2D(C->N,C->NM);
+  C->EVOK = 0;
 
   //===== needed for NNs, not needed for potentials or the ES =====
   if(J==1&&C->MODT==1)
@@ -75,6 +76,13 @@ void Build_Cell(Cell *C, int J)
       C->L[i][q] = 0.0; 
 
   C->N -= 2;
+
+  if(C->EVOK==0)
+  {
+    C->ev   = make_d1D(C->N*D3);
+    C->EV   = make_d2D(C->N*D3,C->N*D3);
+    C->EVOK = 1;
+  }
 
   return;
 }
@@ -367,7 +375,7 @@ void Print_RDF_FULL(Cell *C, char *file)
 
 }
 //==================================================================
-void RDF(Cell *C)
+void RDF(Cell *C, int J)
 {
   int i,j,k,m,n,o,Do;
   double r, dr, x, DR, f;
@@ -402,6 +410,9 @@ void RDF(Cell *C)
   for(k=0;k<C->NRDF;k++)
     for(m=0;m<C->NSPC;m++)
       C->RDF[k][m][m] *= 0.5;
+  if(J==0)
+    return;
+
   r = 0.0;
   for(k=0;k<C->NRDF;k++)
     for(m=0;m<C->NSPC;m++)

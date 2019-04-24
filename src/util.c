@@ -23,6 +23,46 @@ const double eV2GPa  = 160.2176565;
 const int    D3      = 3;
 
 //==============================================================================
+void EVN(double *A, double *e, double *b, int N)
+{
+  double *data;
+
+  data = make_d1D(N);
+
+  gsl_matrix_view m = gsl_matrix_view_array (A, N, N);
+  gsl_vector_complex *eval = gsl_vector_complex_alloc (N);
+  gsl_matrix_complex *evec = gsl_matrix_complex_alloc (N, N);
+  gsl_eigen_nonsymmv_workspace * w = gsl_eigen_nonsymmv_alloc (N);
+
+  gsl_eigen_nonsymmv (&m.matrix, eval, evec, w);
+  gsl_eigen_nonsymmv_free (w);
+  gsl_eigen_nonsymmv_sort (eval, evec, GSL_EIGEN_SORT_ABS_DESC);
+  {
+    int i, j;
+
+    for(i=0;i<N;i++)
+    {
+      gsl_complex eval_i             = gsl_vector_complex_get (eval, i);
+      gsl_vector_complex_view evec_i = gsl_matrix_complex_column (evec, i);
+
+      b[i] = (double)GSL_REAL(eval_i);
+      if( fabs(GSL_IMAG(eval_i)) > 1e-1 )
+        printf(" OOPS % 1.16lf\n",GSL_IMAG(eval_i));
+
+      for(j=0;j<N;++j)
+      {
+        gsl_complex z = gsl_vector_complex_get(&evec_i.vector, j);
+        e[i*N+j] = (double)GSL_REAL(z);
+      }
+    }
+  }
+
+  gsl_vector_complex_free(eval);
+  gsl_matrix_complex_free(evec);
+
+  return;
+}
+//==============================================================================
 void EV(double A[3][3], double e[3][3], double b[3])
 {
   int p,n,k;
@@ -774,6 +814,7 @@ int READ_CELL(Cell *C, char filename[])
   }
   if( C->N > C->A )
   {
+    fflush(stdout);
     fprintf(stderr,"Please increase the number of atoms NMAX in setup from %d to %d\n",C->A,C->N);
     exit(1);
   }
@@ -789,7 +830,8 @@ int READ_CELL(Cell *C, char filename[])
   }
   else
   {
-    fprintf(stderr,"Please specify the type of species in POSCAR file!\n");
+    fflush(stdout);
+    fprintf(stderr,"Please specify the type of species in %s !\n",filename);
     exit(1);
   }
 
@@ -838,6 +880,7 @@ int READ_CELL(Cell *C, char filename[])
 
     if( p != 3*C->N )
     {
+      fflush(stdout);
       fprintf(stderr,"ERROR: %d %d Please specify velocities in %s\n",p,3*C->N,filename);
       exit(1);
     }
@@ -858,6 +901,7 @@ int READ_CELL(Cell *C, char filename[])
 	}
       if( j == 0 && C->JOBT/10 > 1 )
       {
+        fflush(stdout);
 	if( C->JOBT/10 == 3 )
 	  fprintf(stderr,"ERROR: species %d in %s is not among TSPC in setup file\n",C->ATMZ[i],filename);
 	else
@@ -1406,11 +1450,11 @@ void READ_MAIN(Tribe *T, ANN *R, PRS *P, Cell *C, int J, int ARGC)
     sscanf(s+2,"%s",s);
     if( strncmp(s,"neural",6) == 0 )
       C->MODT = R->MODT = 1;
-    if( strncmp(s,"Sutton-Chen",11) == 0 )
-      C->MODT = R->MODT = 2;
-    if( strncmp(s,"Lennard-Jones",13) == 0 )
-      C->MODT = R->MODT = 3;
     if( strncmp(s,"Gupta",5) == 0 )
+      C->MODT = R->MODT = 2;
+    if( strncmp(s,"Sutton-Chen",11) == 0 )
+      C->MODT = R->MODT = 3;
+    if( strncmp(s,"Lennard-Jones",13) == 0 )
       C->MODT = R->MODT = 4;
 
     if( R->MODT==0 )

@@ -57,6 +57,12 @@ double ENE_POT(Cell *C)
         e += pow(C->WW[p][0]/r,C->WW[p][1])*u*0.5*C->WW[2*C->ATMN[i]][4];
         t += pow(C->WW[p][0]/r,C->WW[p][3])*u*pow(C->WW[2*C->ATMN[i]][2]*C->WW[2*C->ATMN[i]][4],2.0);
       }
+      //===== Lennard-Jones potential =====
+      if( C->MODT==4 )
+      {
+	r  = C->WW[p][1]/r;
+        e += C->WW[p][0]*u*(-pow(r,C->WW[p][2])+pow(r,C->WW[p][3]));
+      }
       //===========================
     }
     C->EA[i] = e - sqrt(t);
@@ -95,6 +101,12 @@ double FRC_POT(Cell *C)
         e += pow(C->WW[p][0]/r,C->WW[p][1])*u*0.5*C->WW[2*C->ATMN[i]][4];
         t += pow(C->WW[p][0]/r,C->WW[p][3])*u*pow(C->WW[2*C->ATMN[i]][2]*C->WW[2*C->ATMN[i]][4],2.0);
       }
+      //===== Lennard-Jones potential =====
+      if( C->MODT==4 )
+      {
+        r  = C->WW[p][1]/r;
+        e += C->WW[p][0]*u*(-pow(r,C->WW[p][2])+pow(r,C->WW[p][3]));
+      }
       //===========================
     }
     h[i] = sqrt(t);
@@ -122,13 +134,19 @@ double FRC_POT(Cell *C)
         t = (  2.0*  C->WW[p][0]*            (     u*C->WW[p][1]/C->WW[p][4]-z)*exp(-y*C->WW[p][1])
 	       +0.5*( C->WW[p][2]*C->WW[p][2]*(-2.0*u*C->WW[p][3]/C->WW[p][4]+z)*exp(-y*C->WW[p][3]*2.0)*(1.0/h[i]+1.0/h[C->Ni[i][j]]) ))/r;
       }
+      //===== Sutton-Chen potential =====
       if( C->MODT==3 )
       {
-
         t =  0.5*((C->WW[2*C->ATMN[i]][4]+C->WW[2*C->ATMN[C->Ni[i][j]]][4]) * (C->WW[p][1]/r*u-z) * pow(C->WW[p][0]/r,C->WW[p][1]) -
 	          (C->WW[p][3]/r*u-z)*pow(C->WW[p][0]/r,C->WW[p][3])*
 		  (pow(C->WW[2*C->ATMN[i]]          [2]*C->WW[2*C->ATMN[i]]          [4],2.0)/h[i] +
 		   pow(C->WW[2*C->ATMN[C->Ni[i][j]]][2]*C->WW[2*C->ATMN[C->Ni[i][j]]][4],2.0)/h[C->Ni[i][j]])) /r;
+      }
+      //===== Lennard-Jones potential =====
+      if( C->MODT==4 )
+      {
+	t = C->WW[p][1]/r;
+        t = 2.0*C->WW[p][0]*( -pow(t,C->WW[p][2])*(z+u*C->WW[p][2]/r) + pow(t,C->WW[p][3])*(z+u*C->WW[p][3]/r) )/r;
       }
       //===========================
 
@@ -173,6 +191,8 @@ void READ_POT(Cell *C, char *dir)
     C->MODT = 2;
   if( strncmp(s,"Sutton-Chen",11) == 0 )
     C->MODT = 3;
+  if( strncmp(s,"Lennard-Jones",13) == 0 )
+    C->MODT = 4;
   if( C->MODT<2 )
   {
     fprintf(stderr,"ERROR in %s\n",s);

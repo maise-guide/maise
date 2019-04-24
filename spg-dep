@@ -1,0 +1,30 @@
+#!/bin/bash
+ver="1.11.2.1"
+mkdir -p lib/include
+mkdir -p ext-dep
+cd       ext-dep
+echo "downloading...spglib-1.11.2.1"
+wget -O spglib.tar.gz https://github.com/atztogo/spglib/archive/v$ver.tar.gz &> log.out
+echo "unpacking....."
+tar -xf spglib.tar.gz &> log.out
+echo "compiling....."
+cd spglib-$ver
+mkdir -p m4
+sed -i "s/m4_esyscmd_s/m4_esyscmd/" configure.ac
+aclocal 
+autoheader &> log.out
+libtoolize &> log.out
+touch INSTALL NEWS README AUTHORS
+automake -acf &> log.out
+autoconf &>> log.out
+./configure &> log.out
+make &> log.out && make install DESTDIR=$PWD &> log.out
+echo "installing...."
+cp ./usr/local/lib/libsymspg.a ../../lib
+cp ./usr/local/include/spglib/spglib.h ../../lib/include
+if [ ! -e ../../lib/libsymspg.a ]
+then
+  echo "spglib installation failed!"
+fi
+cd ../../ &> out
+echo "Done"

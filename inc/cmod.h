@@ -15,6 +15,7 @@ void   CELL_OUT(Cell *C);
 int    CELL_OK(Cell *C, double *Rm);
 int    STOP_OK(Cell *C, double *Rm, double x);
 void   CELL_RELX(ANN *R, PRS *P, PRS *W, Cell *C, LNK *L);
+void   CELL_PHON(ANN *R, PRS *P, PRS *W, Cell *C, LNK *L);
 void   CELL_MAIN(ANN *R, PRS *P, Cell *C);
 
 #endif

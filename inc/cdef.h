@@ -129,6 +129,10 @@ typedef struct
   char   ID[200];   // model unique ID
   int    MINT;      // cell optimizer type
 
+  double **EV;      // phonon eigenvectors
+  double *ev;       // phonon eigenvalues
+  int    EVOK;      // allocation flag
+
 }Cell;
 
 #endif

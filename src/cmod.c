@@ -483,58 +483,120 @@ int STOP_OK(Cell *C, double *Rm, double x)
   return 1;
 }
 //======================================================
+void CELL_PHON(ANN *R, PRS *P, PRS *W, Cell *C, LNK *L)
+{
+  int    i,q,j,k,N;
+  double dx,*A,*e,*b;
+
+  N = C->N*D3;
+
+  A  = make_d1D(N*N);
+  e  = make_d1D(N*N);
+  b  = make_d1D(N);
+
+  if(C->EVOK==0)
+  {
+    C->ev   = make_d1D(N);
+    C->EV   = make_d2D(N,N);
+    C->EVOK = 1;
+  }
+
+  dx = 1e-3;
+
+  for(i=0;i<C->N;i++)
+    for(q=0;q<3;q++)
+    {
+      C->X[i][q] += dx;
+      CELL_FRC(R,P,W,C,L);
+      for(j=0;j<C->N;j++)
+        for(k=0;k<3;k++)
+          A[(i*3+q)*N+j*3+k] = C->F[j][k];
+      C->X[i][q] -= 2.0*dx;
+      CELL_FRC(R,P,W,C,L);
+      for(j=0;j<C->N;j++)
+        for(k=0;k<3;k++)
+          A[(i*3+q)*N+j*3+k] = 0.5*(C->F[j][k]-A[(i*3+q)*N+j*3+k])/dx;
+      C->X[i][q] += dx;
+    }
+  if(0)
+    for(i=0;i<C->N;i++)
+      for(q=0;q<3;q++)
+      {
+	for(j=0;j<C->N;j++)
+	  for(k=0;k<3;k++)
+	    printf("% 16.12lf ",A[(i*3+q)*N+j*3+k]);
+	printf("\n");
+      }
+  EVN(A,e,b,N);
+
+  for(i=0;i<C->N;i++)
+    for(q=0;q<3;q++)
+    {
+      C->ev[i*3+q] = b[i*3+q];
+      for(j=0;j<C->N;j++)
+        for(k=0;k<3;k++)
+          C->EV[i*3+q][j*3+k] = e[(i*3+q)*N+j*3+k];
+    }
+
+  if(1)
+    for(i=0;i<C->N*3;i++)
+      printf("%3d % 24.16lf % 24.16lf\n",i,C->ev[i],C->EV[N-7][i]);
+
+  free_d1D(A);
+  free_d1D(e);
+  free_d1D(b);
+
+}
+//======================================================
 void CELL_RELX(ANN *R, PRS *P, PRS *W, Cell *C, LNK *L)
 {
-    int    i;
-    double H;
-    FILE  *out;
-    double time;
+  double H;
+  FILE  *out;
+  double time;
 
-    if(C->RLXT == 0 && R->MITR > 0)
+  if(C->RLXT == 0 && R->MITR > 0)
+  {
+    printf("Error: type of relaxation RLXT not specified in setup file.\n");
+    exit(1);
+  }
+  
+  system("rm -f OUTCAR OSZICAR");
+  C->stop = 0;
+  
+  time=cpu_time();
+  H = CELL_FRC(R,P,W,C,L);
+  
+  if(R->MITR==0)
+    printf("%5d %24.16lf\n",0,H);
+  if(C->OUT%10>0)
+    CELL_OUT(C);
+  if(R->MITR>0)
+  {
+    if(R->MINT>=0 && R->MINT<4)
     {
-      printf("Error: type of relaxation RLXT not specified in setup file.\n");
+      CELL_MIN(R,P,W,C,L);
+    }
+    else
+    {
+      fprintf(stderr,"ERROR: Enter valid value for MINT (0-3)\n");
       exit(1);
     }
     
-    system("rm -f OUTCAR OSZICAR");
-    C->stop = 0;
-
-    time=cpu_time();
-    H = CELL_FRC(R,P,W,C,L);
-
-    if(R->MITR==0)
-      printf("%5d %24.16lf\n",0,H);
-    if(C->OUT%10>0)
+    if( (C->OUT%10==1) )
       CELL_OUT(C);
-    if(R->MITR>0)
-    {
-      if(R->MINT>=0 && R->MINT<4)
-      {
-       	CELL_MIN(R,P,W,C,L);
-      }
-      else
-      {
-        fprintf(stderr,"ERROR: Enter valid value for MINT (0-3)\n");
-        exit(1);
-      }
-       
-      if( (C->OUT%10==1) )
-	CELL_OUT(C);
-    }
-    if(C->OUT%10==0)
-      CELL_OUT(C);
-    LIST(C);
-    if(!CELL_OK(C,R->Rm))
-      system("echo >> OUTCAR;echo ERROR distances are too short >> OUTCAR");
-
-    out=fopen("OUTCAR","a");
-    fprintf(out,"  \n Total CPU time used (sec):  % 14.8lf \n",cpu_time()-time);
-    fclose(out);
-
-    return;
-    for(i=0;i<C->N;i++)
-      C->Nn[i] = 12;
-    Print_List(C);
+  }
+  if(C->OUT%10==0)
+    CELL_OUT(C);
+  LIST(C);
+  if(!CELL_OK(C,R->Rm))
+    system("echo >> OUTCAR;echo ERROR distances are too short >> OUTCAR");
+  
+  out=fopen("OUTCAR","a");
+  fprintf(out,"  \n Total CPU time used (sec):  % 14.8lf \n",cpu_time()-time);
+  fclose(out);
+  
+  C->it = 0;
+  return;
 }
 //======================================================
 //
@@ -629,6 +691,7 @@ void CELL_MAIN(ANN *R, PRS *P, Cell *C)
   if( R->JOBT==20 ) CELL_RELX(R,P,W,C,&L);
   if( R->JOBT==21 ) CELL_MD(R,P,W,C,&L);
   if( R->JOBT==22 ) CELL_TEST(R,P,W,C,&L);
+  if( R->JOBT==23 ) CELL_PHON(R,P,W,C,&L);
 
   JAR(C);
 

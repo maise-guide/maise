@@ -80,7 +80,7 @@ void NANO_CHOP(Tribe *T, int J, Cell *C, int P)
 
     dr = 0.02;
     W  = (int)pow(C->N,1.5);
-    M  = (int)(R/dr)-1;
+    M  = 100;
     
     for(i=0;i<C->N;i++)
       I[i] = i;
@@ -122,23 +122,27 @@ void NANO_CHOP(Tribe *T, int J, Cell *C, int P)
       for(n=0,ok=1;n<N0;n++)
       {
         i = I[n];
-        L = 2.0*R;
-	L = VectorLen(C->X[i],3);
+        L = 10.0*R;
+
 	for(q=0;q<3;q++)
 	  r[q] = C->X[i][q];
         for(w=0;w<W;w++)
         {
-          RAND_VC(a);
+	  for(q=0;q<3;q++)
+	    a[q] = b[q];
+	  //=====  pick a direction in the opposite hemisphere  =====
+	  while( DotProd(a,b,3)>0.0 )	    
+	    RAND_VC(a);
           VectorNorm(a);
           for(q=0;q<3;q++)
             C->X[i][q] = a[q]*(R+4.0*T->Rm[C->ATMN[i]])*(1.0+dr*Random());
-          if( DotProd(C->X[i],b,3) < S )
-          {
-            for(m=0;m<M;m++)
-            {
-              for(q=0;q<3;q++)
-                C->X[i][q] *= (1.0-dr);
-              for(j=0;j<C->N;j++)
+
+	  for(m=0;m<M;m++)
+	  {
+	    for(q=0;q<3;q++)
+	      C->X[i][q] *= (1.0-dr);
+	    //=====  OK to go over all C->N  =====
+	    for(j=0;j<C->N;j++)
               if(i!=j)
               {
                 t = NDR(C,i,j);
@@ -150,14 +154,14 @@ void NANO_CHOP(Tribe *T, int J, Cell *C, int P)
                     ok = 0;
                 }
               }
-            }
-            if( VectorLen(C->X[i],3) < L )
-            {
-              L = VectorLen(C->X[i],3);
-              for(q=0;q<3;q++)
-                r[q] = C->X[i][q];
-            }             
-          }
+	  }
+	  if( VectorLen(C->X[i],3) < L )
+	  {
+	    L = VectorLen(C->X[i],3);
+	    for(q=0;q<3;q++)
+	      r[q] = C->X[i][q];
+	  }             
+
         }
         for(q=0;q<3;q++)
           C->X[i][q] = r[q];
@@ -172,6 +176,16 @@ void NANO_CHOP(Tribe *T, int J, Cell *C, int P)
       fprintf(stderr,"EXIT in %s: exceeded %3d tries\n",T->NES[J],T->Nm);
       Print_LOG(buf);
       exit(1);
+    }
+
+    LIST(C);
+    RDF(C,1);
+    LIST(&T->C[k]);
+    RDF(&T->C[k],1);
+    if( 1.0-CxC(C,&T->C[k])<1e-6 )
+    {
+      printf("%3d %3d\n",p,k);
+      exit(0);      
     }
     
     Copy_C(C,&T->C[p]);
@@ -393,6 +407,10 @@ void NANO_PLNT(Tribe *T, int J, int P)
   if( p==P || ( (P<0) && (p>=T->SES[J]) && (p<T->FES[J] ) ) )
   {
     k = (int)((double)T->pos*Random());
+    //=====  always plant at least one best seed in the first generation  =====
+    if( p==T->SES[J] && T->n==0 )
+      k = 0;
+
     sprintf(buf,"INI/POSCAR%03d",k);
     if( READ_CELL(&T->C[N],buf)==0 )
     {
@@ -636,8 +654,8 @@ void NANO_PACK(Tribe *T, int J, Cell *C, int P)
 //==================================================================
 void NANO_SWAP(Tribe *T, int J)
 {
-  int i,j,m,q,k1,k2,p,N,*TN1,*TN2,qq,po,u,s,*PM,*SM,**I,N1,qr;
-  double t,r,**R,ar,x,y;
+  int i,m,q,k1,k2,p,N,*TN1,*TN2,qq,po,s,*PM,*SM,**I,N1,qr,o,O;
+  double t,r,**R,ar,x,y,dr;
   char buf[200];
 
   N  = 2*T->N;
@@ -657,6 +675,9 @@ void NANO_SWAP(Tribe *T, int J)
   }
 
   k1 = k2 = 0;
+  dr = 0.02;
+  O  = (int)(1.0/dr);
+
   for(m=0,p=po=T->N;p<2*T->N&&m<T->Nm;p++,m++)
   if( p>=T->SES[J] && p<T->FES[J] )
   {    
@@ -748,42 +769,27 @@ void NANO_SWAP(Tribe *T, int J)
 	  T->C[p].X[i][(qr+1)%3] =  x*cos(ar) + y*sin(ar);
 	  T->C[p].X[i][(qr+2)%3] = -x*sin(ar) + y*cos(ar);
 	}
-	
+
 	if(CHCK_Rm(&T->C[p],T->Rm,1.0)==1)
+	{
+	  for(i=N1;i<T->C[p].N;i++)
+	    for(o=0;o<O;o++)
+	    {
+	      for(q=0;q<3;q++)
+		T->C[p].X[i][q] *= (1.0-dr);
+	      if(CHCK_Rm(&T->C[p],T->Rm,1.0)==0)
+	      {
+		for(q=0;q<3;q++)
+		  T->C[p].X[i][q] /= (1.0-dr);
+		break;
+	      }
+	    }
 	  break;
+	}
 	// -----------------------------------------------------------------------
 	//   If distances are bad restore the offspring and re-try
 	// -----------------------------------------------------------------------
 	Copy_C(&T->C[N],&T->C[p]);
-      }
-      // -----------------------------------------------------------------------
-      //   mutate with probability T->pm and swap with probability T->ps
-      // -----------------------------------------------------------------------
-      s = u = -1;
-      if(PM[p])
-      {
-	for(u=0;u<T->Nu;u++)
-	{
-	  Copy_C(&T->C[p],&T->C[N]);
-	  if( SHKE_CL(&T->C[N],T->ml,T->C[p].R0*T->ma)!=0 )
-	  {
-	    if(T->NSPC>1)
-	      for(i=s=0;i<T->C[N].N;i++)
-		if(Random()<T->ps)
-	        {
-		  for(j=i;T->C[N].ATMN[i]==T->C[N].ATMN[j%T->C[N].N];j++);
-		  j = ( j + (int)(Random()*(double)(T->C[N].N-T->SPCN[T->C[N].ATMN[i]])) )%T->C[N].N;  // swap only different species
-		  for(q=0;q<3;q++)
-		    dSwap(&T->C[N].X[i][q],&T->C[N].X[j][q]);
-		  s++;
-		}
-	    if(CHCK_Rm(&T->C[N],T->Rm,1.0)==1)
-	    {
-	      Copy_C(&T->C[N],&T->C[p]);
-	      break;
-	    }
-	  }
-	}
       }
       if(CHCK_Rm(&T->C[p],T->Rm,1.0)==1) 
       {

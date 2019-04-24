@@ -10,8 +10,8 @@
 #include "nutl.h"
 #include "cutl.h"
 #include "util.h"
-#include "spgr.h"
 #include "cfnc.h"
+#include "sutl.h"
 
 //==================================================================
 //  find the dimensionality of the structure: bulk (3) or nano (0)
@@ -100,136 +100,6 @@ void APPL_SG(Cell *C, double tol)
   C->XT = 0;
   Real(C);
   LIST(C);
-}
-//==================================================================
-int FIND_WYC(Cell *C, Cell *D, double tol, char *ISO, int J)
-{
-  int i,q,k,m,SGN;
-
-  char buf[200],s[200],s1[200],s2[100],w[1000][3];
-  FILE *out,*in;
-
-  Relative(C);
-
-  sprintf(buf,"%s/findsym > wyckoff",ISO);
-  out = popen(buf,"w");
-
-  fprintf(out,"%s\n",C->TAG);
-  fprintf(out,"%lf\n%lf\n0.00\n",tol,tol);
-  fprintf(out,"1\n");
-
-  for(i=0;i<3;i++)
-  {
-    for(q=0;q<D3;q++)
-      fprintf(out,"% 4.14lf ",C->L[i][q]);
-    fprintf(out,"\n");
-  }
-  fprintf(out,"1\n");
-  fprintf(out,"% 4.14lf % 4.14lf % 4.14lf\n",1.0,0.0,0.0);
-  fprintf(out,"% 4.14lf % 4.14lf % 4.14lf\n",0.0,1.0,0.0);
-  fprintf(out,"% 4.14lf % 4.14lf % 4.14lf\n",1.0,0.0,1.0);
-  fprintf(out,"% d\n",C->N);
-
-  for(i=0;i<C->N;i++)
-    if(C->ES[C->ATMN[i]][0]>0)
-      fprintf(out,"%s ",C->ES[C->ATMN[i]]);
-    else
-      fprintf(out,"%d ",C->ATMN[i]+1);
-  fprintf(out,"\n");
-
-  for(i=0;i<C->N;i++)
-  {
-    for(q=0;q<3;q++)
-      fprintf(out,"% 4.14lf ",C->X[i][q]);
-    fprintf(out,"\n");
-  }
-  pclose(out);
-
-  out = fopen("str.cif","w");
-  fclose(out);
-  sprintf(buf,"wyckoff");
-  in=fopen(buf,"r");
-
-  system("grep _symmetry_Int_Tables_number wyckoff >> str.cif");
-
-  out = fopen("str.cif","a");
-
-  i = 0;
-  while(fgets(buf,100,in))
-  {
-    if(strstr(buf,"_cell_length_"))
-        fprintf(out,"%s",buf);
-    if(strstr(buf,"_cell_angle_"))
-        fprintf(out,"%s",buf);
-    if(strstr(buf,"_symmetry_Int_Tables_number"))
-    {
-      fprintf(out,"%s",buf);
-      sscanf(buf,"%s %d",s1,&SGN);
-      Real(C);
-      if(J==0)
-        return SGN;
-      D->SGN = SGN;
-      READ_SG(D);
-      D->NS = 1;
-    }
-    if(strstr(buf,"Wyckoff position"))
-    {
-      sscanf(buf,"%s %s %s",s1,s1,w[i]);
-      w[i++][1] = 0;
-    }  
-    if(strstr(buf,"_atom_site_occupancy"))
-    {
-      fprintf(out,"_chemical_formula_sum\n");
-      fprintf(out,"'");
-      for(i=0;i<C->ATMN[C->N-1]+1;i++)
-      {
-        if(C->SPCZ[0]>0)
-        {
-          atom_symb(C->SPCZ[i],s1);    
-          fprintf(out,"%s ",s1);
-        }
-        else
-          fprintf(out,"%c ",65+i);
-      }
-      fprintf(out,"'\n");
-      fprintf(out,"_atom_site_occupancy wyckoff\n");
-      i = 0;
-      while(fgets(buf,200,in))
-	if(strlen(buf)> 5 && !strstr(buf,"end of cif"))
-	{
-          sscanf(buf,"%s %s %d %s %lf %lf %lf",s1,s2,&m,w[i],&D->W[0][0],&D->W[0][1],&D->W[0][2]);
-	  for(k=0; k<10 && s2[0]!=65+k ;k++);
-	  if(C->SPCZ[0]>0)
-	    atom_symb(C->SPCZ[k],s);
-	  else
-	    strcpy(s,s2);
-          for(q=0;q<3;q++)
-            if(D->W[0][q]<0.0)
-              D->W[0][q] += 1.0;
-          for(q=0;q<3;q++)
-            for(k=0;k<6;k++)
-              if(k!=0&&k!=3)
-                if(fabs(D->W[0][q]-(double)k/6.0)<0.0002)
-                  D->W[0][q] = (double)k/6.0;
-          fprintf(out,"%s%s %s  %3d %s % 8.16lf % 8.16lf % 8.16lf\n",s,s1+1,s,m,w[i],D->W[0][0],D->W[0][1],D->W[0][2]);
-	}
-    }
-  }
-
-  fclose(in);
-  
-  fprintf(out,"loop_\n");
-  fclose(out);
-
-  for(i=0;i<C->ATMN[C->N-1]+1;i++)
-  {
-    if(C->SPCZ[i]>0) 
-      atom_symb(C->SPCZ[i],s1); 
-    else 
-      strcpy(s1,"A");
-    sprintf(C->TAG+2*i,"%s ",s1);
-  }
-  return SGN;
 }
 //==================================================================
 void READ_CIF(Cell *C, char file[], double tol, int NM)    
@@ -367,10 +237,9 @@ void READ_CIF(Cell *C, char file[], double tol, int NM)
           if(C->W[C->NS][q]<0.0)
             C->W[C->NS][q] += 1.0;
         for(q=0;q<3;q++)
-          for(k=0;k<6;k++)
-            if(k!=0&&k!=3)
-              if(fabs(C->W[C->NS][q]-(double)k/6.0)<0.0002)
-                C->W[C->NS][q] = (double)k/6.0;
+          for(k=0;k<12;k++)
+              if(fabs(C->W[C->NS][q]-(double)k/12.0)<0.0002)
+                C->W[C->NS][q] = (double)k/12.0;
 
         fgets(buf,200,in); 
 
@@ -426,9 +295,9 @@ void FIND_PRS(Cell *C, Cell *D, double tol)
 
   abc(C);
   LIST(C);
-  RDF(C);
+  RDF(C,1);
   LIST(D);
-  RDF(D);
+  RDF(D,1);
 
   if(1.0-CxC(C,D)>0.001)
   {
@@ -536,13 +405,43 @@ void FIND_CXC(Cell *C, Cell *D, int argc, char **argv)
 
   LIST(C);
   LIST(D);
-  RDF(C);
-  RDF(D);
+  RDF(C,1);
+  RDF(D,1);
   Print_RDF_FULL(C,"RDF0.dat");
   Print_RDF_FULL(D,"RDF1.dat");
 
   printf("%lf\n",CxC(C,D));
 
+}
+//==================================================================
+//     plot non-normalized RDF 
+//==================================================================
+void PLOT_RDF(Cell *C, int argc, char **argv)
+{
+  if(argc > 2)
+    C->NM   = ( int  )atoi(argv[2]);
+  if(argc > 3)
+    C->Rmin = (double)atof(argv[3]);
+  if(argc > 4)
+    C->Rmax = (double)atof(argv[4]);
+  if(argc > 5)
+    C->DR   = (double)atof(argv[5]);  
+
+  printf("Max number of nearest neighbors    % d\n",C->NM);
+  printf("Soft cutoff for finding neibhors   % lf\n",C->Rmin);
+  printf("Hard cutoff for finding neibhors   % lf\n",C->Rmax);
+  printf("Gaussian spread for smearing bonds % lf\n",C->DR);   
+
+  C->ND = FIND_NDIM(C);
+  LIST(C);
+  Print_List(C);
+  printf("\nNeighbor   list      written to     list.dat\n");
+  RDF(C,1);
+  Print_RDF_FULL(C,"rdf.dat");
+  printf(  "Normalized RDF       written to     rdf.dat\n");
+  RDF(C,0);
+  Print_RDF_FULL(C,"RDF.dat");
+  printf(  "Original   RDF       written to     RDF.dat\n");
 }
 //==================================================================
 //    compare RDF, SG, and Volumes for two structures
@@ -571,8 +470,8 @@ void COMP_STR(Cell *C, Cell *D, int argc, char **argv)
   Print_List(D);
   system("mv list.dat list1.dat");
 
-  RDF(C);
-  RDF(D);
+  RDF(C,1);
+  RDF(D,1);
   Print_RDF_FULL(C,"RDF0.dat");
   Print_RDF_FULL(D,"RDF1.dat");
   
@@ -584,7 +483,7 @@ void COMP_STR(Cell *C, Cell *D, int argc, char **argv)
   printf("   %d  % 12.6lf   ",0,Cell_VOLUME(C)/(double)C->N);
   for(k=1;k<8;k+=2)
   {
-    printf("  % 4d  ",FIND_WYC(C,D,t,ISOPATH,0));
+    printf("  % 4d  ",FIND_WYC(C,C,t,0));
     t*= o;
     o*= o;
   }
@@ -593,7 +492,7 @@ void COMP_STR(Cell *C, Cell *D, int argc, char **argv)
   printf("   %d  % 12.6lf   ",1,Cell_VOLUME(D)/(double)D->N);
   for(k=1;k<8;k+=2)
   {
-    printf("  % 4d  ",FIND_WYC(D,D,t,ISOPATH,0));
+    printf("  % 4d  ",FIND_WYC(D,D,t,0));
     t*= o;
     o*= o;
   }
@@ -653,7 +552,7 @@ void CELL_EXAM(Cell *C, Cell *D, int argc, char **argv)
     printf("For specified JOBT = 0 you should provide a FLAG:\n\n");
     printf("-cxc    compute dot product for POSCAR0 and POSCAR1 using RDF           \n");
     printf("-cmp    compare RDF, space group, and volume of POSCAR0 and POSCAR1     \n");
-    printf("-wyc    convert POSCAR into str.cif, CONV, PRIM                         \n");
+    printf("-spg    convert POSCAR into str.cif, CONV, PRIM                         \n");
     printf("-cif    convert str.cif into CONV and PRIM                              \n");
     printf("-rot    rotate  a nanoparticle along eigenvectors of moments of inertia \n");
     printf("-dim    find    whether POSCAR is periodic (3) or non-periodic (0)      \n");
@@ -663,15 +562,24 @@ void CELL_EXAM(Cell *C, Cell *D, int argc, char **argv)
     exit(0);
   }
 
+  //================    plot RDF for 1 structure   ==========
+  if(strncmp(argv[1],"-rdf",4)==0)
+  {
+    if(argc>2)
+      NM = (int)atoi(argv[2]);
+    INIT_CELL(C,"POSCAR",1,NM,1);
+    PLOT_RDF(C,argc,argv);
+    exit(0);
+  }
   //=============  determine Wyckoff positions  =============
-  if(strncmp(argv[1],"-wyc",4)==0)
+  if(strncmp(argv[1],"-spg",4)==0)
   {
     tol = 0.01;
     if(argc>2)
       tol = (double)atof(argv[2]);
     INIT_CELL(C,"POSCAR",4,NM,1);
     INIT_CELL(D,"POSCAR",4,NM,1);
-    FIND_WYC(C,D,tol,ISOPATH,1);
+    FIND_WYC(C,D,tol,1);
     READ_CIF(C,"str.cif",tol,NM);
     FIND_PRS(C,D,tol);
     printf("%3d %s%d\n",C->SGN,C->PRS,C->N);
@@ -687,7 +595,7 @@ void CELL_EXAM(Cell *C, Cell *D, int argc, char **argv)
     READ_CIF(C,"str.cif",tol,NM);    
     exit(0);
   }
-  //================  compare RDF of 2 structures  ==========
+  //================  find RDF-based dot product   ==========
   if(strncmp(argv[1],"-cxc",4)==0)
   {
     if(argc>2)
@@ -777,9 +685,10 @@ void CELL_EXAM(Cell *C, Cell *D, int argc, char **argv)
   //================   list available options  ===============
 
   printf("\nThe FLAG is not recognized. Allowed FLAGS are:\n\n");
+  printf("-rdf    compute and plot the RDF for POSCAR                             \n");
   printf("-cxc    compute dot product for POSCAR0 and POSCAR1 using RDF           \n");
   printf("-cmp    compare RDF, space group, and volume of POSCAR0 and POSCAR1     \n");
-  printf("-wyc    convert POSCAR into str.cif, CONV, PRIM                         \n");
+  printf("-spg    convert POSCAR into str.cif, CONV, PRIM                         \n");
   printf("-cif    convert str.cif into CONV and PRIM                              \n");
   printf("-rot    rotate  a nanoparticle along eigenvectors of moments of inertia \n");
   printf("-dim    find    whether POSCAR is periodic (3) or non-periodic (0)      \n");
@@ -787,6 +696,6 @@ void CELL_EXAM(Cell *C, Cell *D, int argc, char **argv)
   printf("-sup    make    a supercell specified by na x nb x nc                   \n");
   printf("-vol    compute volume per atom for crystal or nano structures          \n");
  
- exit(0);
+  exit(0);
 }
 //==================================================================

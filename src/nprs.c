@@ -483,7 +483,7 @@ void PRS_BP(PRS *P, PRS *W, Cell *C, LNK *L, int o, char *path)
   int    ng2,ng4=0,g2=0,g4=0;
   int    m=0;
   int    w0,w1,w2,w01,w02,w12;
-  
+
   L->N   = C->N;
   C->Rc  = C->rc = P->RC;
 
@@ -534,7 +534,7 @@ void PRS_BP(PRS *P, PRS *W, Cell *C, LNK *L, int o, char *path)
 	    g2++;
 	  }
 	// for reduced radius for triplets	
-	if(C->NDX[i][jj]<W[w01].GP[0][P->GF[g2][1]])
+	if( g2<P->D && C->NDX[i][jj]<W[w01].GP[0][P->GF[g2][1]] )
 	for(k=jj+1;k<C->Nn[i];k++)
         {
 	  w2  = C->ATMN[C->Ni[i][k]];
@@ -617,7 +617,7 @@ void PRS_BP(PRS *P, PRS *W, Cell *C, LNK *L, int o, char *path)
 		    // for the pair function in stress calculation only the part on atom i is needed
 		    g2++;
 		  }
-		if(C->NDX[j][ii]<P->GP[0][P->GF[g2][1]])
+		if( g2<P->D && C->NDX[j][ii]<P->GP[0][P->GF[g2][1]] )
 		for(k=0;k<C->Nn[j];k++)
 		  if( k!=ii && C->ndx[j][ii][k]<P->GP[0][P->GF[g2][1]] && C->NDX[j][k]<P->GP[0][P->GF[g2][1]] )
 		  {
@@ -694,7 +694,7 @@ void PRS_BP(PRS *P, PRS *W, Cell *C, LNK *L, int o, char *path)
 	    }
 	    g2++;
 	  }
-        if(C->NDX[i][j]<P->GP[0][P->GF[g2][1]])
+        if( g2<P->D && C->NDX[i][j]<P->GP[0][P->GF[g2][1]] )
 	for(k=j+1;k<C->Nn[i];k++)
 	  if( C->ndx[i][j][k]<P->GP[0][P->GF[g2][1]] && C->NDX[i][k]<P->GP[0][P->GF[g2][1]] )
 	  {
@@ -929,7 +929,7 @@ void PARS_DAT(ANN *R, PRS *P, Cell *C, LNK *L)
 {
   int    i,j,n,m,nn,k,Nmax,x,ND,*NFIT,NRDF,spc1,spc2,TAG,N;
   double *EFIT,***H,EMAX,t;
-  char    buf[200],buf2[200],buf3[200],s[200],d[200],dn[200][200];
+  char    buf[200],buf2[200],buf3[200],s[200],d[200],dn[200][200],kw[200];
   FILE    *stamp,*in,*dir,*rtable,*nd,*ve;
   PRS     W[9];   // 2*NSPC+1, so for maximum 3 species one needs 9
 
@@ -1010,7 +1010,7 @@ void PARS_DAT(ANN *R, PRS *P, Cell *C, LNK *L)
   
   NFIT = make_i1D(N);
   EFIT = make_d1D(N);
-  
+
   for(n=m=0;n<ND;n++)
   {
     k = 0;      
@@ -1127,14 +1127,19 @@ void PARS_DAT(ANN *R, PRS *P, Cell *C, LNK *L)
 	Nmax = C->N;
       in=fopen(buf2,"r");
       L->p = 0.0;
-      fscanf(in,"%lf %lf\n",&L->E,&L->p);
       fgets(buf,200,in);
-      if(strncmp(buf,"in",2))
+      sscanf(buf,"%lf %lf\n",&L->E,&L->p);
+      fgets(buf,200,in);
+      sscanf(buf,"%s",kw);
+      if(strncmp(kw,"in",2)==0)
       {
-	sscanf(buf+8,"%lf %lf %lf %lf %lf %lf",&L->S[0],&L->S[1],&L->S[2],&L->S[3],&L->S[4],&L->S[5]);
+	sscanf(buf,"%*s %*s %lf %lf %lf %lf %lf %lf",&L->S[0],&L->S[1],&L->S[2],&L->S[3],&L->S[4],&L->S[5]);
+	printf(buf);
+	printf("             % 11.8lf  % 11.8lf  % 11.8lf  % 11.8lf  % 11.8lf  % 11.8lf\n",L->S[0],L->S[1],L->S[2],L->S[3],L->S[4],L->S[5]);
 	fgets(buf,200,in);
       }
-      if(strncmp(buf,"PO",2))
+      sscanf(buf,"%s",kw);
+      if(strncmp(kw,"PO",2)==0)
       {
 	fgets(buf,200,in);
 	for(i=0;i<C->N;i++)
@@ -1145,7 +1150,8 @@ void PARS_DAT(ANN *R, PRS *P, Cell *C, LNK *L)
 	fgets(buf,200,in);
 	fgets(buf,200,in);
       }
-      if(strncmp(buf,"PS",2))  // PSTRESS in kB
+      sscanf(buf,"%s",kw);
+      if(strncmp(kw,"PS",2)==0)  // PSTRESS in kB
       {
 	sscanf(buf,"%s %lf\n",s,&L->p);
 	L->p *= 0.1;                         
@@ -1173,7 +1179,7 @@ void PARS_DAT(ANN *R, PRS *P, Cell *C, LNK *L)
 	if(i==C->N)
 	{
 	  NRDF++;
-	  RDF(C);
+	  RDF(C,1);
 	  for(k=0;k<C->NRDF;k++)
 	    for(spc1=0;spc1<C->NSPC;spc1++)
 	      for(spc2=0;spc2<C->NSPC;spc2++)

@@ -17,6 +17,8 @@
 #include "efnc.h"
 #include "cfnc.h"
 #include "cmod.h"
+#include "sutl.h"
+
 extern const double Pi;
 
 ANN *RR;
@@ -329,7 +331,7 @@ void RANK_TR(Tribe *T)
   for(p=0;p<2*T->N;p++)
   {
     LIST(&T->C[p]);
-    RDF(&T->C[p]);
+    RDF(&T->C[p],1);
   }
   for(p=2*T->N-1;p>=1;p--)
     for(k=p-1;k>=0;k--)
@@ -517,6 +519,9 @@ void RELX_INT(Tribe *T)
     Copy_C(&T->C[p],&T->C[2*T->N+1]);    
 
     CELL_RELX(RR,PP,WW,&T->C[2*T->N+1],LL);
+//    CELL_PHON(RR,PP,WW,&T->C[2*T->N+1],LL);
+
+    Copy_C(&T->C[2*T->N+1],&T->C[p]);
 
     sprintf(buf,"EVOS/G%03d/M%03d/CONTCAR.1",T->n,p);
     SAVE_CELL(&T->C[2*T->N+1],buf,0);
@@ -809,13 +814,13 @@ void ANA_EVOS(Tribe *T, Cell *C, Cell *D)
     sprintf(s,"%s/CONTCAR.1",DIR[I[G-g-1]]);
     READ_CELL(C,s);
     LIST(C);
-    RDF(C);
+    RDF(C,1);
     for(n=0;n<N;n++)
     {
       sprintf(buf,"%s/POOL/POSCAR%03d",C->WDIR,n);
       READ_CELL(D,buf);
       LIST(D);
-      RDF(D);
+      RDF(D,1);
       if(CxC(C,D)>T->CUT)
 	break;
     }
@@ -840,7 +845,7 @@ void ANA_EVOS(Tribe *T, Cell *C, Cell *D)
       CENTER(C,0.5);
       CENTER(D,0.5);
     }
-    FIND_WYC(C,D,tol,ISOPATH,1);
+    FIND_WYC(C,D,tol,1);
     READ_CIF(C,"str.cif",tol,C->NM);
     FIND_PRS(C,D,tol);
     printf("%4d %3d %s%d\n",n,C->SGN,C->PRS,C->N);

@@ -7,7 +7,6 @@ extern const int D3;
 int    FIND_NDIM(Cell *C);
 void   KILL_DBL (Cell *C, double tol);
 void   APPL_SG  (Cell *C, double tol);
-int    FIND_WYC (Cell *C, Cell *D, double tol, char *ISO, int J);
 void   READ_CIF (Cell *C, char file[], double tol, int NM);
 int    FIND_MTY (Cell *C, double tol);
 void   FIND_PRS (Cell *C, Cell *D, double tol);
