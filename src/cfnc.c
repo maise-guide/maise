@@ -550,6 +550,7 @@ void CELL_EXAM(Cell *C, Cell *D, int argc, char **argv)
   if(argc<2)
   {
     printf("For specified JOBT = 0 you should provide a FLAG:\n\n");
+    printf("-rdf    compute and plot the RDF for POSCAR                             \n");
     printf("-cxc    compute dot product for POSCAR0 and POSCAR1 using RDF           \n");
     printf("-cmp    compare RDF, space group, and volume of POSCAR0 and POSCAR1     \n");
     printf("-spg    convert POSCAR into str.cif, CONV, PRIM                         \n");

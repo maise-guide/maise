@@ -18,7 +18,7 @@ MAISE has been developed by
 ---
 ## General info
 
-Current beta version 2.0 works on Linux platforms and combines 3 modules for describing, optimizing, and analyzing atomic structures.
+Current version 2.2 works on Linux platforms and combines 3 modules for modeling, optimizing, and analyzing atomic structures.
 
 1 The neural network (NN) module builds, tests, and uses NN models to describe interatomic interactions with near-ab initio accuracy at a low computational cost compared to density functional theory calculations.
 
@@ -30,9 +30,12 @@ Users can create their own NN models with MAISE which are typically trained on d
 
 The searches can be performed for 3D bulk crystals, 2D films, and 0D nanoparticles. Population of structures can be generated either randomly or predefined based on prior information. Essential operations are 'crossover', when a new configuration is created based on two parent structures in the previous generation, and 'mutation', when a parent structure is randomly distorted. For 0D nanoparticles we have introduced a range of alternative evolution operations which will be described in an upcoming paper. 
 
-3 The analysis functions include the comparison of structures based on the radial
-distribution function (RDF), the determination of the space group and the Wyckoff
-positions with an external Spglib package, etc. In particular, the RDF-based structure dot product is essential for eliminating duplicate structures in EA searches and selecting different configurations in the pool of found low-energy structures. 
+3 The analysis functions include the comparison of structures based on
+the radial distribution function (RDF), the determination of the space
+group and the Wyckoff positions with an external SPGLIB package,
+etc. In particular, the RDF-based structure dot product is essential
+for eliminating duplicate structures in EA searches and selecting
+different configurations in the pool of found low-energy structures.
 <br />
 <br /> [1] https://journals.aps.org/prb/abstract/10.1103/PhysRevB.95.014114
 <br /> [2] https://journals.aps.org/prl/abstract/10.1103/PhysRevLett.109.075501
@@ -43,18 +46,15 @@ positions with an external Spglib package, etc. In particular, the RDF-based str
 
 The code has been extensively tested on Linux platforms. We will appreciate users' feedback on the installation and performance of the package on different platforms.
 
-1 For full functionality, MAISE requires the [GSL library](https://www.gnu.org/software/gsl/) to be compiled and the [Spglib package](https://atztogo.github.io/spglib) (Version 1.11.2.1, February 2019) to be installed prior to MAISE compilation.
+1 For full functionality, MAISE requires the [GSL library](https://www.gnu.org/software/gsl/) and the [Spglib package](https://atztogo.github.io/spglib) (Version 1.11.2.1, February 2019). 
 
-Please copy libgsl.a, libgslcblas.a and libsymspg.a into the maise/lib subdirectory. 
-The spglib.h header should be copied to the maise/lib/include subdirectory and all gsl
-headers shoulde be copied to the maise/lib/include/gsl subdirectory.
+2 MAISE installation will check if these libraries are already present. If not, they will be automatically downloaded to ./ext-dep and installed in ./lib . 
 
-If this is not done prior to compilation the scripts, gsl-dep and spg-dep, will download
-and compile if necessary (Spglib) and place them in the required locations.
+3 If the GSL or SPGLIB library installation is not completed automatically please install them manually and copy (i) libgsl.a, libgslcblas.a and libsymspg.a into the ./lib subdirectory; (ii) the spglib.h header into ./lib/include subdirectory; and (iii) all gsl headers into the ./lib/include/gsl subdirectory.
 
-2 By default, the code will be compiled for parallel execution with OpenMP. If you do not wish to compile the parallel version set 'SERIAL    ?= 1' in maise/makefile
+4 By default, the code will be compiled for parallel execution with OpenMP. If you do not wish to compile the parallel version set 'SERIAL    ?= 1' in maise/makefile
 
-3 Use 'make --jobs' for full compilation, 'make clean' for cleaning most relevant  objects, and 'make clean-all' for cleaning all objects.
+5 Use 'make --jobs' for full compilation, 'make clean' for cleaning most relevant  objects, and 'make clean-all' for cleaning all objects.
 
 ---
 ## Input
@@ -88,7 +88,7 @@ Main input files that define a simulation are 'setup' with job settings, 'model'
     <td colspan="8" class="divider"><hr /></td>
   </tr>
   <tr>
-    <td align="center"><a href="https://github.com/atztogo/spglib">SPGLIB</td>   <td align="center"> </td> <td align="center">+</td> <td align="center"> </td> <td align="center"> </td> <td align="center"> </td> <td align="center"> </td> <td align="center">+</td>
+    <td align="center"><a href="https://github.com/atztogo/spglib">SPG</td>   <td align="center"> </td> <td align="center">+</td> <td align="center"> </td> <td align="center"> </td> <td align="center"> </td> <td align="center"> </td> <td align="center">+</td>
   </tr>
   <tr>
     <td align="center"><a href="https://www.gnu.org/software/gsl/">GSL</td>   <td align="center"> </td> <td align="center"> </td> <td align="center"> </td> <td align="center">+</td> <td align="center"> </td> <td align="center">+</td> <td align="center"> </td>
@@ -111,6 +111,7 @@ The structure examination and manipulation functions are defined as
 
 |Flag| Flag Description|
 |:---:|:-|
+| rdf|    compute and plot the RDF for POSCAR                             |
 | cxc|    compute dot product for POSCAR0 and POSCAR1 using RDF           |
 | cmp|    compare RDF, space group, and volume of POSCAR0 and POSCAR1     |
 | spg|    convert POSCAR into str.cif, CONV, PRIM                         |
