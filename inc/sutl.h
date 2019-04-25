@@ -1,5 +1,5 @@
 #ifndef SUTL_H
-#define SPGL_H
+#define SUTL_H
 
 #include "spglib.h"
 

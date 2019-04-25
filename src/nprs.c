@@ -1134,8 +1134,6 @@ void PARS_DAT(ANN *R, PRS *P, Cell *C, LNK *L)
       if(strncmp(kw,"in",2)==0)
       {
 	sscanf(buf,"%*s %*s %lf %lf %lf %lf %lf %lf",&L->S[0],&L->S[1],&L->S[2],&L->S[3],&L->S[4],&L->S[5]);
-	printf(buf);
-	printf("             % 11.8lf  % 11.8lf  % 11.8lf  % 11.8lf  % 11.8lf  % 11.8lf\n",L->S[0],L->S[1],L->S[2],L->S[3],L->S[4],L->S[5]);
 	fgets(buf,200,in);
       }
       sscanf(buf,"%s",kw);
