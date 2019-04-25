@@ -1,8 +1,8 @@
 #=============================================================================#
 EXE        = maise
 CC         = gcc
-VER        = maise.2.2.00
-CFLAGS     = -O3 -Wall 
+VER        = maise.2.2.0
+CFLAGS     = -O3 -w
 GSL_H      = ./lib/include
 GSL_LIB    = ./lib
 #=============================================================================#
@@ -20,7 +20,6 @@ LIB        = ./lib/libsymspg.a
 #=============================================================================#
 SERIAL    ?= 0
 LIB       += -lgsl -lgslcblas -lm -lstdc++
-#LIB       += -lgsl -lgslcblas -lstdc++
 INCLUDE    = -I./inc -I./lib/include -I$(GSL_H) -L$(GSL_LIB) 
 LDFLAGS    = -lm -fopenmp
 CPPFLAGS   = -DSERIAL=$(SERIAL) -DVERSION='"$(VER)"' 
