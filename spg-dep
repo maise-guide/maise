@@ -4,21 +4,21 @@ mkdir -p lib/include
 mkdir -p ext-dep
 cd       ext-dep
 echo "downloading...spglib-1.11.2.1"
-wget -O spglib.tar.gz https://github.com/atztogo/spglib/archive/v$ver.tar.gz &> log.out
+wget -O spglib.tar.gz https://github.com/atztogo/spglib/archive/v$ver.tar.gz > /dev/null 2>&1
 echo "unpacking....."
-tar -xf spglib.tar.gz &> log.out
+tar -xf spglib.tar.gz > /dev/null 2>&1
 echo "compiling....."
 cd spglib-$ver
-mkdir -p m4
+mkdir -p m4 > /dev/null 2>&1
 sed -i "s/m4_esyscmd_s/m4_esyscmd/" configure.ac
 aclocal 
-autoheader &> log.out
-libtoolize &> log.out
+autoheader > /dev/null 2>&1
+libtoolize > /dev/null 2>&1
 touch INSTALL NEWS README AUTHORS
-automake -acf &> log.out
-autoconf &>> log.out
-./configure &> log.out
-make &> log.out && make install DESTDIR=$PWD &> log.out
+automake -acf > /dev/null 2>&1
+autoconf    > /dev/null 2>&1
+./configure > /dev/null 2>&1
+make > /dev/null 2>&1 && make install DESTDIR=$PWD > /dev/null 2>&1
 echo "installing...."
 cp ./usr/local/lib/libsymspg.a ../../lib
 cp ./usr/local/include/spglib/spglib.h ../../lib/include
@@ -26,5 +26,5 @@ if [ ! -e ../../lib/libsymspg.a ]
 then
   echo "spglib installation failed!"
 fi
-cd ../../ &> out
+cd ../../ 2> /dev/null
 echo "Done"

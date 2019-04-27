@@ -3,18 +3,20 @@ dir="libgsl0-dev_1.16+dfsg-1ubuntu1_amd64"
 mkdir -p ./lib/include/gsl
 mkdir -p ./ext-dep
 cd ext-dep
-wget http://archive.ubuntu.com/ubuntu/pool/main/g/gsl/$dir.deb &> log.out
+echo "downloading...gsl"
+wget http://archive.ubuntu.com/ubuntu/pool/main/g/gsl/$dir.deb > /dev/null 2>&1
+echo "unpacking....."
 ar  -xf $dir.deb
-tar -xf data.tar.xz
+tar -xf data.tar.xz 2>&1
+echo "installing...."
 cp ./usr/lib/libgslcblas.a ../lib
 cp ./usr/lib/libgsl.a      ../lib
 cp -r ./usr/include/gsl/gsl*.h  ../lib/include/gsl
 mkdir gsl
-mv control.tar.gz  gsl &> log.out
-mv debian-binary   gsl &> log.out 
-mv log.out         gsl &> log.out
-mv data.tar.xz     gsl &> log.out  
-mv libgsl0-dev_1.16+dfsg-1ubuntu1_amd64.deb  gsl &> log.out
-mv usr             gsl &> log.out
-cd ../ &> log.out
+mv control.tar.gz  gsl 2> /dev/null
+mv debian-binary   gsl 2> /dev/null
+mv data.tar.xz     gsl 2> /dev/null
+mv libgsl0-dev_1.16+dfsg-1ubuntu1_amd64.deb  gsl 2> /dev/null
+mv usr             gsl 2> /dev/null
+cd ../ 2> /dev/null
 echo "Done"
