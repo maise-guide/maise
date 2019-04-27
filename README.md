@@ -81,6 +81,8 @@ The code has been extensively tested on Linux platforms. We will appreciate user
 
 5 Use 'make --jobs' for full compilation, 'make clean' for cleaning most relevant  objects, and 'make clean-all' for cleaning all objects.
 
+A “check” script is available in the examples/ directory which can be run after compiling the maise to ensure the proper functionality of the code. This script automatically checks for the performance of the code in parsing the data, training the neural network, and evaluating a crystal structure. If the compilation is fine the “check” script will output so; otherwise error logs will be provided with further information about the issue.
+
 ---
 ## Input
 
