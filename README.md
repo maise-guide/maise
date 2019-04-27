@@ -4,7 +4,7 @@ Module for Ab Initio Structure Evolution (MAISE) features
 <br /> * structure analysis
 <br />
 <br /> 1. [General info](#general-info)
-<br /> 2. [Installation](#installation)
+<br /> 2. [Download and Installation](#download)
 <br /> 3. [Input](#input)
 <br /> 4. [Examples](#examples)
 <br /> 5. [Setup input tag description](#setup-input-tag-description)
@@ -35,7 +35,6 @@ Users can create their own NN models with MAISE which are typically trained on d
 2 The implemented evolutionary algorithm (EA) enables an efficient identification of ground state configurations at a given chemical composition. Our studies have shown that the EA is particularly advantageous in dealing with large structures when no experimental structural input is available [3,4]. 
 
 The searches can be performed for 3D bulk crystals, 2D films, and 0D nanoparticles. Population of structures can be generated either randomly or predefined based on prior information. Essential operations are 'crossover', when a new configuration is created based on two parent structures in the previous generation, and 'mutation', when a parent structure is randomly distorted. 
-
 For 0D nanoparticles we have introduced a multitribe evolutionary algorithm that allows an efficient simultaneous optimization of clusters in a specified size range [2].
 
 3 The analysis functions include the comparison of structures based on
@@ -54,7 +53,7 @@ different configurations in the pool of found low-energy structures.
 ---
 ## Download
 
-The source code for MAISE can be obtained from the commandline by running by:
+The source code for MAISE can be obtained from the commandline by running:
 
 ```
 git clone https://github.com/maise-guide/maise.git
