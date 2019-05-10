@@ -29,7 +29,7 @@ cd ..
 
 cd train
 maise > out.dat
-diff NNET/error.dat nnet/ &> res.dat
+diff NNET/error.dat ref/ &> res.dat
 n=$(wc -l res.dat|awk '{print $1}')
 if [ $n -eq 0 ]
 then
