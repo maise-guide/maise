@@ -62,7 +62,13 @@ git clone https://github.com/maise-guide/maise.git
 or 
 
 ```
-wget https://github.com/maise-guide/maise/archive/master.zip
+git clone git://github.com/maise-guide/maise.git
+```
+
+or
+
+```
+wget -O master.zip https://github.com/maise-guide/maise/archive/master.zip
 unzip master.zip
 ```
 
