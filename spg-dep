@@ -1,30 +1,73 @@
 #!/bin/bash
+#setup
 ver="1.11.2.1"
+test_OS=$(uname) 
+test_cmake=$(cmake --version 2>&1 | grep -o "command not found")
+test_wget=$(wget --version 2>&1 | grep -o "command not found")
+test_curl=$(curl --version 2>&1 | grep -o "command not found")
+#commands
+if [ "$test_wget" != "command not found" ]; then
+  WGET="wget -O"
+elif [ "$test_curl" != "command not found" ]; then
+  WGET="curl -L --output"
+fi
+if [ "$test_OS" == Linux ]; then
+  SED="sed -i"
+  LIBTOOL="libtoolize"
+elif [ "$test_OS" == Darwin ]; then
+  SED="sed -i -e"
+  LIBTOOL="glibtoolize"
+fi
+#working directories
 mkdir -p lib/include
 mkdir -p ext-dep
 cd       ext-dep
-echo "downloading...spglib-1.11.2.1"
-wget -O spglib.tar.gz https://github.com/atztogo/spglib/archive/v$ver.tar.gz > /dev/null 2>&1
-echo "unpacking....."
-tar -xf spglib.tar.gz > /dev/null 2>&1
-echo "compiling....."
-cd spglib-$ver
-mkdir -p m4 > /dev/null 2>&1
-sed -i "s/m4_esyscmd_s/m4_esyscmd/" configure.ac
-aclocal 
-autoheader > /dev/null 2>&1
-libtoolize > /dev/null 2>&1
-touch INSTALL NEWS README AUTHORS
-automake -acf > /dev/null 2>&1
-autoconf    > /dev/null 2>&1
-./configure > /dev/null 2>&1
-make > /dev/null 2>&1 && make install DESTDIR=$PWD > /dev/null 2>&1
-echo "installing...."
-cp ./usr/local/lib/libsymspg.a ../../lib
-cp ./usr/local/include/spglib/spglib.h ../../lib/include
-if [ ! -e ../../lib/libsymspg.a ]
-then
-  echo "spglib installation failed!"
+#download
+if [ ! -e spglib.tar.gz ] ; then
+  echo "downloading...spglib-1.11.2.1 to $PWD"
+  $WGET spglib.tar.gz https://github.com/atztogo/spglib/archive/v$ver.tar.gz > /dev/null 2>&1
 fi
+#unpack
+if [ ! -e spglib-$ver ] ; then
+  echo "unpacking..... in $PWD"
+  tar -xf spglib.tar.gz > /dev/null 2>&1
+fi
+#compiling
+echo "compiling..... in $PWD/spglib-$ver"
+cd spglib-$ver
+#compile with cmake or autotools
+if [ "$test_cmake" != "command not found" ]; then
+  mkdir -p _build
+  cd    _build
+  cmake .. > /dev/null 2>&1
+  make     > /dev/null 2>&1
+  make  > /dev/null 2>&1 && make install DESTDIR=$PWD/../ > /dev/null 2>&1
+  cd ../
+else 
+#compile with autotools
+  mkdir -p m4   > /dev/null 2>&1
+  $SED "s/AM_PROG_LIBTOOL/LT_INIT/" configure.ac
+  if [ "$test_OS" != Darwin ]; then
+    $SED "s/m4_esyscmd_s/m4_esyscmd/" configure.ac
+  fi
+  aclocal       > /dev/null 2>&1
+  autoheader    > /dev/null 2>&1
+  $LIBTOOL      > /dev/null 2>&1
+  touch INSTALL NEWS README AUTHORS
+  automake -acf > /dev/null 2>&1
+  autoconf      > /dev/null 2>&1
+  ./configure   > /dev/null 2>&1
+  make > /dev/null 2>&1 && make install DESTDIR=$PWD > /dev/null 2>&1
+fi
+#installation to ./lib
+echo "installing.... to $PWD/../../lib"
+cp ./usr/local/lib/libsymspg.a ../../lib > /dev/null 2>&1
+cp ./src/spglib.h ../../lib/include      > /dev/null 2>&1
 cd ../../ 2> /dev/null
-echo "Done"
+#installation check
+if [ ! -e ./lib/libsymspg.a ]; then
+  echo "spglib installation failed!"
+else 
+  echo "Done"
+fi
+exit

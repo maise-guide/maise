@@ -1,5 +1,5 @@
 #include <stdio.h>
-#include <malloc.h>
+#include <stdlib.h>
 #include <math.h>
 #include <gsl/gsl_math.h>
 #include <gsl/gsl_eigen.h>
