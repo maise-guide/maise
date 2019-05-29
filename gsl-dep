@@ -1,14 +1,15 @@
 #!/bin/bash
 #setup
 dir="libgsl0-dev_1.16+dfsg-1ubuntu1_amd64"
+url="http://archive.ubuntu.com/ubuntu/pool/main/g/gsl/$dir.deb" 
 test_gsl=$(gsl-config --version 2>&1 | grep -o "command not found")
 test_curl=$(curl --version 2>&1 | grep -o "command not found")
 test_wget=$(wget --version 2>&1 | grep -o "command not found")
 #commands
 if [ "$test_wget" != "command not found" ]; then
-  WGET="wget -O"
+  GET="wget $url -O $dir.deb"
 elif [ "$test_curl" != "command not found" ]; then
-  WGET="curl -L --output"
+  GET="curl -L --output $dir.deb $url"
 fi
 #setup working directory
 mkdir -p ./ext-dep
@@ -18,7 +19,7 @@ if [ "$test_gsl" == "command not found" ]; then
   cd ext-dep
   #download
   echo "downloading...gsl to $PWD"
-  $WGET http://archive.ubuntu.com/ubuntu/pool/main/g/gsl/$dir.deb > /dev/null 2>&1
+  $GET &> gsl.log
   #unpack
   echo "unpacking....."
   ar  -x $dir.deb
@@ -31,12 +32,12 @@ if [ "$test_gsl" == "command not found" ]; then
   cp -r ./usr/include/gsl/gsl*.h  ../lib/include/gsl
   #clean up
   mkdir gsl
-  mv control.tar.gz  gsl 2> /dev/null
-  mv debian-binary   gsl 2> /dev/null
-  mv data.tar.xz     gsl 2> /dev/null
-  mv libgsl0-dev_1.16+dfsg-1ubuntu1_amd64.deb  gsl 2> /dev/null
-  mv usr             gsl 2> /dev/null
-  cd ../ 2> /dev/null
+  mv control.tar.gz  gsl &>> gsl.log
+  mv debian-binary   gsl &>> gsl.log
+  mv data.tar.xz     gsl &>> gsl.log
+  mv libgsl0-dev_1.16+dfsg-1ubuntu1_amd64.deb  gsl &>> gsl.log
+  mv usr             gsl &>> gsl.log
+  cd ../ &>> gsl.log
   #adjust unpacked gsl-config to point to current location in ./lib
   sed -i "s/\/usr\/include/.\/lib\/include/"   ./lib/gsl-config
   sed -i "s/\/usr\//.\//"      ./lib/gsl-config
@@ -44,7 +45,6 @@ else
   echo "gsl found in $(gsl-config --prefix)"
   echo "creating link to gsl-config in $PWD/lib"
   #create sym link to existing gsl-config so that make finds it
-  ln -sf  $(which gsl-config) ./lib/gsl-config
-
+  ln -sf  $(which gsl-config) ./lib/gsl-config &> ./ext-dep/gsl.log
 fi
 echo "Done"
