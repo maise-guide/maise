@@ -52,8 +52,8 @@ else
   $SED "s/AM_PROG_LIBTOOL/LT_INIT/" configure.ac
   if [ "$test_OS" != Darwin ]; then
     $SED "s/m4_esyscmd_s/m4_esyscmd/" configure.ac
-    if [ "$test_libtool" != "command not found" ]; then
-      LIBTOOL="./ext-dep/spglib-$ver/libtool/usr/bin/libtoolize"
+    if [ "$test_libtool" == "command not found" ]; then
+      LIBTOOL="$PWD/lib-tool/usr/bin/libtoolize"
       dir="libtool.deb"
       url="http://ftp.br.debian.org/debian/pool/main/libt/libtool/libtool_2.4.2-1.11_all.deb"
       if [ "$test_wget" != "command not found" ]; then
@@ -61,15 +61,13 @@ else
       elif [ "$test_curl" != "command not found" ]; then
         GET="curl -L --output $dir $url"
       fi
-      mkdir -p lib-tool
-      cd  lib-tool
+      mkdir -p lib-tool 2>&1  
+      cd  lib-tool 2>&1
       $GET
-      ar  -x $dir
+      ar  -x $dir 2>&1
       tar -xf data.tar.xz 2>&1
-      sed -i "s/\/usr\/include/.\/lib\/include/"   ./usr/bin/libtoolize
-      sed -i "s/\/usr\//.\//"      ./usr/bin/libtoolize
-      
-      exit 1
+      sed -i "s/=\/usr/=.\/lib-tool\/usr/" ./usr/bin/libtoolize &>> ../../spglib.log
+      cd -
     fi
   fi
   aclocal       &>> ../spglib.log
@@ -80,6 +78,7 @@ else
   autoconf      &>> ../spglib.log
   ./configure   &>> ../spglib.log
   aclocal       &>> ../spglib.log
+  $LIBTOOL      &>> ../spglib.log
   autoheader    &>> ../spglib.log
   automake -acf &>> ../spglib.log
   autoconf      &>> ../spglib.log
