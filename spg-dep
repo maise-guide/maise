@@ -53,7 +53,7 @@ else
   if [ "$test_OS" != Darwin ]; then
     $SED "s/m4_esyscmd_s/m4_esyscmd/" configure.ac
     if [ "$test_libtool" == "command not found" ]; then
-      LIBTOOL="$PWD/lib-tool/usr/bin/libtoolize --force --install"
+      LIBTOOL="$PWD/lib-tool/usr/bin/libtoolize --force --install --copy"
       dir="libtool.deb"
       url="http://ftp.br.debian.org/debian/pool/main/libt/libtool/libtool_2.4.2-1.11_all.deb"
       if [ "$test_wget" != "command not found" ]; then
@@ -66,11 +66,16 @@ else
       $GET &>> ../../spglib.log
       ar  -x $dir &>> ../../spglib.log
       tar -xf data.tar.xz &>> ../../spglib.log
-      sed -i "s/=\/usr/=$PWD\/lib-tool\/usr/" ./usr/bin/libtoolize &>> ../../spglib.log
+      old="=/usr"
+      new="=$PWD/usr"
+      sed -i "s@$old@$new@" ./usr/bin/libtoolize 
       export ACLOCAL_PATH=$PWD/usr/share/aclocal:$ACLOCAL_PATH
+      unlink $PWD/usr/share/libtool/config/config.guess
+      unlink $PWD/usr/share/libtool/config/config.sub
       cd ../ 2>&1
     fi
   fi
+
   aclocal       &>> ../spglib.log
   autoheader    &>> ../spglib.log
   $LIBTOOL      &>> ../spglib.log
@@ -78,12 +83,18 @@ else
   automake -acf &>> ../spglib.log
   autoconf      &>> ../spglib.log
   ./configure   &>> ../spglib.log
-  aclocal       &>> ../spglib.log
-  autoheader    &>> ../spglib.log
-  $LIBTOOL      &>> ../spglib.log
-  automake -acf &>> ../spglib.log
-  autoconf      &>> ../spglib.log
-  ./configure   &>> ../spglib.log
+
+  if [ "$test_libtool" == "command not found" ]; then
+    cp ./config.guess ./lib-tool/usr/share/libtool/config
+    cp ./config.sub ./lib-tool/usr/share/libtool/config
+    aclocal       &>> ../spglib.log
+    autoheader    &>> ../spglib.log
+    $LIBTOOL      &>> ../spglib.log
+    automake -acf &>> ../spglib.log
+    autoconf      &>> ../spglib.log
+    ./configure   &>> ../spglib.log
+  fi
+
   make &>> ../spglib.log && make install DESTDIR=$PWD &>> ../spglib.log
 fi
 #installation to ./lib
