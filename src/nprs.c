@@ -1165,7 +1165,10 @@ void PARS_DAT(ANN *R, PRS *P, Cell *C, LNK *L)
 	  MARK_CL(C,L->NF,R->seed2);
 	  for(i=0;i<C->N;i++)
 	    if(VectorLen(L->F[i],3)<R->FMIN)
-	      L->MRK[i] = 0;
+	      {
+		L->MRK[i] = 0;
+		L->NF--;
+	      }
 	    else
 	      L->MRK[i] = C->FRC[i];
 	}

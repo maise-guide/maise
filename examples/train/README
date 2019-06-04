@@ -2,4 +2,4 @@ A neural network stratified training job for Cu-Ag using a small Cu-Ag dataset. 
 
 Run 'maise' to train the neural network model. The run will produce the follwing files in NNET/ : model, energy_errors.dat, error.dat, and out.dat .
 
-For comparison, the corresponding reference output files are provided in the nnet/ directory. 
+For comparison, the corresponding reference output files are provided in the ref/ directory. 
