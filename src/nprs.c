@@ -995,7 +995,7 @@ void PARS_DAT(ANN *R, PRS *P, Cell *C, LNK *L)
   N=0;
   for(n=0;n<ND;n++)
   {
-    sprintf(s,"find %s -name POSCAR.0 | sort",dn[n]);
+    sprintf(s,"find -L %s -name POSCAR.0 | sort",dn[n]);
     in=popen(s,"r");
     p[n]=0;
     while(fgets(buf,200,in))
