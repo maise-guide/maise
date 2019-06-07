@@ -6,7 +6,6 @@ JOBT  20                structure analysis   (00) use analysis tools specified b
                         cell simulation      (20) relaxation (21) molecular dynamics
 			data parsing         (30) prepare inputs for NN training
 			NN training          (40) full training (41) stratified training
-MODT  1                 model type           (1)  NN  (3)  Sutton-Chen  (4) Gupta
 =============================================================================================================
                                     OPTIMIZATION parameters
 =============================================================================================================
@@ -18,6 +17,7 @@ STOP  0                 stop as soon as distances are shorter than the table fil
 ETOL  1e-8              error tolerance for NN training or cell optimization convergence
 COUT  12                output options (00) E  final step (01) E  first/final steps (02) E  all steps
                                        (10) EF final step (11) EF first/final steps (12) EF all steps
+PGPA  0.0               pressure in GPa
 =============================================================================================================
                                STRUCTURE/DESCRIPTOR/NN parameters
 =============================================================================================================
@@ -26,8 +26,8 @@ MMAX  250               max number of neighbors within cutoff radius
 NSPC  1                 number of species types
 TSPC  47                speceis types
 ASPC  80                atom number of each species in evolutionary searches
-NSYM  35                number of Behler-Parrinello symmetry functions
-NCMP  82                total number of NN inputs
+NSYM  51                number of Behler-Parrinello symmetry functions
+NCMP  51                total number of NN inputs
 TEFS  0                 train NN for (0) E (1) EF
 FMRK  0.25              fraction of atoms used for EF training
 LREG  1e-6              regularization parameter
@@ -43,6 +43,9 @@ VMAX  45.0              do not parse data with larger volume
 =============================================================================================================
                                EVOLUTIONARY SEARCH settings
 =============================================================================================================
+CODE  2                 (0) MAISE-INT (1) VASP-EXT (2) MAISE-EXT
+QUET  0                 (0) torque (1) slurm
+
 NDIM  3                 (3) crystal (2) film (0) particle
 LBOX  20.0              box size for particle calculations (ignored for crystals)
 NPOP  10                population size
@@ -50,9 +53,7 @@ SITR  1                 starting iteration (0) start from random or specified st
 NITR  2                 number of iterations
 TINI  0                 starting options if SITR=0
 TIME  200               max time per relaxation
-PGPA  0.0               pressure in GPa
 DENE  0.030             store distinct structures in POOL within this energy/atom window
-KMSH  0.06              k-mesh: 0.30 for s/c, 0.05 for metals
 
 TETR  0.00              random using tetris
 PLNT  0.00              seeded
@@ -71,7 +72,7 @@ SCRS  0.00              crossover:  swapping rate
 LCRS  0.10              crossover:  mutation strength for lattice vectors
 ACRS  0.10              crossover:  mutation strength for atomic positions
 SDST  0.00              distortion: swapping rate
-LDST  0.00              distortion: mutation strength for lattice vectors
+LDST  0.15              distortion: mutation strength for lattice vectors
 ADST  0.15              distortion: mutation strength for atomic positions
 ELPS  0.15              random:     nanoparticle ellipticity
 

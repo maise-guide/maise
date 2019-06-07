@@ -265,7 +265,10 @@ void EXIT_TR(Tribe *T)
       if(i<strlen(buf))
       {
 	sscanf(buf+i,"%s",s);
-	sprintf(buf,"qdel %s",s);
+	if( T->QT==0 )
+	  sprintf(buf,"qdel %s",s);
+	if( T->QT==1 )
+	  sprintf(buf,"scancel %s",s);
 	system(buf);
 	sprintf(buf,"deleting job %s\n",s);
 	Print_LOG(buf);
@@ -475,7 +478,10 @@ void QSUB_TR(Tribe *T, int p)
   system(buf);
   sprintf(buf,"sed -i 's/MMMM/M%03d/' g%03d",p,p);
   system(buf);
-  sprintf(buf,"qsub g%03d >> EVOS/G%03d/M%03d/jobid",p,T->n,p);
+  if( T->QT==0 )
+    sprintf(buf,"qsub g%03d >> EVOS/G%03d/M%03d/jobid",p,T->n,p);
+  if( T->QT==1 )
+    sprintf(buf,"sbatch g%03d >> EVOS/G%03d/M%03d/jobid",p,T->n,p);
   system(buf);  
 
 }
@@ -622,7 +628,10 @@ void RELX_TR(Tribe *T)
 		{
 		  printf("%3d %3d %s %s\n",T->n,p,buf,buf+i);
 		  sscanf(buf+i,"%s",s);
-		  sprintf(buf,"qdel %s",s);
+		  if( T->QT==0 )
+		    sprintf(buf,"qdel %s",s);
+		  if( T->QT==1 )
+		    sprintf(buf,"scancel %s",s);
 		  system(buf);
 		  sprintf(buf,"deleting job %s\n",s);
 		  Print_LOG(buf);

@@ -19,6 +19,7 @@ typedef struct
   int    SES[11];    // srart  of evolutionary search operation
   int    FES[11];    // finish of evolutionary search operation
 
+  int    QT;      // queuing system type: 0=torque 1=slurm
   int    JS;      // start type at n=0: 0=random 1=specified 2=specified cell 3=spec. cell and fixed coords
   int    n;       // generation number
   int    time;    // max time per relaxation

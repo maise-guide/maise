@@ -1211,6 +1211,7 @@ void READ_MAIN(Tribe *T, ANN *R, PRS *P, Cell *C, int J, int ARGC)
   C->MODT  = 1;
   C->ND    = -1;
   T->ND    = -1;
+  T->QT    = 0;            // default queue type is torque
   strcpy(C->WDIR,".");
 
   while( fgets(buf,200,in) )
@@ -1242,6 +1243,7 @@ void READ_MAIN(Tribe *T, ANN *R, PRS *P, Cell *C, int J, int ARGC)
     if( strncmp(buf,"JOBT",4) ==0 ) { sscanf(buf+4,"%d" ,&C->JOBT  );       }
     if( strncmp(buf,"JOBT",4) ==0 ) { sscanf(buf+4,"%d" ,&R->JOBT  );       }
     if( strncmp(buf,"CODE",4) ==0 ) { sscanf(buf+4,"%d" ,&T->CODE  );       }
+    if( strncmp(buf,"QUET",4) ==0 ) { sscanf(buf+4,"%d" ,&T->QT    );       }
     if( strncmp(buf,"NDIM",4) ==0 ) { sscanf(buf+4,"%d" ,&T->ND    );       }
     if( strncmp(buf,"NDIM",4) ==0 ) { sscanf(buf+4,"%d" ,&C->ND    );       }
     if( strncmp(buf,"LBOX",4) ==0 ) { sscanf(buf+4,"%lf",&T->B     );       }
