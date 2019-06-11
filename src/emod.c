@@ -482,6 +482,8 @@ void QSUB_TR(Tribe *T, int p)
     sprintf(buf,"qsub g%03d >> EVOS/G%03d/M%03d/jobid",p,T->n,p);
   if( T->QT==1 )
     sprintf(buf,"sbatch g%03d >> EVOS/G%03d/M%03d/jobid",p,T->n,p);
+  if( T->QT==2 )
+    sprintf(buf,"bsub g%03d >> EVOS/G%03d/M%03d/jobid",p,T->n,p);
   system(buf);  
 
 }
@@ -632,6 +634,8 @@ void RELX_TR(Tribe *T)
 		    sprintf(buf,"qdel %s",s);
 		  if( T->QT==1 )
 		    sprintf(buf,"scancel %s",s);
+		  if( T->QT==2 )
+		    sprintf(buf,"bkill %s",s);
 		  system(buf);
 		  sprintf(buf,"deleting job %s\n",s);
 		  Print_LOG(buf);

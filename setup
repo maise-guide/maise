@@ -44,7 +44,7 @@ VMAX  45.0              do not parse data with larger volume
                                EVOLUTIONARY SEARCH settings
 =============================================================================================================
 CODE  2                 (0) MAISE-INT (1) VASP-EXT (2) MAISE-EXT
-QUET  0                 (0) torque (1) slurm
+QUET  0                 (0) torque (1) slurm (2) IBM-lsf
 
 NDIM  3                 (3) crystal (2) film (0) particle
 LBOX  20.0              box size for particle calculations (ignored for crystals)
