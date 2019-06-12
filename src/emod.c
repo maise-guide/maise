@@ -483,7 +483,7 @@ void QSUB_TR(Tribe *T, int p)
   if( T->QT==1 )
     sprintf(buf,"sbatch g%03d >> EVOS/G%03d/M%03d/jobid",p,T->n,p);
   if( T->QT==2 )
-    sprintf(buf,"bsub g%03d >> EVOS/G%03d/M%03d/jobid",p,T->n,p);
+    sprintf(buf,"bsub < g%03d >> EVOS/G%03d/M%03d/jobid",p,T->n,p);
   system(buf);  
 
 }
