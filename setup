@@ -91,7 +91,8 @@ TSTP  50                tempterature step in MD runs
 DELT  1.0               time step in femtoseconds
 NSTP  10                number of steps
 COPL  25.0              coupling constant
-THRM  1                 thermostat (0) molecular dynamics (1) Nose-Hoover thermostat
+THRM  1                 thermostat (0) molecular dynamics (1) Nose-Hoover thermostat 
+                                   (2) Nose-Hoover with velocities read in from POSCAR
 
 =============================================================================================================
                                    INPUT/OUTPUT directories

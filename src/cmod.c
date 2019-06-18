@@ -171,7 +171,7 @@ void  MDOUT(Cell *C, int PIPE, int DISK, int NS, int n, int k, double E0, double
     printf("%8d:  P = % 24.14lf       K = % 24.14lf        dE = % 24.14lf     LI = % 24.16lf\n",NS*n+k,C->H/(double)C->N,C->K*kb/1.5/(double)C->N,(C->H+C->K-E0)/(double)C->N,li);
   if(DISK==0)
     return;
-  sprintf(file,"MD/T%04d.dat",(int)(T*kb));
+  sprintf(file,"%s/T%04d.dat",C->WDIR,(int)(T*kb));
   if(n==0&&k==0)
     out = fopen(file,"w");
   else
@@ -374,12 +374,16 @@ void CELL_MD(ANN *R, PRS *P, PRS *W, Cell *C, LNK *L)
 {
   int n,N;
   double Tmin, Tmax, dT, T;
+  char s[200];
 
   Tmin = R->TMIN;
   Tmax = R->TMAX;
   dT   = R->TSTP;
   
-  system("mkdir -p MD");
+  READ_ATM(R,C);
+
+  sprintf(s,"mkdir -p %s",C->WDIR);
+  system(s);
   N = (int)fabs((Tmax-Tmin)/dT);
   Maxwell(C,Tmin/kb,R->THRM);
   C->POS = 1;
