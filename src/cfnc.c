@@ -121,7 +121,7 @@ void READ_CIF(Cell *C, char file[], double tol, int NM)
     {
       s[0] = 0;
       sscanf(buf,"%s %s",t,s);
-      if(strcmp(t,"_atom_site_occupancy")==0)
+      if(strcmp(t,"_atom_site_fract_z")==0)
       {
 	fgets(buf,200,in);
 	if(strncmp(buf,"_",1)==0)
@@ -219,7 +219,7 @@ void READ_CIF(Cell *C, char file[], double tol, int NM)
       ABC_LT(C);
     }
 
-    if(strcmp(t,"_atom_site_occupancy")==0)              // get Wickoff positions
+    if(strcmp(t,"_atom_site_fract_z")==0)              // get Wyckoff positions
     {
 
       fgets(buf,200,in);  

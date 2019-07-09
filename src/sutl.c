@@ -432,7 +432,14 @@ int FIND_WYC(Cell *C, Cell *D, double tol, int J)
   }
 
   fprintf(out,"'\n");
+  fprintf(out,"loop_\n");
+  fprintf(out,"_atom_site_label\n");
+  fprintf(out,"_atom_site_type_symbol\n");
+  fprintf(out,"_atom_site_site_symmetry_multiplicity\n");
   fprintf(out,"_atom_site_occupancy wyckoff\n");
+  fprintf(out,"_atom_site_fract_x\n");
+  fprintf(out,"_atom_site_fract_y\n");
+  fprintf(out,"_atom_site_fract_z\n");
 
   n=0;
   j=0;
@@ -469,7 +476,7 @@ int FIND_WYC(Cell *C, Cell *D, double tol, int J)
       n=0;
     }
   }
-  fprintf(out,"loop_\n");
+  fprintf(out,"#End\n");
   fclose(out);
 
   for(i=0;i<C->ATMN[C->N-1]+1;i++)
