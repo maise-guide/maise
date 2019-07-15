@@ -344,8 +344,9 @@ void EVAL_ANN(ANN *R, PRS *P, Cell *C, LNK *L)
   }
 
   sprintf(nntp[ 1],"M");
+  sprintf(nntp[ 2],"G");
   sprintf(nntp[ 3],"S");
-  sprintf(nntp[ 4],"G");
+  sprintf(nntp[ 4],"L");
   
   if(R->NSPC==1) Q = 1;  // elemental systems
   if(R->NSPC==2) Q = 3;  // binary systems

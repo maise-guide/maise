@@ -411,7 +411,6 @@ void CELL_OUT(Cell *C)
   out = fopen(s,"a");
   
   abc(C);
-  V = Cell_VOLUME(C);
   sprintf(b,"----------------------------------------------------------------------------------------------------------\n");
 
   if( C->it==0 )
@@ -441,8 +440,11 @@ void CELL_OUT(Cell *C)
     fprintf(out,"   total number of atoms  %s\n",t);
     fprintf(out,"%s\n\n\n",b);
   }  
-  fprintf(out,"%s                   LATTICE CONSTANTS (Angst) AND ANGLES (degrees)                  VOLUME (Angst^3/atom) \n%s",b,b);
-  fprintf(out," %3d % 12.6lf % 12.6lf % 12.6lf   % 12.6lf % 12.6lf % 12.6lf % 17.12lf vol\n",C->it,C->LAT[0],C->LAT[1],C->LAT[2],C->ANG[0]*a,C->ANG[1]*a,C->ANG[2]*a,V/(double)C->N);
+  V = Cell_VOLUME(C);
+  fprintf(out,"%s                   LATTICE VECTORS                                                 VOLUME (Angst^3/atom) \n%s",b,b);
+  fprintf(out,"      % 12.6lf  % 12.6lf  % 12.6lf  % 45.6lf vol\n",C->L[0][0],C->L[0][1],C->L[0][2],V/(double)C->N);
+  fprintf(out,"      % 12.6lf  % 12.6lf  % 12.6lf\n",C->L[1][0],C->L[1][1],C->L[1][2]);
+  fprintf(out,"      % 12.6lf  % 12.6lf  % 12.6lf\n",C->L[2][0],C->L[2][1],C->L[2][2]);
   if(C->OUT/10>0)
   {
     fprintf(out,"%s                 POSITION (Angst)                     TOTAL-FORCE (eV/Angst)           ATOM ENERGY (eV)\n%s",b,b);

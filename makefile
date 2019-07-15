@@ -1,7 +1,7 @@
 #=============================================================================#
 EXE        = maise
 CC         = gcc
-VER        = maise.2.2.0
+VER        = maise.2.2.03
 CFLAGS     = -O3 -w
 GSL_H      = $(shell ./lib/gsl-config --cflags)
 GSL_LIB    = $(shell ./lib/gsl-config --libs)

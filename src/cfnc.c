@@ -560,6 +560,16 @@ void CELL_EXAM(Cell *C, Cell *D, int argc, char **argv)
     printf("-box    reset   the box size for nanoparticles                          \n");
     printf("-sup    make    a supercell specified by na x nb x nc                   \n");
     printf("-vol    compute volume per atom for crystal or nano structures          \n");
+    printf("-ctr    center the nanoparticle in the box                              \n");
+    exit(0);
+  }
+
+//================    center a cluster structure   ==========
+  if(strncmp(argv[1],"-ctr",4)==0)
+  {
+    INIT_CELL(C,"POSCAR",1,NM,1);
+    CNTR_CL(C,0.0);
+    SAVE_CELL(C,"CONTCAR",0);
     exit(0);
   }
 
@@ -696,7 +706,7 @@ void CELL_EXAM(Cell *C, Cell *D, int argc, char **argv)
   printf("-box    reset   the box size for nanoparticles                          \n");
   printf("-sup    make    a supercell specified by na x nb x nc                   \n");
   printf("-vol    compute volume per atom for crystal or nano structures          \n");
- 
+  printf("-ctr    center the nanoparticle in the box                              \n"); 
   exit(0);
 }
 //==================================================================

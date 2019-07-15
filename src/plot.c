@@ -27,12 +27,10 @@ void PLOT(ANN *R, int type, int N1, int N2, int M, char *test, char *CMP)
 
   printf("%s\n",CMP);
 
-  sprintf(nntp[ 0],"R");
   sprintf(nntp[ 1],"M");
+  sprintf(nntp[ 2],"G");
   sprintf(nntp[ 3],"S");
-  sprintf(nntp[13],"B");
-  sprintf(nntp[ 4],"G");
-  sprintf(nntp[14],"B");
+  sprintf(nntp[ 4],"L");
 
   sprintf(s[ 0],"%s/%s%s00bcc.dat",R->otpt,nntp[R->MODT],CMP);
   sprintf(s[ 1],"%s/%s%s01fcc.dat",R->otpt,nntp[R->MODT],CMP);
