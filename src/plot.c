@@ -21,9 +21,10 @@ void PLOT(ANN *R, int type, int N1, int N2, int M, char *test, char *CMP)
   FILE   *out;
   int    i,j,k,t0;
   char   s[101][200],u[101][200],buf[101][200],nntp[100][2];
-  double tmp,data[101][101],t1,t2;
+  double tmp,data[101][101],t1,t2,t3;
   char   name[200];
   char   compound[200];
+  char   ctmp[200];
 
   printf("%s\n",CMP);
 
@@ -111,21 +112,21 @@ void PLOT(ANN *R, int type, int N1, int N2, int M, char *test, char *CMP)
 
       out=popen("gnuplot","w");
       fprintf(out,"set terminal pngcairo size 800, 600\n");
-      fprintf(out,"set title \"%s %s\"\n",test,CMP);
+      fprintf(out,"set title \"%s (%s)\"\n",CMP,test);
       fprintf(out,"set xrange [%lf:%lf]\n",xmin-abs(xmin*0.05),xmax+abs(xmax*0.05));
-      fprintf(out,"set yrange [%lf:%lf]\n",ymin-abs(ymin*0.05),ymax+abs(ymax*0.05));
+      fprintf(out,"set yrange [%lf:%lf]\n",ymin-abs(ymin*0.05),ymin+2.0);
       fprintf(out,"set autoscale fix\n");
       fprintf(out,"set size 1.0,1.0\n");
-      fprintf(out,"set ylabel \"Energy(eV/atom)\"\n");
-      fprintf(out,"set xlabel \"NN dis\"\n");
+      fprintf(out,"set ylabel \"energy (eV/atom)\"\n");
+      fprintf(out,"set xlabel \"N-N distance (A)\"\n");
       fprintf(out,"set output \'%s/%s_%s.png\'\n",R->otpt,CMP,test);
       fprintf(out,"set multiplot\n");
-      fprintf(out,"set key top box\n");
+      fprintf(out,"set key top\n");
       fprintf(out,"plot ");
 
       for(i=N1; i < N2;i++) 
       {
-	fprintf(out,"  \"%s\" using 1:3 with lines t \"%s\" lc %d",u[i],u[i],color[i]); 
+	fprintf(out,"  \"%s\" using 1:3 with lines t \"%s\" lw 2 lc %d",u[i],u[i],color[i]); 
 	if( i != N2-1 ) 
 	  fprintf(out,",");
       }
@@ -133,7 +134,7 @@ void PLOT(ANN *R, int type, int N1, int N2, int M, char *test, char *CMP)
 
       for(i=N1; i < N2;i++) 
       {
-	fprintf(out," \"%s\" u 1:2 w points pt 6 lc %d",u[i],color[i]); 
+	fprintf(out," \"%s\" u 1:2 w points pt 7 lc %d",u[i],color[i]); 
 	if( i != N2-1 ) 
 	  fprintf(out,",");
       }
@@ -154,7 +155,7 @@ void PLOT(ANN *R, int type, int N1, int N2, int M, char *test, char *CMP)
   {    
     sprintf(name,"%s/vac_%s.dat",R->otpt,CMP);
     in[0]=fopen(name,"r");
-    fscanf(in[0],"%d %lf %lf %s\n",&t0,&t1,&t2,buf[0]);
+    fscanf(in[0],"%d %lf %lf %s %lf\n",&t0,&t1,&t2,buf[0],&tmp);
     ymin=t1;
     ymax=t1;
     for(i=N1; i < N2;i++)
@@ -163,7 +164,7 @@ void PLOT(ANN *R, int type, int N1, int N2, int M, char *test, char *CMP)
       if( ymax < t1 ) ymax=t1;
       if( ymin > t2 ) ymin=t2;
       if( ymax < t2 ) ymax=t2;
-      fscanf(in[0],"%d %lf %lf %s\n",&t0,&t1,&t2,buf[0]);
+      fscanf(in[0],"%d %lf %lf %s %lf\n",&t0,&t1,&t2,buf[0],&tmp);
     }
     xmin=0.0;
     xmax=(double)N2-1;
@@ -175,19 +176,21 @@ void PLOT(ANN *R, int type, int N1, int N2, int M, char *test, char *CMP)
 
     out=popen("gnuplot","w");
     fprintf(out,"set terminal pngcairo size 800, 600\n");
-    fprintf(out,"set title \"VAC %s: %s\"\n",CMP,buf[0]);
+    fprintf(out,"set title \"%s (%s)\"\n",CMP,test);
     fprintf(out,"set xrange [%lf:%lf]\n",xmin-abs(xmin*0.05),xmax+abs(xmax*0.05));
     fprintf(out,"set yrange [%lf:%lf]\n",ymin-abs(ymin*0.05),ymax+abs(ymax*0.05));
     fprintf(out,"set autoscale fix\n");
     fprintf(out,"set size 1.0,1.0\n");
-    fprintf(out,"set ylabel \"Energy(eV/vac)\"\n");
-    fprintf(out,"set xlabel \"Unit cell\"\n");
+    fprintf(out,"set ylabel \"energy (eV/vac)\"\n");
+    fprintf(out,"set xlabel \"structure\"\n");
     fprintf(out,"set output \'%s/%s_vac.png\'\n",R->otpt,CMP);
     fprintf(out,"set multiplot\n");
-    fprintf(out,"set style line 1 lc rgb \'#0060ad\' lt 1 lw 2 pt 7 ps 1.5\n");
-    fprintf(out,"set style line 2 lc rgb \'#dd181f\' lt 1 lw 2 pt 7 ps 1.5\n");
-    fprintf(out,"set key top box\n");
-    fprintf(out,"plot \"%s\" using 1:2 with linespoints t \"DFT\" ls 1, \"%s\" using 1:3 with linespoints t \"MLP\" ls 2\n",name,name);
+    fprintf(out,"set style line 1 lc rgb \'#0060ad\' lt 1 lw 2 pt 4  ps 1.5\n");
+    fprintf(out,"set style line 2 lc rgb \'#dd181f\' lt 1 lw 2 pt 13 ps 1.5\n");
+    fprintf(out,"set key top right\n");
+    fprintf(out,"plot \"%s\" using 2:xticlabels(4) with linespoints t \"DFT\" ls 1, \"%s\" using 3 with linespoints t \"ANN\" ls 2\n",name,name);
+    fprintf(out,"set key off\n");
+    fprintf(out,"plot \"\" using 1:3:5:xticlabels(4) with labels offset 0,char 1 tc rgb \"red\"\n");
     fprintf(out,"unset multiplot\n");
     fclose(out);
   }
@@ -198,17 +201,18 @@ void PLOT(ANN *R, int type, int N1, int N2, int M, char *test, char *CMP)
     k=nlines(compound);
     in[0]=fopen(compound,"r");
     fgets(name,200,in[0]);
-    sscanf(name,"%d %lf %lf %lf %lf\n",&j,&data[0][0],&data[0][1],&data[0][2],&data[0][3]);
+    sscanf(name,"%d %lf %lf %lf %lf %s %lf %lf\n",&j,&data[0][0],&data[0][1],&data[0][2],&data[0][3],ctmp,&tmp,&tmp);
+    printf("%d\n",j);
     xmin=xmax=(double)j;
     if( data[0][0] < data[0][1]) {ymin=data[0][0];ymax=data[0][1];}
     else {ymin=data[0][1];ymax=data[0][0];}
     if( data[0][2] < data[0][3] ) {t1=data[0][2];t2=data[0][3];}
     else {t1=data[0][3];t2=data[0][2];}
-
+    printf("XY %lf %lf\n",xmin,xmax);
     for(i=1; i < k;i++)
     {
       fgets(name,200,in[0]);
-      sscanf(name,"%d %lf %lf %lf %lf\n",&j,&data[0][0],&data[0][1],&data[0][2],&data[0][3]);
+      sscanf(name,"%d %lf %lf %lf %lf %s %lf %lf\n",&j,&data[0][0],&data[0][1],&data[0][2],&data[0][3],ctmp,&tmp,&tmp);
       if( data[0][0] < ymin ) ymin=data[0][0];
       if( data[0][1] < ymin ) ymin=data[0][1];
       if( data[0][0] > ymax ) ymax=data[0][0];
@@ -219,25 +223,28 @@ void PLOT(ANN *R, int type, int N1, int N2, int M, char *test, char *CMP)
       if( data[0][3] > t2 ) t2=data[0][3];
       if( j < xmin ) xmin=(double)j;
       if( j > xmax ) xmax=(double)j;
+      printf("XY %lf %lf\n",xmin,xmax);
     }
 
     for(i=1; i < 3;i++)
     {
       out=popen("gnuplot","w");
       fprintf(out,"set terminal pngcairo size 800, 600\n");
-      fprintf(out,"set title \"SUB %s (%d)(bcc,fcc,hcp,sc)\"\n",CMP,i);
+      fprintf(out,"set title \"%s (%s-%d)\"\n",CMP,test,i);
       fprintf(out,"set xrange [%lf:%lf]\n",xmin-abs(xmin*0.05),xmax+abs(xmax*0.05));
       fprintf(out,"set yrange [%lf:%lf]\n",ymin-abs(ymin*0.05),ymax+abs(ymax*0.05));
       fprintf(out,"set autoscale fix\n");
       fprintf(out,"set size 1.0,1.0\n");
-      fprintf(out,"set ylabel \"Energy(eV/vac)\"\n");
-      fprintf(out,"set xlabel \"Structure\"\n");
+      fprintf(out,"set ylabel \"energy (eV/vac)\"\n");
+      fprintf(out,"set xlabel \"structure\"\n");
       fprintf(out,"set output \'%s/%s_sub_%d.png\'\n",R->otpt,CMP,i);
       fprintf(out,"set multiplot\n");
-      fprintf(out,"set style line 1 lc rgb \'#0060ad\' lt 1 lw 2 pt 7 ps 1.5\n");
-      fprintf(out,"set style line 2 lc rgb \'#dd181f\' lt 1 lw 2 pt 7 ps 1.5\n");
-      fprintf(out,"set key top box\n");
-      fprintf(out,"plot \"%s\" using 1:%d with linespoints t \"DFT\" ls 1, \"%s\" using 1:%d with linespoints t \"NN\" ls 2\n",compound,i*2,compound,i*2+1);
+      fprintf(out,"set style line 1 lc rgb \'#0060ad\' lt 1 lw 2 pt 4  ps 1.5\n");
+      fprintf(out,"set style line 2 lc rgb \'#dd181f\' lt 1 lw 2 pt 13 ps 1.5\n");
+      fprintf(out,"set key top right\n");
+      fprintf(out,"plot \"%s\" using %d:xticlabels(6) with linespoints t \"DFT\" ls 1, \"%s\" using %d with linespoints t \"ANN\" ls 2\n",compound,i*2,compound,i*2+1);
+      fprintf(out,"set key off\n");
+      fprintf(out,"plot \"\" using 1:%d:%d:xticlabels(6) with labels offset 0,char 1 tc rgb \"red\"\n",i*2+1,6+i);
       fprintf(out,"unset multiplot\n");
       fclose(out);
       ymin=t1;
@@ -272,19 +279,20 @@ void PLOT(ANN *R, int type, int N1, int N2, int M, char *test, char *CMP)
 
     out=popen("gnuplot","w");
     fprintf(out,"set terminal pngcairo size 800, 600\n");
-    fprintf(out,"set title \"PHD %s\"\n",CMP);
+    fprintf(out,"set title \"%s (phd)\"\n",CMP);
     fprintf(out,"set xrange [%lf:%lf]\n",xmin-abs(xmin*0.05),xmax+abs(xmax*0.05));
     fprintf(out,"set yrange [%lf:%lf]\n",ymin-abs(ymin*0.05),ymax+abs(ymax*0.05));
     fprintf(out,"set autoscale fix\n");
     fprintf(out,"set size 1.0,1.0\n");
-    fprintf(out,"set ylabel \"Energy(eV/vac)\"\n");
-    fprintf(out,"set xlabel \"Ratio\"\n");
+    fprintf(out,"set ylabel \"energy (eV/vac)\"\n");
+    fprintf(out,"set xlabel \"composition ratio\"\n");
     fprintf(out,"set output \'%s/%s_phd.png\'\n",R->otpt,CMP);
     fprintf(out,"set multiplot\n");
-    fprintf(out,"set style line 1 lc rgb \'#0060ad\' lt 1 lw 2 pt 7 ps 1.5\n");
-    fprintf(out,"set style line 2 lc rgb \'#dd181f\' lt 1 lw 2 pt 7 ps 1.5\n");
-    fprintf(out,"set key top box\n");
-    fprintf(out,"plot \"%s\" using 1:2 with points t \"DFT\" ls 1, \"%s\" using 1:3 with points t \"NN\" ls 2\n",compound,compound);
+    fprintf(out,"set style line 1 lc palette lt 1 lw 2 pt 4  ps 1.5\n");
+    fprintf(out,"set style line 2 lc palette lt 1 lw 2 pt 13 ps 1.5\n");
+    fprintf(out,"set key bottom right\n");
+    fprintf(out,"unset colorbox\n");
+    fprintf(out,"plot \"%s\" using 1:2:4:xticlabels(1) t \"DFT\" with points ls 1,\"%s\" using 1:3:4:xticlabels(1) t \"ANN\" with points ls 2 \n",compound,compound);
     fprintf(out,"unset multiplot\n");
     fclose(out);
     fclose(in[0]);
@@ -294,25 +302,20 @@ void PLOT(ANN *R, int type, int N1, int N2, int M, char *test, char *CMP)
   {    
     sprintf(name,"%s/srf_%s.dat",R->otpt,CMP);
     in[0]=fopen(name,"r");
-    in[1]=fopen("tmp_srf","w");
-    fscanf(in[0],"%d %lf %lf %s\n",&t0,&t1,&t2,buf[0]);
-
+    fscanf(in[0],"%d %lf %lf %s %lf\n",&t0,&t1,&t2,buf[0],&tmp);
     ymin=t1;
     ymax=t1;
     for(i=N1; i < N2;i++)
     {
-      fprintf(in[1],"%d %lf %lf %s\n",i,t1,t2,buf[0]);
       if( ymin > t1 ) ymin=t1;
       if( ymax < t1 ) ymax=t1;
       if( ymin > t2 ) ymin=t2;
       if( ymax < t2 ) ymax=t2;
-      fscanf(in[0],"%d %lf %lf %s\n",&t0,&t1,&t2,buf[0]);
+      fscanf(in[0],"%d %lf %lf %s %lf\n",&t0,&t1,&t2,buf[0],&tmp);
     }
     xmin=0.0;
-    ymin=0.0;
     xmax=(double)N2-1;
     fclose(in[0]);
-    fclose(in[1]);
 
     strcpy(buf[0],"");
     for(i=N1; i < N2;i++)
@@ -320,19 +323,21 @@ void PLOT(ANN *R, int type, int N1, int N2, int M, char *test, char *CMP)
 
     out=popen("gnuplot","w");
     fprintf(out,"set terminal pngcairo size 800, 600\n");
-    fprintf(out,"set title \"SRF %s: %s\"\n",CMP,buf[0]);
+    fprintf(out,"set title \"%s (%s)\"\n",CMP,test);
     fprintf(out,"set xrange [%lf:%lf]\n",xmin-abs(xmin*0.05),xmax+abs(xmax*0.05));
     fprintf(out,"set yrange [%lf:%lf]\n",ymin-abs(ymin*0.05),ymax+abs(ymax*0.05));
     fprintf(out,"set autoscale fix\n");
     fprintf(out,"set size 1.0,1.0\n");
-    fprintf(out,"set ylabel \"Energy(eV/A^2)\"\n");
-    fprintf(out,"set xlabel \"Unit cell\"\n");
+    fprintf(out,"set ylabel \"energy (eV/A^2)\"\n");
+    fprintf(out,"set xlabel \"structure\"\n");
     fprintf(out,"set output \'%s/%s_srf.png\'\n",R->otpt,CMP);
     fprintf(out,"set multiplot\n");
-    fprintf(out,"set style line 1 lc rgb \'#0060ad\' lt 1 lw 2 pt 7 ps 1.5\n");
-    fprintf(out,"set style line 2 lc rgb \'#dd181f\' lt 1 lw 2 pt 7 ps 1.5\n");
-    fprintf(out,"set key top box\n");
-    fprintf(out,"plot \"%s\" using 1:2 with linespoints t \"DFT\" ls 1, \"%s\" using 1:3 with linespoints t \"MLP\" ls 2\n","tmp_srf","tmp_srf");
+    fprintf(out,"set style line 1 lc rgb \'#0060ad\' lt 1 lw 2 pt 4  ps 1.5\n");
+    fprintf(out,"set style line 2 lc rgb \'#dd181f\' lt 1 lw 2 pt 13 ps 1.5\n");
+    fprintf(out,"set key top right\n");
+    fprintf(out,"plot \"%s\" using 2:xticlabels(4) with linespoints t \"DFT\" ls 1, \"%s\" using 3 with linespoints t \"ANN\" ls 2\n",name,name);
+    fprintf(out,"set key off\n");
+    fprintf(out,"plot \"\" using 1:3:5:xticlabels(4) with labels offset 0,char 1 tc rgb \"red\"\n");
     fprintf(out,"unset multiplot\n");
     fclose(out);
     system("rm -f tmp_srf");

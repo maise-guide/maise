@@ -336,6 +336,7 @@ void EVAL_ANN(ANN *R, PRS *P, Cell *C, LNK *L)
   int    counter;
   PRS    W[9];
   struct Node *temp;
+  char   strtype[200];
 
   if(strlen(R->eval)==1)
   {
@@ -495,7 +496,7 @@ void EVAL_ANN(ANN *R, PRS *P, Cell *C, LNK *L)
     tmp2 = (struct Node*) calloc(1,sizeof(struct Node));
     tmp2->next = NULL;
 
-    sprintf(s,"ls -R 2>/dev/null  %s/VAC.%s*",R->eval,CMP[q]);
+    sprintf(s,"ls -R 2>/dev/null  %s/VAC.%s.*",R->eval,CMP[q]);
     out=popen(s,"r");
     N=0;
     while(fgets(buf,200,out))
@@ -523,6 +524,7 @@ void EVAL_ANN(ANN *R, PRS *P, Cell *C, LNK *L)
 	sprintf(s1,"%s",buf2);
 	in = fopen(s1,"r");
 	fgets(str,200,in);
+	sscanf(str,"%s\n",strtype);
 	fgets(str,200,in);
 	str[strlen(str)-1]=0;
 	while(fgets(buf,200,in))
@@ -546,8 +548,8 @@ void EVAL_ANN(ANN *R, PRS *P, Cell *C, LNK *L)
 	  ann[j] += EVAL_ENE(R,P,W,C,L);
 	  j++;
 	}	
-	printf(    "% 3d  % lf % lf % lf   % lf % lf % lf   %s %3d\n",n,dft[1],dft[0],(dft[1]-dft[0])*(double)C->N,ann[1],ann[0],(ann[1]-ann[0])*(double)C->N,str,C->N);
-	fprintf(f1,"% 3d  % lf % lf %s\n",n,(dft[1]-dft[0])*(double)C->N,(ann[1]-ann[0])*(double)C->N,str);
+	printf(    "% 3d  % lf % lf % lf   % lf % lf % lf   %s %3d\n",n,dft[1],dft[0],(dft[1]-dft[0])*(double)C->N,ann[1],ann[0],(ann[1]-ann[0])*(double)C->N,strtype,C->N);
+	fprintf(f1,"% 3d  % lf % lf %s % 8.3lf\n",n,(dft[1]-dft[0])*(double)C->N,(ann[1]-ann[0])*(double)C->N,strtype,(ann[1]-ann[0])*(double)C->N-(dft[1]-dft[0])*(double)C->N);
 	counter++;
 	fclose(in);
       }
@@ -581,7 +583,6 @@ void EVAL_ANN(ANN *R, PRS *P, Cell *C, LNK *L)
       tgets(buf2,200,&temp);
       sprintf(fname,"%s/srf_%s.dat",R->otpt,CMP[q]);
       f1 = fopen(fname,"w");
-      
       for(n=0;n<N;n++)
       {
 	j = 0;
@@ -590,6 +591,7 @@ void EVAL_ANN(ANN *R, PRS *P, Cell *C, LNK *L)
 	      sprintf(s1,"%s",buf2);
 	      in = fopen(s1,"r");
 	      fgets(str,200,in);
+	      sscanf(str,"%s\n",strtype);
 	      fgets(str,200,in);
 	      str[strlen(str)-1]=0;
 	      while(fgets(buf,200,in))
@@ -616,8 +618,8 @@ void EVAL_ANN(ANN *R, PRS *P, Cell *C, LNK *L)
 	      }
 	      for(i=1;i<j;i++)
 	{
-	  printf(    "% 3d  % lf % lf % lf   % lf % lf % lf   %s %3d\n",n,dft[i],dft[0],(dft[i]-dft[0])*(double)C->N/x[i]*0.5,ann[i],ann[0],(ann[i]-ann[0])*(double)C->N/x[i]*0.5,str,C->N);
-	  fprintf(f1,"% 3d  % lf % lf %s\n",n,(dft[i]-dft[0])*(double)C->N/x[i]*0.5,(ann[i]-ann[0])*(double)C->N/x[i]*0.5,str);
+	  printf(    "% 3d  % lf % lf % lf   % lf % lf % lf   %s %3d\n",counter,dft[i],dft[0],(dft[i]-dft[0])*(double)C->N/x[i]*0.5,ann[i],ann[0],(ann[i]-ann[0])*(double)C->N/x[i]*0.5,strtype,C->N);
+	  fprintf(f1,"% 3d  % lf % lf %s % 8.3lf\n",counter,(dft[i]-dft[0])*(double)C->N/x[i]*0.5,(ann[i]-ann[0])*(double)C->N/x[i]*0.5,strtype,(ann[i]-ann[0])*(double)C->N/x[i]*0.5-(dft[i]-dft[0])*(double)C->N/x[i]*0.5);
 	  counter++;
 	}
 	fclose(in);
@@ -663,10 +665,11 @@ void EVAL_ANN(ANN *R, PRS *P, Cell *C, LNK *L)
       {
 	j = 0;
         tgets(buf2,200,&temp);
-	      buf2[strlen(buf2)-1]=0;
+	buf2[strlen(buf2)-1]=0;
 	sprintf(s1,"%s",buf2);
 	in = fopen(s1,"r");
 	fgets(str,200,in);
+	sscanf(str,"%s\n",strtype);
 	fgets(str,200,in);
 	str[strlen(str)-1]=0;
 	while(fgets(buf,200,in))
@@ -697,8 +700,8 @@ void EVAL_ANN(ANN *R, PRS *P, Cell *C, LNK *L)
 	  dft[k] = dft[k]*(double)(AB[k][0]+AB[k][1]) - dft[0]*(double)AB[k][0] - dft[1]*(double)AB[k][1];
 	  ann[k] = ann[k]*(double)(AB[k][0]+AB[k][1]) - ann[0]*(double)AB[k][0] - ann[1]*(double)AB[k][1];
 	}
-	printf(    "% 3d    % lf % lf   % lf % lf\n",n,dft[2],ann[2],dft[3],ann[3]);
-	fprintf(f1,"% 3d    % lf % lf   % lf % lf\n",n,dft[2],ann[2],dft[3],ann[3]);
+	printf(    "% 3d    % lf % lf  % lf % lf %s  % 8.3lf % 8.3lf\n",counter,dft[2],ann[2],dft[3],ann[3],strtype,ann[2]-dft[2],ann[3]-dft[3]);
+	fprintf(f1,"% 3d    % lf % lf  % lf % lf %s  % 8.3lf % 8.3lf\n",counter,dft[2],ann[2],dft[3],ann[3],strtype,ann[2]-dft[2],ann[3]-dft[3]);
 	counter++;
 	fclose(in);
       }

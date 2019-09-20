@@ -261,7 +261,7 @@ void RAND_LV(Cell *C)
   
   for(i=0;i<3;i++)
   {
-    L[i] = pow( 1.0 + 0.60*(0.5-Random())*2.0,1.0/3.0 );
+    L[i] = pow( 1.2 + 0.55*(0.5-Random())*2.0,1.0/3.0 );
     for(q=0;q<3;q++)
       C->L[i][q] *= L[i];
   }

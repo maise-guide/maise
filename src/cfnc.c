@@ -55,9 +55,11 @@ void KILL_DBL(Cell *C, double tol)
 	  for(q=0;q<D3;q++)
 	    C->X[k][q] = C->X[k+1][q];
           C->ATMN[k] = C->ATMN[k+1];
+	  C->ATMZ[k] = C->ATMZ[k+1];
 	}
 	C->N--;
 	j--;
+	C->SPCN[C->ATMN[j]]--;
       }
 }
 //==================================================================
