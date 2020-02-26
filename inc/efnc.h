@@ -1,17 +1,14 @@
 #ifndef EFNC
 #define EFNC  
 //includes
-#include <stdio.h>
-#include <stdlib.h>
-#include <math.h>
+#include "clib.h"
 #include "cdef.h"
-#include "edef.h"
-#include "ndef.h"
-#include "nutl.h"
-#include "cutl.h"
 #include "cell.h"
-#include "util.h"
+#include "cfnc.h"
+#include "cutl.h"
+#include "edef.h"
 #include "eutl.h"
+#include "util.h"
 
 extern const double Pi;
 

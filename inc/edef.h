@@ -78,5 +78,7 @@ typedef struct
   int    **Ni;    // 
   char   VER[200];// version
   char   ISO[200];// path to isotropy
+  double maxpres[96];  // min. equi. dist. at 000 GPa
+  double minpres[96];  // min. equi. dist. at 110 GPa
 }Tribe;
 #endif

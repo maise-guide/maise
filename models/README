@@ -1,23 +1,17 @@
-		|=======================================================================|
-		|									|
-       	       	|            Interatomic potentials library for MAISE code              |
-		|	     		    	   	      	       	     		|
-		|		   Alexey Kolmogorov's research group			|
-		|	   	          Binghamton University				|
-		|									|
-		|                  https://github.com/maise-guide/maise			|
-		|=======================================================================|
+=======================================================================
+|               Module for Ab Initio Structure Evolution              |
+|                        version     maise.2.3.00                     |
+|                 https://github.com/maise-guide/maise                |
+=======================================================================
+|                   Library of interatomic potentials                 |
+=======================================================================
 
+a) nn_* models are neural network based potentials, trained with the MAISE code, and named as:
 
-a) nn_* models are neural network based potentials, trained with the MAISE code. They are named as:
+   nn_(system name: series of elements)_(dimensionality of the dataset used for the training)(model version; 0 for the main model)
 
-   nn_(system name: series of elements)_(dimensionality of the dataset used for the training)(model version)
-
-   e.g.:   nn_CuPdAg_30 is a NN model for the Cu-Pd-Ag ternary constructed using the 3D (bulk) dataset.
-           nn_CuAu_00   is a NN model for the Cu-Au system trained on the bulk and nanoparticle datasets.
-
-   note:   1- Currently, models named as *0 are trained using 30-component input vector and with 6 Ang cut-off; 
-      while *1 models are trained using 51-component input vector and 7.5 Ang cut- off.
+   e.g.:   nn_CuPdAg_30 is the main NN model for the Cu-Pd-Ag ternary constructed using the 3D (bulk) dataset.
+           nn_CuAu_00   is the main NN model for the Cu-Au system trained on the bulk and nanoparticle datasets.
 
 
 

@@ -1,17 +1,4 @@
-#include <string.h>
-#include <stdio.h>
-#include <stdlib.h>
-#include <unistd.h>
-#include <math.h>
-#include "cdef.h"
-#include "edef.h"
-#include "ndef.h"
-#include "cell.h"
-#include "nutl.h"
-#include "cutl.h"
-#include "util.h"
 #include "cfnc.h"
-#include "sutl.h"
 
 //==================================================================
 //  find the dimensionality of the structure: bulk (3) or nano (0)
@@ -21,7 +8,7 @@ int FIND_NDIM(Cell *C)
   int i,j,q;
 
   C->ND = 3;
-  LIST(C);
+  LIST(C,0);
   for(i=0;i<C->N;i++)
     for(j=0;j<C->Nn[i];j++)
       for(q=0;q<3;q++)
@@ -101,12 +88,12 @@ void APPL_SG(Cell *C, double tol)
   ORDER(C);
   C->XT = 0;
   Real(C);
-  LIST(C);
+  LIST(C,0);
 }
 //==================================================================
 void READ_CIF(Cell *C, char file[], double tol, int NM)    
 { 
-  int i,j,n,I,q,k; 
+  int i,j,n,q,k; 
 
   FILE *in; 
   char buf[200],s[200],t[200],r[200],s0[200],s1[200],s2[200]; 
@@ -150,7 +137,6 @@ void READ_CIF(Cell *C, char file[], double tol, int NM)
    
   in = fopen(file,"r");
   n = 0; 
-  I = 1;
   while(fgets(buf,200,in)!=0)  
   {
     s[0] = 0;
@@ -265,7 +251,7 @@ int FIND_MTY(Cell *C, double tol)
   int i,j,M;
 
   JAR(C);
-  LIST(C);
+  LIST(C,0);
   for(i=0,M=1;i<C->N;i++)
   {
     for(j=0;j<C->Nn[i];j++)
@@ -296,11 +282,12 @@ void FIND_PRS(Cell *C, Cell *D, double tol)
   int q,k,M;
 
   abc(C);
-  LIST(C);
+  LIST(C,0);
   RDF(C,1);
-  LIST(D);
+  LIST(D,0);
   RDF(D,1);
 
+  if(0)
   if(1.0-CxC(C,D)>0.001)
   {
     Copy_C(D,C);
@@ -401,12 +388,12 @@ void FIND_CXC(Cell *C, Cell *D, int argc, char **argv)
   if(argc > 3)
     C->Rmin = D->Rmin = (double)atof(argv[3]);
   if(argc > 4)
-    C->Rmax = D->Rmax = (double)atof(argv[4]);
+    C->Rc = C->Rmax = D->Rc = D->Rmax = (double)atof(argv[4]);
   if(argc > 5)
     C->DR   = D->DR   = (double)atof(argv[5]);
 
-  LIST(C);
-  LIST(D);
+  LIST(C,0);
+  LIST(D,0);
   RDF(C,1);
   RDF(D,1);
   Print_RDF_FULL(C,"RDF0.dat");
@@ -425,25 +412,25 @@ void PLOT_RDF(Cell *C, int argc, char **argv)
   if(argc > 3)
     C->Rmin = (double)atof(argv[3]);
   if(argc > 4)
-    C->Rmax = (double)atof(argv[4]);
+    C->Rc = C->Rmax = (double)atof(argv[4]);
   if(argc > 5)
     C->DR   = (double)atof(argv[5]);  
 
-  printf("Max number of nearest neighbors    % d\n",C->NM);
-  printf("Soft cutoff for finding neibhors   % lf\n",C->Rmin);
-  printf("Hard cutoff for finding neibhors   % lf\n",C->Rmax);
-  printf("Gaussian spread for smearing bonds % lf\n",C->DR);   
+  printf("Max number of nearest neighbors     % d\n",C->NM);
+  printf("Soft cutoff for finding neighbors   % lf\n",C->Rmin);
+  printf("Hard cutoff for finding neighbors   % lf\n",C->Rmax);
+  printf("Gaussian spread for smearing bonds  % lf\n",C->DR);   
 
   C->ND = FIND_NDIM(C);
-  LIST(C);
+  LIST(C,1);
   Print_List(C);
   printf("\nNeighbor   list      written to     list.dat\n");
   RDF(C,1);
-  Print_RDF_FULL(C,"rdf.dat");
-  printf(  "Normalized RDF       written to     rdf.dat\n");
-  RDF(C,0);
   Print_RDF_FULL(C,"RDF.dat");
-  printf(  "Original   RDF       written to     RDF.dat\n");
+  printf(  "Normalized RDF       written to     RDF.dat\n");
+  RDF(C,0);
+  Print_RDF_FULL(C,"rdf.dat");
+  printf(  "Original   RDF       written to     rdf.dat\n");
 }
 //==================================================================
 //    compare RDF, SG, and Volumes for two structures
@@ -458,17 +445,17 @@ void COMP_STR(Cell *C, Cell *D, int argc, char **argv)
   if(argc > 3)
     C->Rmin = D->Rmin = (double)atof(argv[3]);
   if(argc > 4)
-    C->Rmax = D->Rmax = (double)atof(argv[4]);
+    C->Rc = C->Rmax = D->Rc = D->Rmax = (double)atof(argv[4]);
   if(argc > 5)
     C->DR   = D->DR   = (double)atof(argv[5]);
 
   C->ND = FIND_NDIM(C);
   D->ND = FIND_NDIM(D);
 
-  LIST(C);
+  LIST(C,1);
   Print_List(C);
   system("mv list.dat list0.dat");
-  LIST(D);
+  LIST(D,1);
   Print_List(D);
   system("mv list.dat list1.dat");
 
@@ -482,7 +469,7 @@ void COMP_STR(Cell *C, Cell *D, int argc, char **argv)
   printf(" number   A^3/atom     10^-1   10^-2   10^-4   10^-8         0          1  \n\n");
 
   t = o = 0.1;
-  printf("   %d  % 12.6lf   ",0,Cell_VOLUME(C)/(double)C->N);
+  printf("   %d  % 12.6lf   ",0,CELL_VOL(C)/(double)C->N);
   for(k=1;k<8;k+=2)
   {
     printf("  % 4d  ",FIND_WYC(C,C,t,0));
@@ -491,7 +478,7 @@ void COMP_STR(Cell *C, Cell *D, int argc, char **argv)
   }
   printf("  % 10.6lf % 10.6lf\n",CxC(C,C),CxC(C,D));
   t = o = 0.1;
-  printf("   %d  % 12.6lf   ",1,Cell_VOLUME(D)/(double)D->N);
+  printf("   %d  % 12.6lf   ",1,CELL_VOL(D)/(double)D->N);
   for(k=1;k<8;k+=2)
   {
     printf("  % 4d  ",FIND_WYC(D,D,t,0));
@@ -502,6 +489,49 @@ void COMP_STR(Cell *C, Cell *D, int argc, char **argv)
 
   printf("\n");
 
+}
+//==================================================================
+//    compare RDF, SG, and Volumes for two structures
+//==================================================================
+void FIND_SPG(Cell *C, Cell *D, double tol, int NM)
+{
+  int    n,k,N,M;
+  double o;
+
+  if( fabs(tol)>0.5 )
+  {
+    printf("Specified tolerance magnitude of %lf is too large\n",tol);
+    return;
+  }
+
+  if(tol>0.0)
+  {
+    FIND_WYC(C,D,tol,1);
+    READ_CIF(C,"str.cif",tol,NM);
+    FIND_PRS(C,D,tol);
+    printf("%-6d %s%-6d %-6s   %6.1E\n",C->SGN,C->PRS,C->N,C->SGS,tol);
+    return;
+  }
+
+  tol = fabs(tol);
+  
+  N = 0;
+  M = FIND_WYC(C,D,1e-12,0);
+  for(n=0;n>-13;n--)
+    for(k=10;k>0;k--)
+    {
+      o = (double)k*pow(10.0,(double)n)-1e-12;
+      if( o < tol && N!= M)
+      {
+	READ_CELL(C,"POSCAR");
+	FIND_WYC(C,D,o,1);
+	READ_CIF(C,"str.cif",o,NM);
+	FIND_PRS(C,D,o);
+	if( N!= C->SGN )
+	  printf("%-6d %s%-6d %-6s   %6.1E\n",C->SGN,C->PRS,C->N,C->SGS,o);
+	N = C->SGN;
+      }
+    }
 }
 //==================================================================
 //   builds and initializes Cell for FLAG operations
@@ -527,7 +557,7 @@ void INIT_CELL(Cell *C, char filename[], int N, int NM, int J)
   C->A    = C->N;
   C->NM   = NM;
   C->ND   = 3;
-  C->Rc   = 4.2;
+  C->Rc   = 6.0;
   C->Rmax = C->Rc;
   C->Rmin = 0.99*C->Rmax;
   C->DR   = 0.008;
@@ -562,18 +592,11 @@ void CELL_EXAM(Cell *C, Cell *D, int argc, char **argv)
     printf("-box    reset   the box size for nanoparticles                          \n");
     printf("-sup    make    a supercell specified by na x nb x nc                   \n");
     printf("-vol    compute volume per atom for crystal or nano structures          \n");
-    printf("-ctr    center the nanoparticle in the box                              \n");
     exit(0);
   }
 
-//================    center a cluster structure   ==========
-  if(strncmp(argv[1],"-ctr",4)==0)
-  {
-    INIT_CELL(C,"POSCAR",1,NM,1);
-    CNTR_CL(C,0.0);
-    SAVE_CELL(C,"CONTCAR",0);
-    exit(0);
-  }
+  printf("|                          Unit cell analysis                         |\n");
+  printf("=======================================================================\n\n");
 
   //================    plot RDF for 1 structure   ==========
   if(strncmp(argv[1],"-rdf",4)==0)
@@ -590,12 +613,11 @@ void CELL_EXAM(Cell *C, Cell *D, int argc, char **argv)
     tol = 0.01;
     if(argc>2)
       tol = (double)atof(argv[2]);
+    if(argc>3)
+      NM  = (int)atoi(argv[3]);
     INIT_CELL(C,"POSCAR",4,NM,1);
     INIT_CELL(D,"POSCAR",4,NM,1);
-    FIND_WYC(C,D,tol,1);
-    READ_CIF(C,"str.cif",tol,NM);
-    FIND_PRS(C,D,tol);
-    printf("%3d %s%d\n",C->SGN,C->PRS,C->N);
+    FIND_SPG(C,D,tol,NM);
     exit(0);
   }
    //================  convert cif into CONV  ================
@@ -604,6 +626,8 @@ void CELL_EXAM(Cell *C, Cell *D, int argc, char **argv)
     tol = 0.01;
     if(argc>2)
       tol = (double)atof(argv[2]);
+    if(argc>3)
+      NM  = (int)atoi(argv[3]);
     C->N = 0;
     READ_CIF(C,"str.cif",tol,NM);    
     exit(0);
@@ -691,13 +715,34 @@ void CELL_EXAM(Cell *C, Cell *D, int argc, char **argv)
   {
     INIT_CELL(C,"POSCAR",1,NM,1);
     C->ND = FIND_NDIM(C);
-    printf("% lf\n",Cell_VOLUME(C)/(double)C->N);
+    printf("% lf\n",CELL_VOL(C)/(double)C->N);
+    exit(0);
+  }
+
+  //================   manual for flag operations =============
+  if(strncmp(argv[1],"-man",4)==0)
+  {
+    printf("-rdf    compute and plot the RDF for POSCAR                             \n");
+    printf("        options: [ max near. neigh., soft cutoff, hard cutoff, spread ] \n");
+    printf("-cxc    compute dot product for POSCAR0 and POSCAR1 using RDF           \n");
+    printf("        options: [ max near. neigh., soft cutoff, hard cutoff, spread ] \n");
+    printf("-cmp    compare RDF, space group, and volume of POSCAR0 and POSCAR1     \n");
+    printf("        options: [ max near. neigh., soft cutoff, hard cutoff, spread ] \n");
+    printf("-spg    convert POSCAR into str.cif, CONV, PRIM                         \n");
+    printf("        options: [ tolerance, max near. neigh. ]                        \n");
+    printf("-cif    convert str.cif into CONV and PRIM                              \n");
+    printf("        options: [ tolerance, max near. neigh. ]                        \n");
+    printf("-rot    rotate  a nanoparticle along eigenvectors of moments of inertia \n");
+    printf("-dim    find    whether POSCAR is periodic (3) or non-periodic (0)      \n");
+    printf("-box    reset   the box size for nanoparticles                          \n");
+    printf("-sup    make    a supercell specified by na x nb x nc                   \n");
+    printf("-vol    compute volume per atom for crystal or nano structures          \n");
     exit(0);
   }
 
   //================   list available options  ===============
-
-  printf("\nThe FLAG is not recognized. Allowed FLAGS are:\n\n");
+  if(strncmp(argv[1],"-man",4)!=0)
+    printf("\nThe FLAG is not recognized. Allowed FLAGS are:\n\n");
   printf("-rdf    compute and plot the RDF for POSCAR                             \n");
   printf("-cxc    compute dot product for POSCAR0 and POSCAR1 using RDF           \n");
   printf("-cmp    compare RDF, space group, and volume of POSCAR0 and POSCAR1     \n");
@@ -708,7 +753,6 @@ void CELL_EXAM(Cell *C, Cell *D, int argc, char **argv)
   printf("-box    reset   the box size for nanoparticles                          \n");
   printf("-sup    make    a supercell specified by na x nb x nc                   \n");
   printf("-vol    compute volume per atom for crystal or nano structures          \n");
-  printf("-ctr    center the nanoparticle in the box                              \n"); 
   exit(0);
 }
 //==================================================================

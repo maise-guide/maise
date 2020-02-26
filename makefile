@@ -1,10 +1,10 @@
 #=============================================================================#
 EXE        = maise
 CC         = gcc
-VER        = maise.2.2.04
-CFLAGS     = -O3 -w
-GSL_H      = $(shell ./lib/gsl-config --cflags)
-GSL_LIB    = $(shell ./lib/gsl-config --libs)
+VER        = maise.2.3.01
+CFLAGS     = -O3 -Wall -fno-strict-overflow
+GSL_H      = $(shell ./lib/gsl-config --cflags 2> /dev/null)
+GSL_LIB    = $(shell ./lib/gsl-config --libs   2> /dev/null)
 #=============================================================================#
 #                 !!! DO NOT CHANGE BELOW THIS LINE!!!                        # 
 #=============================================================================#
@@ -18,18 +18,17 @@ _OBJ       = $(subst .c,.o,$(_SRC))
 OBJ        = $(patsubst %,$(ODIR)/%,$(_OBJ))
 LIB        = $(GSL_LIB)
 #=============================================================================#
-SERIAL    ?= 0
 LIB       += ./lib/libsymspg.a -lm -lstdc++
 INCLUDE    = -I./inc -I./lib/include $(GSL_H) $(GSL_LIB) 
 LDFLAGS    = -lm -fopenmp
-CPPFLAGS   = -DSERIAL=$(SERIAL) -DVERSION='"$(VER)"' 
+CPPFLAGS   = -DVERSION='"$(VER)"' 
 CFLAGS    += $(LDFLAGS) $(INCLUDE) $(CPPFLAGS)
 DFLAGS     = -MT $@ -MMD -MP -MF 
 #=============================================================================#
 $(EXE): $(OBJ) 
 	@printf "Linking $(_OBJ)...\n";
 	@$(CC) $(CFLAGS) -o $@ $^ $(LIB);
-	@if [ -e $@ ]; then cp ./$@ ./bin/$@;fi; printf "$@ is ready!\n";
+	@if [ -e $@ ]; then cp ./$@ ./bin/$@;fi; printf "\033[0;32m$@ is ready!\n\033[0m";
 
 $(ODIR)/%.o: $(SDIR)/%.c $(LDIR)/gsl-config
 	@mkdir -p $(DDIR); printf "Compiling $(@F)...\n";
@@ -38,11 +37,11 @@ $(ODIR)/%.o: $(SDIR)/%.c $(LDIR)/gsl-config
 
 $(LDIR)/gsl-config: $(LDIR)/libsymspg.a
 	@mkdir -p $(LDIR); printf "Getting $(@F)...\n";
-	@bash gsl-dep;
+	@bash dep-gsl;
 
 $(LDIR)/libsymspg.a: 
 	@mkdir -p $(LDIR); printf "Getting $(@F)...\n";
-	@bash spg-dep;
+	@bash dep-spg;
 
 $(DDIR)/%.d = ;
 
@@ -55,8 +54,9 @@ clean-all: clean clean-lib
 
 clean:
 	@printf "Cleaning object files, dependencies, and maise executables...";
-	@rm -rf examples/parse/maise examples/relax/maise examples/train/maise;
+	@rm -rf examples/parse/maise examples/relax/maise examples/train/maise examples/esint/maise;
 	@rm -rf $(ODIR)/* ./maise ./bin/maise; printf "Done!\n";
+	@rm -rf obj;
 
 clean-lib: 
 	@printf "Cleaning lib..."
@@ -64,5 +64,6 @@ clean-lib:
 	@rm -f  $(LDIR)/include/*.h; 
 	@rm -f  $(LDIR)/gsl-config;
 	@rm -f  $(LDIR)/include/gsl/*.h; 
-	@rm -rf ext-dep;
+	@rm -rf dep-ext;
+	@rm -rf lib;
 	@printf "Done!\n"

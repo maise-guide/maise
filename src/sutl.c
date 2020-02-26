@@ -1,16 +1,3 @@
-#include <stdio.h>
-#include <stdlib.h>
-#include <string.h>
-#include <math.h>
-#include <gsl/gsl_math.h>
-#include "cdef.h"
-#include "ndef.h"
-#include "edef.h"
-#include "cell.h"
-#include "cutl.h"
-#include "cfnc.h"
-#include "util.h"
-#include "nutl.h"
 #include "sutl.h"
 
 extern const double Pi;
@@ -285,6 +272,7 @@ int sym_dataset(Cell *C, const double origin_shift[3], char w[], int equivalent_
 {
   SpglibDataset *dataset;
   const char    *wl = "abcdefghijklmnopqrstuvwxyz";
+  char          symbol[11];
   int           i, q, N, max_size;
   int           types[C->A];
   double        lattice[3][3], position[C->A][3], translation[192][3], spins[C->A];
@@ -350,6 +338,8 @@ int sym_dataset(Cell *C, const double origin_shift[3], char w[], int equivalent_
 
   dataset = spg_get_dataset(lattice, position, types, C->N, tol);
   spg_get_symmetry_with_collinear_spin(rotation, translation, equivalent_atoms, max_size, lattice, position, types, spins, C->N, tol);
+  spg_get_international(symbol,lattice, position, types, C->N, tol);
+  strncpy(C->SGS,symbol,9);
 
   for(i=0;i<C->N;i++) 
     w[i] = wl[dataset->wyckoffs[i]];
@@ -401,11 +391,8 @@ int FIND_WYC(Cell *C, Cell *D, double tol, int J)
           D->X[i][q] = (double)m/12.0;
     }
 
-//  D->SGN = SGN;
-//  READ_SG(D);
-//  D->NS = 1;
-
   abc(C);
+
   out = fopen("str.cif","w");
 
   fprintf(out,"_symmetry_Int_Tables_number %d\n",C->SGN);
@@ -430,7 +417,6 @@ int FIND_WYC(Cell *C, Cell *D, double tol, int J)
       fprintf(out,"%c ",65+i);
     }
   }
-
   fprintf(out,"'\n");
   fprintf(out,"loop_\n");
   fprintf(out,"_atom_site_label\n");
@@ -488,9 +474,7 @@ int FIND_WYC(Cell *C, Cell *D, double tol, int J)
     sprintf(C->TAG+2*i,"%s ",s1);
   }
 
-
   Real(C);
-
   Real(D);
 
   return SGN;

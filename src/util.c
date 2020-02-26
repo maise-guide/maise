@@ -1,17 +1,3 @@
-#include <gsl/gsl_math.h>
-#include <gsl/gsl_eigen.h>
-#include <stdio.h>
-#include <stdlib.h>
-#include <string.h>
-#include <math.h>
-#include <time.h>
-#include "cdef.h"
-#include "edef.h"
-#include "ndef.h"
-#include "cell.h"
-#include "eutl.h"
-#include "nutl.h"
-#include "cutl.h"
 #include "util.h"
 
 const double Pi      = 3.1415926535897932384626433832795;
@@ -21,13 +7,37 @@ const double au      = 0.529177249;
 const double pi      = 3.14159265359;
 const double eV2GPa  = 160.2176565;
 const int    D3      = 3;
+//atomic mass in atomic units
+double atom_mass[96] = {0.0,1.008,4.002602,6.94,9.0121831,10.81,12.011,14.007,15.999,18.99840316,20.1797,22.98976928,24.305,26.9815384,28.085,30.973762,32.06,35.45,39.948,39.0983,40.078,44.955908,47.867,50.9415,51.9961,54.938043,55.845,58.933194,58.6934,63.546,65.38,69.723,72.63,74.921595,78.971,79.904,83.798,85.4678,87.62,88.90584,91.224,92.90637,95.95,98,101.07,102.90549,106.42,107.8682,112.414,114.818,118.71,121.76,127.6,126.90447,131.293,132.9054519,137.327,138.90547,140.116,140.90766,144.242,145,150.36,151.964,157.25,158.925354,162.5,164.930328,167.259,168.934218,173.045,174.9668,178.49,180.94788,183.84,186.207,190.23,192.217,195.084,196.96657,200.592,204.38,207.2,208.9804,209,210,222,223,226,227,232.0377,231.03588,238.02891,237,244,243};
+// minimum dist. for relaxations
+double mindist[96] = {0.0,1.0,1.0,1.0,1.0,1.0,1.0,1.0,1.0,1.0,1.0,1.0,1.114,1.0,1.0,1.0,1.0,1.0,1.0,1.0,1.366,1.0,1.0,1.0,1.0,1.0,1.0,1.0,1.0,0.895,1.0,1.0,1.0,1.0,1.0,1.0,1.0,1.0,1.0,1.0,1.0,1.0,1.0,1.0,1.0,1.0,0.979,1.030,1.0,1.0,1.0,1.0,1.0,1.0,1.0,1.0,1.0,1.0,1.0,1.0,1.0,1.0,1.0,1.0,1.0,1.0,1.0,1.0,1.0,1.0,1.0,1.0,1.0,1.0,1.0,1.0,1.0,1.0,0.984,1.0,1.0,1.0,1.0,1.0,1.0,1.0,1.0,1.0,1.0,1.0,1.0,1.0,1.0,1.0,1.0,1.0};
+// minimum equil. dist. at 000 GPa
+double minpres[96] = {0.000,0.400,0.281,1.526,1.105,0.836,0.774,0.907,0.820,0.572,0.582,1.867,1.591,1.428,1.170,1.073,1.053,1.023,1.063,2.353,1.951,1.608,1.438,1.298,1.234,1.234,1.229,1.239,1.241,1.279,1.329,1.223,1.203,1.193,1.199,1.203,1.163,2.524,2.131,1.769,1.597,1.439,1.372,1.363,1.335,1.361,1.399,1.472,1.510,1.510,1.394,1.479,1.394,1.394,1.858,2.743,2.178,1.867,2.045,2.035,2.015,1.995,1.985,1.985,1.965,1.945,1.925,1.925,1.895,1.905,1.875,1.875,1.567,1.439,1.381,1.381,1.349,1.370,1.406,1.475,1.745,1.454,1.464,1.535,1.404,1.504,1.504,2.607,2.216,2.156,2.065,2.005,1.965,1.206,1.875,1.805};
+// minimum equil. dist. at 110 GPa
+double maxpres[96] = {110.0,0.400,0.203,0.808,0.906,0.733,0.718,0.758,0.820,0.413,0.420,0.901,1.118,1.131,0.941,0.775,0.761,0.739,0.768,0.807,1.302,1.125,1.177,1.124,1.108,1.111,1.101,1.099,1.091,1.139,1.151,0.884,0.869,0.862,1.199,0.869,0.840,0.478,1.041,1.174,0.755,1.240,1.234,1.238,1.222,1.223,1.275,1.298,1.222,1.222,1.000,0.731,0.877,1.007,1.858,1.219,1.192,1.110,1.478,1.471,1.456,1.442,1.435,1.435,1.420,1.406,1.391,1.391,1.369,1.377,1.355,1.355,1.272,1.253,1.247,1.278,1.258,1.258,1.267,1.262,1.236,1.051,1.058,1.343,1.014,1.087,1.087,1.884,1.601,1.558,1.493,1.449,1.420,1.101,1.355,1.304};
 
+
+//==============================================================================
+void PRNT_HEAD()
+{
+  printf("=======================================================================\n");
+  printf("|               Module for Ab Initio Structure Evolution              |\n");
+  printf("|                        version     %12s                     |\n",VERSION);
+  printf("|                 https://github.com/maise-guide/maise                |\n");
+  printf("=======================================================================\n");
+}
+//==============================================================================
+void FPRNT_HEAD(FILE *out)
+{
+  fprintf(out,"=======================================================================\n");
+  fprintf(out,"|               Module for Ab Initio Structure Evolution              |\n");
+  fprintf(out,"|                        version     %12s                     |\n",VERSION);
+  fprintf(out,"|                 https://github.com/maise-guide/maise                |\n");
+  fprintf(out,"=======================================================================\n");
+}
 //==============================================================================
 void EVN(double *A, double *e, double *b, int N)
 {
-  double *data;
-
-  data = make_d1D(N);
 
   gsl_matrix_view m = gsl_matrix_view_array (A, N, N);
   gsl_vector_complex *eval = gsl_vector_complex_alloc (N);
@@ -752,18 +762,18 @@ int READ_CELL(Cell *C, char filename[])
   int i,j,k,q,p,q1,TN[10];
   double x[3],L[3][3];
   FILE *in;
-  char buf[100],s[100],t[10][100];
+  char buf[200],s[100],t[10][100];
   char FF[D3][2]; //True false for moving atom in x, y, and z dirs.
   int tag=0;
   int sp=0;
 
   if( !(in = fopen(filename,"r")) )
   {
-    perror(filename);
+    //perror(filename);
     return 0;
   }
 
-  fgets(buf,81,in);
+  fgets(buf,200,in);
   buf[strlen(buf)-1] = '\0';
   strcpy(C->TAG,buf);
   fscanf(in,"%lf\n",&C->R0);     
@@ -881,7 +891,7 @@ int READ_CELL(Cell *C, char filename[])
     if( p != 3*C->N )
     {
       fflush(stdout);
-      fprintf(stderr,"ERROR: %d %d Please specify velocities in %s\n",p,3*C->N,filename);
+      fprintf(stderr,"ERROR: Please specify velocities in %s\n",filename);
       exit(1);
     }
   }
@@ -1103,39 +1113,6 @@ void Print_LOG(char buf[])
   fclose(out);
 }
 //==============================================================================
-//    reads atomic PP reference energies, cutoff radii, and masses
-//==============================================================================
-void READ_ATM(ANN *R, Cell *C)
-{
-  int    i;
-  FILE  *in;
-  double E0,r,m;
-  char   t[200],buf[200];
-
-  if( (in = fopen("table","r")) == 0 )
-  {
-    fprintf(stderr,"File table does not exist\n");
-    exit(1);
-  }
-
-  while( fgets(buf,200,in) )
-    if(strncmp(buf,"===== table",11) == 0 )
-      break;
-
-  while( fgets(buf,200,in) )
-    if(strncmp(buf,"===== atoms",11) == 0 )
-      break;
-    else
-    {
-      r = 1.0;
-      sscanf(buf,"%d %s %lf %lf %lf",&i,t,&E0,&r,&m);
-      R->E0[i] = E0;
-      C->Rm[i] = R->Rm[i] = r;
-      C->m[i] = m*103.6427;
-    }
-  fclose(in);
-}
-//==============================================================================
 //    reads in EVOS parameters from "setup" file
 //==============================================================================
 void READ_MAIN(Tribe *T, ANN *R, PRS *P, Cell *C, int J, int ARGC)
@@ -1144,6 +1121,19 @@ void READ_MAIN(Tribe *T, ANN *R, PRS *P, Cell *C, int J, int ARGC)
   FILE *in;
   char buf[200],s[200];
   double t;
+
+  // load data corresponding to "table" file
+  for(i=0;i<96;i++)
+  {
+    C->mass[i]=atom_mass[i];
+    C->m[i]=atom_mass[i]*103.6427;
+  }
+  for(i=0;i<96;i++)
+    C->Rm[i] = mindist[i];  
+  for(i=0;i<96;i++)
+    T->maxpres[i] = maxpres[i];
+  for(i=0;i<96;i++)
+    T->minpres[i] = minpres[i];
 
   if( ARGC > 1 )
   {
@@ -1155,8 +1145,8 @@ void READ_MAIN(Tribe *T, ANN *R, PRS *P, Cell *C, int J, int ARGC)
 
   if( !(in = fopen("setup","r")) )
   {
-    sprintf(buf,"Failed to open setup\n");
-    fprintf(stderr,"Failed to open setup\n");
+    sprintf(buf,"\nPlease either provide setup or use allowed FLAGS (type maise -man for help)\n");
+    fprintf(stderr,"\nPlease either provide setup or use FLAGS (type maise -man for help)\n");
     Print_LOG(buf);
     exit(1);
   }
@@ -1180,8 +1170,9 @@ void READ_MAIN(Tribe *T, ANN *R, PRS *P, Cell *C, int J, int ARGC)
   C->N     = 100;
   R->A     = 100;          //default value of NMAX
   R->MOVI  = 0;
-  R->COPL  = 1.0;
-  C->STOP  = 0;
+  R->CPLT  = 25.0;
+  R->CPLP  = 50.0;  
+  R->ICMP  = 0.005;
   R->LREG  = 0.0;
   R->WE    = 1.0;
   R->WF    = 0.01;         // 1 eV/A => 0.010meV/atom
@@ -1191,8 +1182,8 @@ void READ_MAIN(Tribe *T, ANN *R, PRS *P, Cell *C, int J, int ARGC)
   R->FMIN  = 1e-5;
   T->p     = 0.0;          // pressure in GPa
   C->p     = 0.0;          // pressure in eV
-  C->Rmax  = 4.20;
-  C->Rmin  = 4.00;
+  C->Rmax  = 6.0;
+  C->Rmin  = 5.8;
   C->DR    = 0.008;
   C->NM    = 250;          // max number of nearest neighbors
   T->No    = 20;           // max number of tries to find the right slice
@@ -1212,6 +1203,7 @@ void READ_MAIN(Tribe *T, ANN *R, PRS *P, Cell *C, int J, int ARGC)
   C->ND    = -1;
   T->ND    = -1;
   T->QT    = 0;            // default queue type is torque
+  C->DISP  = 1e-3;         // displacement in Ang for frozen phonon calculation
   strcpy(C->WDIR,".");
 
   while( fgets(buf,200,in) )
@@ -1226,10 +1218,12 @@ void READ_MAIN(Tribe *T, ANN *R, PRS *P, Cell *C, int J, int ARGC)
     if( strncmp(buf,"TSTP",4) == 0 ) { sscanf(buf+4,"%lf" ,&R->TSTP);       }
     if( strncmp(buf,"NSTP",4) == 0 ) { sscanf(buf+4,"%d"  ,&R->NSTP);       }
     if( strncmp(buf,"DELT",4) == 0 ) { sscanf(buf+4,"%lf" ,&R->DELT);       }
-    if( strncmp(buf,"COPL",4) == 0 ) { sscanf(buf+4,"%lf" ,&R->COPL);       }
-    if( strncmp(buf,"THRM",4) == 0 ) { sscanf(buf+4,"%d"  ,&R->THRM);       }
+    if( strncmp(buf,"CPLT",4) == 0 ) { sscanf(buf+4,"%lf" ,&R->CPLT);       }
+    if( strncmp(buf,"CPLP",4) == 0 ) { sscanf(buf+4,"%lf" ,&R->CPLP);       }
+    if( strncmp(buf,"ICMP",4) == 0 ) { sscanf(buf+4,"%lf" ,&R->ICMP);       }
+    if( strncmp(buf,"MDTP",4) == 0 ) { sscanf(buf+4,"%d"  ,&R->MDTP);       }
     if( strncmp(buf,"MOVI",4) == 0 ) { sscanf(buf+4,"%d"  ,&R->MOVI);       }
-    if( R->THRM == 2 )
+    if( R->MDTP%10 == 1)
       C->POS = 1;
     //====================  main structure parameters  ======================
     if( strncmp(buf,"NBLK",4) == 0 ) { sscanf(buf+4,"%d"  ,&C->NB  );       }
@@ -1337,10 +1331,10 @@ void READ_MAIN(Tribe *T, ANN *R, PRS *P, Cell *C, int J, int ARGC)
     if( strncmp(buf,"TIME",4) == 0 ) { sscanf(buf+4,"%d" ,&T->time);        }
     if( strncmp(buf,"PGPA",4) == 0 ) { sscanf(buf+4,"%lf",&T->p   );        }
     if( strncmp(buf,"ETOL",4) == 0 ) { sscanf(buf+4,"%lf",&R->ETOL );       }
+    if( strncmp(buf,"DISP",4) == 0 ) { sscanf(buf+4,"%lf",&C->DISP );       }
     if( strncmp(buf,"MINT",4) == 0 ) { sscanf(buf+4,"%d" ,&R->MINT );       }
     if( strncmp(buf,"MITR",4) == 0 ) { sscanf(buf+4,"%d" ,&R->MITR );       }
     if( strncmp(buf,"RLXT",4) == 0 ) { sscanf(buf+4,"%d", &C->RLXT );       }
-    if( strncmp(buf,"STOP",4) == 0 ) { sscanf(buf+4,"%d", &C->STOP );       }
     //===================== rdf parameters ==================================
     if( strncmp(buf,"RMAX",4) == 0 ) { sscanf(buf+4,"%lf",&C->Rmax );       } // Rmax for storing RDF 
     if( strncmp(buf,"RMIN",4) == 0 ) { sscanf(buf+4,"%lf",&C->Rmin );       } // Smooth cutoff between Rmin and Rmax in RDF

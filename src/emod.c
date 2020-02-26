@@ -1,23 +1,4 @@
-#include <stdio.h>
-#include <stdlib.h>
-#include <unistd.h>
-#include "math.h"
-#include "time.h"
-#include "string.h"
-#include "cdef.h"
-#include "ndef.h"
-#include "edef.h"
-#include "cell.h"
-#include "cutl.h"
-#include "cpot.h"
-#include "nutl.h"
-#include "util.h"
-#include "eutl.h"
 #include "emod.h"
-#include "efnc.h"
-#include "cfnc.h"
-#include "cmod.h"
-#include "sutl.h"
 
 extern const double Pi;
 
@@ -33,10 +14,9 @@ int DEBUG = 0;
 //==================================================================
 void INIT_TR(Tribe *T)
 {
-  int i,j,k,p,PN,N,SES[4],FES[4],n;
-  double P[100],Rm[100];
-  char buf[200],t[3];
-  FILE *in;
+  int i,j,k,p,N,SES[4],FES[4],n;
+  double dista,scale;
+  char buf[200];
 
   for(n=0;n<4;n++)
   {
@@ -64,43 +44,40 @@ void INIT_TR(Tribe *T)
       printf("INIT %3d %s %3d %3d %3d\n",n,T->NES[n],T->FES[n]-T->SES[n],T->SES[n],T->FES[n]);
 
   N = 2*T->N;
-  in = fopen("table","r");    //open file with table of basic elemental data
-  while(fgets(buf,200,in))    //read file and populate element types in T
-    if(strncmp(buf,"===== table",11) == 0 )
-      break;
+
+  for(k=0;k<T->NSPC;k++)               //scan through array of types of elements
+  {
+    i = T->SPCZ[k];
+    if (i > 95)
+    {
+      sprintf(buf,"Element %d is not in the library\n",T->SPCZ[k]);
+      fprintf(stderr,"Element %d is not in the library\n",T->SPCZ[k]);
+      Print_LOG(buf);
+      exit(0);
+    }
+    if( T->p >= T->minpres[0] && T->p <= T->maxpres[0] )
+    {
+      atom_symb(i,T->SS[k]);
+      scale = (T->p-T->minpres[0])/(T->maxpres[0]-T->minpres[0]);
+      dista = (T->minpres[i]-T->maxpres[i]);
+      T->Rm[k] = (T->minpres[i]-dista*scale)*T->Rhc;
+      if(T->Rm[k]<0.00001)
+      {
+	sprintf(buf,"Equilibrium distance for element %d is not correct\n",T->SPCZ[k]);
+	fprintf(stderr,"Equilibrium distance for element %d is not correct\n",T->SPCZ[k]);
+	Print_LOG(buf);
+	exit(0);
+      }
+    }
     else
     {
-      sscanf(buf,"%d %s %d",&i,t,&PN);  //read Z num, atom str (ie Cr), and number of points to read
-      for(k=0;k<T->NSPC;k++)               //scan through array of types of elements
-	if( i== T->SPCZ[k] )               //line in table is one we are interested it
-	{
-	  sscanf(buf+5,"%s",T->SS[k]);
-	  for(p=0;p<PN;p++)
-	    sscanf(buf+13+14*p,"%lf %lf",&P[p],&Rm[p]);
-	  
-	  if( T->p>P[PN-1]+1e-12 )
-	    T->Rm[k] = P[PN-1];
-	  else
-	  {
-	    for(p=0;p<PN-1;p++)
-	      if( T->p>P[p]-1e-12 && T->p<P[p+1]+1e-12 )
-		break;
-	    T->Rm[k] = (Rm[p]*(P[p+1]-T->p) + Rm[p+1]*(T->p-P[p]))/(P[p+1]-P[p]);
-	  }	  
-	  T->Rm[k] *= T->Rhc;
-	}
+      sprintf(buf,"Pressure %lf for element %d is not in the defined range (% lf-% lf)\n",T->p,T->SPCZ[k],T->minpres[0],T->maxpres[0]);
+      fprintf(stderr,"Pressure %lf for element %d is not in the defined range (% lf-% lf)\n",T->p,T->SPCZ[k],T->minpres[0],T->maxpres[0]);
+      Print_LOG(buf);
+      exit(0);
     }
-  fclose(in);
+  }
   
-  for(k=0;k<T->NSPC;k++)
-    if(T->Rm[k]<0.00001)
-      {
-        sprintf(buf,"Element %d is not in table\n",T->SPCZ[k]);
-        fprintf(stderr,"Element %d is not in table\n",T->SPCZ[k]);
-        Print_LOG(buf);
-        exit(0);
-      }
-
   for(k=0;k<T->NSPC;k++)
   {
     sprintf(buf,"%3d %3s %3d  % lf % lf\n",T->SPCZ[k],T->SS[k],T->SPCN[k],T->Rm[k]/T->Rhc,T->Rm[k]);
@@ -221,7 +198,7 @@ void INIT_TR(Tribe *T)
 	exit(0);
       }
       SHRT_LV(&T->C[p]);
-      LIST(&T->C[p]);      
+      LIST(&T->C[p],0);      
       T->P1[p] = T->P2[p] = T->C[p].P;
       T->C[p].dE = -0.02;
     }
@@ -237,7 +214,7 @@ void INIT_TR(Tribe *T)
 void EXIT_TR(Tribe *T)
 {
   int i,p;
-  char buf[200],s[200];
+  char buf[400],s[200];
   FILE *in;
 
   if( !(  in = fopen("setup","r")) )
@@ -333,7 +310,7 @@ void RANK_TR(Tribe *T)
 
   for(p=0;p<2*T->N;p++)
   {
-    LIST(&T->C[p]);
+    LIST(&T->C[p],0);
     RDF(&T->C[p],1);
   }
   for(p=2*T->N-1;p>=1;p--)
@@ -440,7 +417,7 @@ void PLOT_TR(Tribe *T)
       fprintf(out2,"%4d % 15.9lf\n%4d % 15.9lf\n\n%4d % 15.9lf\n%4d % 15.9lf\n\n",T->n-1,T->P1[p]/(double)T->C[p].N,T->n,T->E[p]/(double)T->C[p].N,T->n-1,T->P2[p]/(double)T->C[p].N,T->n,T->E[p]/(double)T->C[p].N);
   fprintf(out3,"%4d % 15.9lf\n",T->n,T->E[0]/(double)T->C[0].N);
   for(p=0;p<T->N;p++)
-    fprintf(out4,"% 15.9lf % 15.9lf %4d %4d\n",Cell_VOLUME(&T->C[p])/(double)T->C[p].N,T->E[p]/(double)T->C[p].N,T->n,p);
+    fprintf(out4,"% 15.9lf % 15.9lf %4d %4d\n",CELL_VOL(&T->C[p])/(double)T->C[p].N,T->E[p]/(double)T->C[p].N,T->n,p);
 
   for(p=0;p<2*T->N;p++)
     T->P1[p] = T->P2[p] = T->E[p];
@@ -488,27 +465,6 @@ void QSUB_TR(Tribe *T, int p)
 
 }
 //==================================================================
-void RELX_STOP(Tribe *T)
-{
-  FILE *pout;
-  int PCOUNT;
-
-  pout = popen("ls FAIL | grep -c POS", "r");
-
-  fscanf(pout,"%d \n", &PCOUNT);
-
-  pclose(pout);
-
-  printf("%d FAILED STRUCTURES \n", PCOUNT);
-
-  if( PCOUNT >= T->C[0].STOP)
-  {
-    printf("LIMIT of %d FAILED STRUCTURES REACHED!\nES ENDED\n", T->C[0].STOP );
-    fprintf(stderr,"LIMIT of %d FAILED STRUCTURES REACHED!\nES ENDED\n", T->C[0].STOP );
-    exit(1);
-  }
-}
-//==================================================================
 //     Relax Tribe
 //==================================================================
 void RELX_INT(Tribe *T)
@@ -544,8 +500,8 @@ void RELX_INT(Tribe *T)
 //==================================================================
 void RELX_TR(Tribe *T)
 {
-  int i,p,Q,t1,t2,*I,FAIL,m;
-  char buf[200],s[200];
+  int i,p,Q,t1,t2,*I,m;
+  char buf[400],s[200];
   FILE *in;
 
   I = make_i1D(2*T->N);
@@ -591,8 +547,6 @@ void RELX_TR(Tribe *T)
       exit(0);
     
     p = T->N;
-    FAIL = 0;
-    system("mkdir -p FAIL");
     while(p<2*T->N)
     {
       system("sleep 5");
@@ -643,8 +597,6 @@ void RELX_TR(Tribe *T)
 		fclose(in);
 	      }
 	    }
-	    sprintf(buf,"if [ -e EVOS/G%03d/M%03d/POOL ] ; then cp EVOS/G%03d/M%03d/POOL/F* FAIL/POS%03d%03d-%03d ; fi;", T->n, p, T->n, p, T->n, p, FAIL++);
-	    system(buf);
 	  }
 	}
       for(p=T->N;p<2*T->N;p++)
@@ -780,7 +732,7 @@ void ANA_EVOS(Tribe *T, Cell *C, Cell *D)
 {
   int i,n,N,m,M,g,G,*I;
   double E0,*E,*V,tol;
-  char s[200],buf[200],dir[200];//,DIR[10000][200];
+  char s[400],buf[400],dir[200];//,DIR[10000][200];
   FILE *in;
 
   tol = 0.1;
@@ -815,7 +767,7 @@ void ANA_EVOS(Tribe *T, Cell *C, Cell *D)
     E[G] = Read_OSZI(s);
     sprintf(s,"%s/CONTCAR.1",dir);
     READ_CELL(C,s);
-    V[G] = Cell_VOLUME(C)/(double)C->N;
+    V[G] = CELL_VOL(C)/(double)C->N;
     if( fabs(E[G]-1.0)>1e-14 && E[G]<((E0+T->DE)*(double)C->N) )
       sprintf(DIR[G++],"%s",dir);
   }
@@ -826,13 +778,13 @@ void ANA_EVOS(Tribe *T, Cell *C, Cell *D)
   {
     sprintf(s,"%s/CONTCAR.1",DIR[I[G-g-1]]);
     READ_CELL(C,s);
-    LIST(C);
+    LIST(C,0);
     RDF(C,1);
     for(n=0;n<N;n++)
     {
       sprintf(buf,"%s/POOL/POSCAR%03d",C->WDIR,n);
       READ_CELL(D,buf);
-      LIST(D);
+      LIST(D,0);
       RDF(D,1);
       if(CxC(C,D)>T->CUT)
 	break;
@@ -908,7 +860,6 @@ void INIT_EVOS(Tribe *T, Cell *C)
     T->C[n].NSPC = C->NSPC;
     T->C[n].Rc   = C->Rc = C->Rmax;
     T->C[n].rc   = C->rc = C->Rmax;
-    T->C[n].STOP = C->STOP;
     T->C[n].MODT = C->MODT;
     T->C[n].NP   = C->NP;
     T->C[n].NB   = C->NB;
@@ -964,6 +915,9 @@ void INIT_EVOS(Tribe *T, Cell *C)
 void EVOS_MAIN(Tribe *T, ANN *R, PRS *P, Cell *C)
 {
   char buf[200];
+
+  printf("|                         Evolutionary search                         |\n");
+  printf("=======================================================================\n\n");
 
   RR = R;
   PP = P;

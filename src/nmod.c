@@ -1,22 +1,4 @@
-#include <math.h>
-#include <time.h>
-#include <string.h>
-#include <stdio.h>
-#include <stdlib.h>
-#include "cdef.h"
-#include "edef.h"
-#include "ndef.h"
-#include "cutl.h"
-#include "cell.h"
-#include "cpot.h"
-#include "cmod.h"
-#include "nprs.h"
-#include "nutl.h"
-#include "util.h"
-#include "nmlp.h"
-#include "plot.h"
 #include "nmod.h"
-#include "nmin.h"
 
 //========================================================
 // Neural Network Job
@@ -47,21 +29,27 @@ void NNET_MAIN(ANN *R, PRS *P, Cell *C)
 void TRAN_ANN(ANN *R, Cell *C)
 {
   double time1,time2;
-  char   t[200];
+  char   t[500];
   LNK    *L;
+  struct timeval t1, t2;
+  struct rusage t3;
+  double wall_time,syst_time,cpus_time;
 
   if( R->JOBT==41 )  
     R->MIX=1; 
   else 
     R->MIX=0;   ///to use pre-trained elements for multi-components
-  
-  printf(" =====   Training ANN ...    =====\n");
+
+  printf("|                            Model training                           |\n");
+  printf("=======================================================================\n\n");
+
+  // initiate the timing
+  gettimeofday(&t1, NULL);  
+  time1=clock();
 
   ANA_STR(R); 
-  
-  time1=cpu_time();
+
   Build_ANN(R);
-  READ_ATM(R,C);
   
   L = (LNK *)malloc(R->STR*sizeof(LNK));
   
@@ -71,9 +59,17 @@ void TRAN_ANN(ANN *R, Cell *C)
   TRAN_MLP(R,C,L);
   
   CHCK_ERR(R,L);
-  time2=cpu_time();
 
-  OUT_ANN(R,time2-time1,"out","energy_errors.dat","error_results.png");
+  // compute wall and cpu time
+  getrusage(RUSAGE_SELF, &t3); 
+  gettimeofday(&t2, NULL);
+  time2=clock();
+  syst_time  = (double) t3.ru_stime.tv_sec + (double) t3.ru_stime.tv_usec / (double) 1e6; // = sys time
+  wall_time  = (t2.tv_sec - t1.tv_sec) + (t2.tv_usec - t1.tv_usec) / (double) 1e6; // = real time
+  cpus_time  = ((double) (time2 - time1)) / (double) CLOCKS_PER_SEC; // = sys+user time
+  //double user_time  = cpus_time - syst_time; // = user time
+
+  OUT_ANN(R,L,wall_time,cpus_time,syst_time,"out","err-ene.dat","err-frc.dat");
 
   sprintf(t,"paste %s/basis >> %s/model",R->data,R->otpt);
   system(t);
@@ -84,10 +80,10 @@ void TRAN_ANN(ANN *R, Cell *C)
 //==================================================================
 void CHCK_ERR(ANN *R, LNK *L)
 {
-  int n,ii,i,j,NF,q,N1,N2,N3,N4;
+  int n,ii,i,NF,q,N1,N2,N3,N4;
   double **F;
-  FILE *out;
-  char s[200];
+  //FILE *out;
+  //char s[400];
   
   for(n=NF=0;n<R->N+R->TN;n++)
     if(NF<L[n].N)
@@ -114,7 +110,8 @@ void CHCK_ERR(ANN *R, LNK *L)
 	}
     }
   R->RE  = sqrt(R->RE/(double)R->N);
-  R->EE  = sqrt(R->EE/(double)R->TN);
+  if(N2 > 0)
+    R->EE  = sqrt(R->EE/(double)R->TN);
   R->RT *= R->WE;
   R->ET *= R->WE;
   
@@ -146,13 +143,17 @@ void CHCK_ERR(ANN *R, LNK *L)
     R->RT += R->RF*R->WF*R->WF;
     R->ET += R->EF*R->WF*R->WF;
     R->RF  = sqrt( R->RF/(double)N3 );
-    R->EF  = sqrt( R->EF/(double)N4 );
+    if (N4 > 0)
+      R->EF  = sqrt( R->EF/(double)N4 );
   }
   
   R->RT = sqrt( R->RT /(double)(N1+N3)) ;
-  R->ET = sqrt( R->ET /(double)(N2+N4)) ;
+  if (N2+N4 > 0)
+    R->ET = sqrt( R->ET /(double)(N2+N4)) ;
   
   free_d2D(F,NF);
+
+/*
   sprintf(s,"%s/error.dat",R->otpt);
   out = fopen(s,"w");
   if(R->EFS==1)
@@ -160,14 +161,7 @@ void CHCK_ERR(ANN *R, LNK *L)
   else
     fprintf(out,"% 5d % 5d   % lf % lf   % lf\n",R->M,R->N,R->RE,R->EE,R->time);
   fclose(out);
-  
-  if(R->MODT==1)
-    for(i=0;i<R->N+R->TN;i++)    
-      for(j=0;j<L[i].N;j++)
-      {
-	R->E[i]       += (R->E0[R->SPCZ[L[i].ATMN[j]]]/(double)L[i].N);
-	R->TEeval[i]  += (R->E0[R->SPCZ[L[i].ATMN[j]]]/(double)L[i].N);
-      }
+*/
 }
 //==================================================================
 //
@@ -184,10 +178,10 @@ void LOAD_LNK(ANN *R, Cell *C, LNK *L)
 {
   int n,l,i,spc;
   FILE *in;
-  char s[200];
+  char s[400];
   
   sprintf(s,"%s/index.dat",R->data);   //Reading e-files index 
-  printf("%s\n",s);
+  printf("Loading list of parsed data from %s\n\n",s);
   in=fopen(s,"r");
   for(i=0;i<R->N;i++)  {fscanf(in,"e%d %s\n",&R->train[i],s);}
   for(i=0;i<R->TN;i++) {fscanf(in,"e%d %s\n",&R->test[i],s);}
@@ -210,8 +204,6 @@ void LOAD_LNK(ANN *R, Cell *C, LNK *L)
   }
   for(n=0,R->Eavg=R->Edev=0.0;n<R->STR;n++)
   {
-    for(i=0;i<L[n].N;i++)
-      L[n].E -= R->E0[R->SPCZ[L[n].ATMN[i]]];
     R->Edev += pow(L[n].E/(double)L[n].N,2.0);
     R->Eavg += L[n].E/(double)L[n].N;
   }
@@ -250,39 +242,89 @@ void LOAD_LNK(ANN *R, Cell *C, LNK *L)
 //=========================================================
 // Creating output file after training and testing network
 //=========================================================
-void OUT_ANN(ANN *R, double time, char *s1,char *s2, char *s3)
+void OUT_ANN(ANN *R, LNK *L,double w_time, double c_time,double s_time,char *s1,char *s2, char *s3)
 {
-  char   s[200];
-  int    i;
+  char   s[500],sout[300];
+  int    i,k,q,n,NF;
   FILE*  out;
+  double **F,errf;
   
+  sprintf(sout,"%s/err-out.dat",R->otpt);
+  printf("\n\n job times: real= %1.2lf   user= %1.2lf   sys= %1.2lf   total CPU= %1.2lf (sec)\n",w_time,c_time-s_time,s_time,c_time);
+  out=fopen(sout,"a");
+  fprintf(out,"\n\n job times: real= %1.2lf   user= %1.2lf   sys= %1.2lf   total CPU= %1.2lf (sec)\n",w_time,c_time-s_time,s_time,c_time);
+  fclose(out);
   if(R->EFS==0)
   {
-    printf("Stand. dev. ENE  % lf %6d\n",R->Edev,R->STR);
+    printf("\nStand. dev. ENE  % lf %6d\n",R->Edev,R->STR);
     printf("Train error ENE  % lf %6d\n",R->RE,R->N);
     printf("Test  error ENE  % lf %6d\n",R->EE,R->TN);
+    out=fopen(sout,"a");
+    fprintf(out,"\nStand. dev. ENE  % lf %6d\n",R->Edev,R->STR);
+    fprintf(out,"Train error ENE  % lf %6d\n",R->RE,R->N);
+    fprintf(out,"Test  error ENE  % lf %6d\n",R->EE,R->TN);
+    fclose(out);
   }
   if(R->EFS==1||R->EFS==3)
   {
+    printf("\nStand. dev. ENE          % lf                     %6d\n",R->Edev,R->STR);
     printf("Train error ENE FRC TOT  % lf % lf % lf %6d %6d\n",R->RE,R->RF,R->RT,R->N,R->NF);
     printf("Test  error ENE FRC TOT  % lf % lf % lf %6d %6d\n",R->EE,R->EF,R->ET,R->TN,R->TNF);
+    out=fopen(sout,"a");
+    fprintf(out,"\nStand. dev. ENE          % lf                %6d\n",R->Edev,R->STR);
+    fprintf(out,"Train error ENE FRC TOT  % lf % lf % lf %6d %6d\n",R->RE,R->RF,R->RT,R->N,R->NF);
+    fprintf(out,"Test  error ENE FRC TOT  % lf % lf % lf %6d %6d\n",R->EE,R->EF,R->ET,R->TN,R->TNF);
+    fclose(out);
   }
   
   //=====  Writing Test datasets Energy file  =====
   sprintf(s,"%s/%s",R->otpt,s2);
   out = fopen(s,"w");
-  fprintf(out,"Energy Bias=%24.16lf\n------------------------------------\n",R->Ebias);
-  fprintf(out,"     Strct.     Target energy              Evaluated energy            Eval-Target energy\n");
+  fprintf(out,"(eV/atm)   strct.         DFT              NN               NN-DFT    path\n");
   fprintf(out,"-----------------------------------------------------------------------------------------\n");
   for(i=0;i<R->N;i++)
-    fprintf(out,"%06d e%06d  %24.16lf   %24.16lf   %24.16lf\n",i+1,(int)R->train[i],R->E[i]-R->Ebias,R->TEeval[i]-R->Ebias,R->TEeval[i]-R->E[i]);
+    fprintf(out,"trn%06d e%06d  %14.6lf   %14.6lf   %14.6lf  %s\n",i+1,(int)R->train[i],R->E[i],R->TEeval[i],R->TEeval[i]-R->E[i],L[i].path);
   fprintf(out,"\n");
   for(i=0;i<R->TN;i++)
-    fprintf(out,"%06d e%06d  %24.16lf   %24.16lf   %24.16lf\n",i+1,(int)R->test[i],R->E[i+R->N]-R->Ebias,R->TEeval[i+R->N]-R->Ebias,R->TEeval[i+R->N]-R->E[i+R->N]);
+    fprintf(out,"tst%06d e%06d  %14.6lf   %14.6lf   %14.6lf  %s\n",i+1,(int)R->test[i],R->E[i+R->N],R->TEeval[i+R->N],R->TEeval[i+R->N]-R->E[i+R->N],L[i+R->N].path);
   fclose(out);
-  
-  SAVE_ANN(R,time);
 
+    //=====  Writing Test datasets Force file  =====
+  if(R->EFS==1||R->EFS==3)
+  {
+    sprintf(s,"%s/%s",R->otpt,s3);
+    out = fopen(s,"w");
+    fprintf(out,"(eV/Ang)   strct.        NN-DFT   path\n");
+    fprintf(out,"----------------------------------------------------------\n");
+    
+    for(n=NF=0;n<R->N+R->TN;n++)
+      if(NF<L[n].N)
+	NF = L[n].N;
+    F = make_d2D(NF,3);
+    
+    for(n=0;n<R->N+R->TN;n++)
+    {
+      for(k=0;k<L[n].NF;k++)
+	for(q=0;q<3;q++)
+	  F[L[n].Fi[k]][q] = L[n].F[L[n].Fi[k]][q];
+      
+      FRC_ANN(R,&L[n]);
+      
+      for(k=0,errf=0.0;k<L[n].NF;k++)
+      {
+	i = L[n].Fi[k];
+	for(q=0;q<3;q++)
+	  errf += pow( L[n].f[i][q] - F[i][q], 2.0);
+      }
+      if(n == R->N)
+	fprintf(out,"\n");
+      fprintf(out,"%s%06d e%06d  %12.5lf  %s\n",(n<R->N?"trn":"tst"),(n<R->N?n:n-R->N)+1,(n<R->N ? (int)R->train[n]:(int)R->test[n-R->N]),(L[n].NF > 0 ? sqrt(errf/(double)(3*L[n].NF)) : -1.0),L[n].path);
+    }
+    fclose(out);
+  }
+
+  SAVE_ANN(R,w_time,c_time);
+  
   return;
 }
 //======================================================
@@ -326,7 +368,7 @@ double EVAL_ENE(ANN *R, PRS *P, PRS *W, Cell *C, LNK *L)
 //======================================================
 void EVAL_ANN(ANN *R, PRS *P, Cell *C, LNK *L)
 {
-  char   fname[200],s1[200],s[200],buf[200],buf2[200],nntp[20][2],str[200],CMP[10][200];
+  char   fname[700],s1[400],s[400],buf[200],buf2[200],nntp[20][2],str[200],CMP[10][200];
   FILE   *in,*out;
   FILE   *f1,*f2;
   int    q,i,N,rindex,j,Q,AB[100][10],k,I[1000];
@@ -337,6 +379,9 @@ void EVAL_ANN(ANN *R, PRS *P, Cell *C, LNK *L)
   PRS    W[9];
   struct Node *temp;
   char   strtype[200];
+
+  printf("|                           Model evaluation                          |\n");
+  printf("=======================================================================\n\n");
 
   if(strlen(R->eval)==1)
   {
@@ -405,7 +450,7 @@ void EVAL_ANN(ANN *R, PRS *P, Cell *C, LNK *L)
     if(N>0)
     {     
       printf(" =====  Evaluating EOS   =====\n");
-      sprintf(s1,"%s/eos_%s.dat",R->otpt,CMP[q]);
+      sprintf(s1,"%s/eos-%s.dat",R->otpt,CMP[q]);
       out=fopen(s1,"w");
       ener=make_d1D(21);
       printf("Total %d EOS files are found in (%s)!\n",N,R->eval); 
@@ -448,10 +493,8 @@ void EVAL_ANN(ANN *R, PRS *P, Cell *C, LNK *L)
 	  }
 	  fclose(f2);
 	  READ_CELL(C,"tmp");
-	  for(i=0,ann[1]=0.0;i<C->N;i++)
-	    ann[1] += (R->E0[C->ATMZ[i]]/C->N);
-	  ann[1] += EVAL_ENE(R,P,W,C,L);
-	  LIST(C);
+	  ann[1] = EVAL_ENE(R,P,W,C,L);
+	  LIST(C,0);
 	  for(i=0,r=0.0;i<C->N;i++)
 	    r += NDX(C,i,0)/(double)C->N;
 	  if(strncmp(str,"nps",3)==0)
@@ -460,7 +503,7 @@ void EVAL_ANN(ANN *R, PRS *P, Cell *C, LNK *L)
 	  ann[0]=ann[0]/(double)C->N;//DFT energy
 	  ener[rindex]=ann[0];
 	  averr+=pow(ann[1] -ann[0],2.0);
-	  fprintf(f1,"% lf % lf % lf % lf\n",r,ann[0],ann[1] ,Cell_VOLUME(C)/(double)C->N);
+	  fprintf(f1,"% lf % lf % lf % lf\n",r,ann[0],ann[1] ,CELL_VOL(C)/(double)C->N);
 	  rindex++;      	   	  
 	}
 	fclose(f1);
@@ -513,7 +556,7 @@ void EVAL_ANN(ANN *R, PRS *P, Cell *C, LNK *L)
       printf("Total %d VAC files are found in (%s)!\n",N,R->eval);
       temp=tmp2;
       tgets(buf2,200,&temp);
-      sprintf(fname,"%s/vac_%s.dat",R->otpt,CMP[q]);
+      sprintf(fname,"%s/vac-%s.dat",R->otpt,CMP[q]);
       f1 = fopen(fname,"w");
       
       for(n=0;n<N;n++)
@@ -542,10 +585,8 @@ void EVAL_ANN(ANN *R, PRS *P, Cell *C, LNK *L)
 	  }
 	  fclose(f2);
 	  READ_CELL(C,"tmp");
-	  for(i=0,ann[j]=0.0;i<C->N;i++)
-	    ann[j] += (R->E0[C->ATMZ[i]]/C->N);
 	  dft [j] /= (double)C->N;
-	  ann[j] += EVAL_ENE(R,P,W,C,L);
+	  ann[j] = EVAL_ENE(R,P,W,C,L);
 	  j++;
 	}	
 	printf(    "% 3d  % lf % lf % lf   % lf % lf % lf   %s %3d\n",n,dft[1],dft[0],(dft[1]-dft[0])*(double)C->N,ann[1],ann[0],(ann[1]-ann[0])*(double)C->N,strtype,C->N);
@@ -581,7 +622,7 @@ void EVAL_ANN(ANN *R, PRS *P, Cell *C, LNK *L)
       printf("Total %d SRF files are found in (%s)!\n",N,R->eval);
       temp=tmp3;
       tgets(buf2,200,&temp);
-      sprintf(fname,"%s/srf_%s.dat",R->otpt,CMP[q]);
+      sprintf(fname,"%s/srf-%s.dat",R->otpt,CMP[q]);
       f1 = fopen(fname,"w");
       for(n=0;n<N;n++)
       {
@@ -610,10 +651,8 @@ void EVAL_ANN(ANN *R, PRS *P, Cell *C, LNK *L)
 	        fclose(f2);
 	        READ_CELL(C,"tmp");
 	        x[j] = C->L[0][0]*C->L[1][1]; // assuming that C->L[0] is along x
-	        for(i=0,ann[j]=0.0;i<C->N;i++)
-	          ann[j] += (R->E0[C->ATMZ[i]]/C->N);
 	        dft [j] /= (double)C->N;
-	        ann[j] += EVAL_ENE(R,P,W,C,L);
+	        ann[j] = EVAL_ENE(R,P,W,C,L);
 	        j++;
 	      }
 	      for(i=1;i<j;i++)
@@ -659,7 +698,7 @@ void EVAL_ANN(ANN *R, PRS *P, Cell *C, LNK *L)
       temp=tmp4;
       tgets(buf2,200,&temp);
 
-      sprintf(fname,"%s/sub_%s.dat",R->otpt,CMP[q]);
+      sprintf(fname,"%s/sub-%s.dat",R->otpt,CMP[q]);
       f1 = fopen(fname,"w");    
       for(n=0;n<N;n++)
       {
@@ -689,10 +728,8 @@ void EVAL_ANN(ANN *R, PRS *P, Cell *C, LNK *L)
 	  READ_CELL(C,"tmp");
 	  for(i=0;i<C->NSPC;i++)	  
 	    AB[j][i] = C->SPCN[i];
-	  for(i=0,ann[j]=0.0;i<C->N;i++)
-	    ann[j] += (R->E0[C->ATMZ[i]]/C->N);
 	  dft[j] /= (double)C->N;
-	  ann[j] += EVAL_ENE(R,P,W,C,L);
+	  ann[j] = EVAL_ENE(R,P,W,C,L);
 	  j++;
 	}
 	for(k=2;k<4;k++)
@@ -736,7 +773,7 @@ void EVAL_ANN(ANN *R, PRS *P, Cell *C, LNK *L)
       for(n=0;n<N;n++)
       {
 	printf("\n");
-	sprintf(fname,"%s/phd_%s%02d.dat",R->otpt,CMP[q],n);
+	sprintf(fname,"%s/phd-%s%02d.dat",R->otpt,CMP[q],n);
 	f1 = fopen(fname,"w");
 	j = 0;
         tgets(buf2,200,&temp);
@@ -770,10 +807,8 @@ void EVAL_ANN(ANN *R, PRS *P, Cell *C, LNK *L)
 	    AB[j][0] = 0;
 	  }
 	  x[j] = (double)AB[j][1]/(double)(AB[j][0]+AB[j][1]);
-	  for(i=0,ann[j]=0.0;i<C->N;i++)
-	    ann[j] += (R->E0[C->ATMZ[i]]/C->N);
 	  dft[j] /= (double)C->N;
-	  ann[j] += EVAL_ENE(R,P,W,C,L);
+	  ann[j] = EVAL_ENE(R,P,W,C,L);
 	  printf("%3d %3d %3d % lf % lf\n",j,AB[j][0],AB[j][1],dft[j],ann[j]);
 	  Adft = dft[0]; Bdft = dft[1];
 	  Aann = ann[0]; Bann = ann[1];

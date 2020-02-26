@@ -1,9 +1,3 @@
-#include "cdef.h"
-#include "ndef.h"
-#include "edef.h"
-#include "cell.h"
-#include "cmod.h"
-#include "cutl.h"
 #include "cmin.h"
 
 #define x(X)  gsl_vector_get(x, X)
@@ -101,7 +95,7 @@ void cdfunc_gsl(const gsl_vector *x, void* params, gsl_vector *d)
 
   FCNT++;
   BUF_STR(x);
-  V = Cell_VOLUME(CCC);
+  V = CELL_VOL(CCC);
   Reciprocal(CCC);
   CELL_FRC(RRR,PPP,WWW,CCC,LLL);
   
@@ -192,7 +186,7 @@ double CELL_MIN(ANN *R, PRS *P, PRS *W, Cell *C, LNK *L)
   if(RRR->MINT==3)
     sprintf(min,"%s","STPDT");
 
-  printf("\n  %s relaxation: %d DOF\n\n",min,N);
+  printf("\n  %s relaxation: %d adjustable parameters\n\n",min,N);
 
   const gsl_multimin_fdfminimizer_type *T;
   gsl_multimin_fdfminimizer *s;

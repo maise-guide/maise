@@ -5,7 +5,6 @@
 |  number of species    |  1                                                |
 |  species types        |  47                                               |
 |  species names        |  Ag                                               |
-|  species references   |  -0.15242997                                      |
 |  number of layers     |  4                                                |
 |  architecture         |  30 10 10 1                                       |
 |  number of weights    |  431                                              |
@@ -93,7 +92,7 @@
   -1.1739248623348300
    0.0221369004237469
   -0.3990563485151115
-  -1.0302621215041123
+  -1.1826920915041123
    0.1770394682523763
   -0.3294435502888984
   -0.2070238340690881

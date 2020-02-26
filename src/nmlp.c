@@ -1,17 +1,4 @@
-#include <stdio.h>
-#include <stdlib.h>
-#include <math.h>
-#include <omp.h>
-#include "cdef.h"
-#include "ndef.h"
-#include "edef.h"
-#include "cmod.h"
-#include "cpot.h"
-#include "nmod.h"
-#include "util.h"
-#include "nutl.h"
 #include "nmlp.h"
-#include "nmin.h"
 
 PAR *OOO;
 
@@ -373,32 +360,31 @@ double ENE_ANN(ANN *R, LNK *L)
   double E,a[500],b[500]; ///max number of vectors hardcoded!!!!
 
   E = 0.0;
-if(!SERIAL)
-#pragma omp parallel private(spc,n,k,m,a,b) num_threads(R->NP)
-{ 
-if(!SERIAL)
-#pragma omp for reduction (+:E) schedule(dynamic,R->NB)
-  for(i=0;i<L->N;i++)
-  {
-    spc = L->ATMN[i];
-    for(n=0;n<R->NU[0];n++)
-      a[n] = (L->Cn[i][n]-R->Rmin[spc][n])*R->DR[spc][n]-0.0;
-
-    for(k=0;k<R->NL-1;k++)
+  #pragma omp parallel private(spc,n,k,m,a,b) num_threads(R->NP)
+  { 
+    #pragma omp for reduction (+:E) schedule(dynamic,R->NB)
+    for(i=0;i<L->N;i++)
     {
-      for(m=0;m<R->NU[k+1];m++)
+      spc = L->ATMN[i];
+      for(n=0;n<R->NU[0];n++)
+        a[n] = (L->Cn[i][n]-R->Rmin[spc][n])*R->DR[spc][n]-0.0;
+
+      for(k=0;k<R->NL-1;k++)
       {
-	for(n=0,b[m]=R->B[spc][k][m];n<R->NU[k];n++)
-	  b[m] += a[n]*R->W[spc][k][m][n];
-	b[m] = GP(R->GT[k+1],b[m]);
+        for(m=0;m<R->NU[k+1];m++)
+        {
+	      for(n=0,b[m]=R->B[spc][k][m];n<R->NU[k];n++)
+	        b[m] += a[n]*R->W[spc][k][m][n];
+	      b[m] = GP(R->GT[k+1],b[m]);
+        }
+
+        for(m=0;m<R->NU[k+1];m++)
+	      a[m] = b[m];
       }
-      for(m=0;m<R->NU[k+1];m++)
-	a[m] = b[m];
+      L->EA[i] = b[0];
+      E += b[0];
     }
-    L->EA[i] = b[0];
-    E += b[0];
   }
-}
   return E;
 }
 //======================================================
@@ -413,79 +399,75 @@ double FRC_ANN(ANN *R, LNK *L)
     for(q=0;q<6;q++)
       s[nth][q] = 0.0;
   
-if(!SERIAL)
-#pragma omp parallel private(spc,n,k,m) num_threads(R->NP)
-{
-  if(!SERIAL)
-  #pragma omp for reduction (+:e) schedule(dynamic,R->NB)
-  for(i=0;i<L->N;i++)
+  #pragma omp parallel private(spc,n,k,m) num_threads(R->NP)
   {
-    spc = L->ATMN[i];
-    for(n=0;n<R->NU[0];n++)
-      R->e[spc][i][0][n] = (L->Cn[i][n]-R->Rmin[spc][n])*R->DR[spc][n]-0.0;
-    for(k=0;k<R->NL-1;k++)
-      for(m=0;m<R->NU[k+1];m++)
-      {
-	for( n=0, R->e[spc][i][k+1][m]=R->B[spc][k][m]; n<R->NU[k]; n++)
-	  R->e[spc][i][k+1][m] += R->e[spc][i][k][n]*R->W[spc][k][m][n];
-	R->e[spc][i][k+1][m] =  GP(R->GT[k+1],R->e[spc][i][k+1][m]);
-	R->d[spc][i][k+1][m] = GPp(R->GT[k+1],R->e[spc][i][k+1][m]);
-      }
-    L->EA[i] = R->e[spc][i][R->NL-1][0];
-    e += R->e[spc][i][R->NL-1][0];
-  }
-}
-
-if(!SERIAL)
-#pragma omp parallel private(nth,spc,q,m,tm,n,tn,l,j,nij,sij) num_threads(R->NP)
-{
-  nth = omp_get_thread_num();
-  if(!SERIAL)
-  #pragma omp for schedule(dynamic,R->NB)
-  for(i=0;i<L->N;i++)
-  {
-    spc = L->ATMN[i];
-    for(q=0;q<3;q++)
-      L->f[i][q] = 0.0;
-    // for 3-layer MLP
-    // =======  dGni/dxi  ========
-    for(m=0;m<R->NU[2];m++)
+    #pragma omp for reduction (+:e) schedule(dynamic,R->NB)
+    for(i=0;i<L->N;i++)
     {
-      tm = R->W[spc][2][0][m]*R->d[spc][i][2][m];
-      for(n=0;n<R->NU[1];n++)
-      {
-	tn = tm*R->W[spc][1][m][n]*R->d[spc][i][1][n];
-	for(l=0;l<R->NU[0];l++)
-	{
-	  if(L->MRK[i]==1)
-	    for(q=0;q<3;q++)
-	      L->f[i][q] -= L->Fn[i][L->DNn[i]][l][q]*R->DR[spc][l]*tn*R->W[spc][0][n][l];
-	  for(q=0;q<6;q++)
-	    s[nth][q] -= L->Sn[i][l][q]*R->DR[spc][l]*tn*R->W[spc][0][n][l];
-	}
-      }
-    }      
-    // =======  dGnj/dxi  ========
-    if(L->MRK[i]==1)
-      for(j=0;j<L->DNn[i];j++)
-      {
-	nij = L->DNi[i][j];
-	if(j==L->DNn[i]) sij = spc; else sij = L->DNs[i][j];
-	for(m=0;m<R->NU[2];m++)
-	{
-	  tm = R->W[sij][2][0][m]*R->d[L->DNs[i][j]][nij][2][m];
-	  for(n=0;n<R->NU[1];n++)
-  	  {
-	    tn = tm*R->W[sij][1][m][n]*R->d[sij][nij][1][n];
-	    for(l=0;l<R->NU[0];l++)
-	      for(q=0;q<3;q++)
-		L->f[i][q] -= L->Fn[i][j][l][q]*R->DR[sij][l]*tn*R->W[sij][0][n][l];;
-	  }      
-	}
-      }    
-  }  
+      spc = L->ATMN[i];
+      for(n=0;n<R->NU[0];n++)
+        R->e[spc][i][0][n] = (L->Cn[i][n]-R->Rmin[spc][n])*R->DR[spc][n]-0.0;
+      for(k=0;k<R->NL-1;k++)
+        for(m=0;m<R->NU[k+1];m++)
+        {
+	      for( n=0, R->e[spc][i][k+1][m]=R->B[spc][k][m]; n<R->NU[k]; n++)
+	        R->e[spc][i][k+1][m] += R->e[spc][i][k][n]*R->W[spc][k][m][n];
+	      R->e[spc][i][k+1][m] =  GP(R->GT[k+1],R->e[spc][i][k+1][m]);
+	      R->d[spc][i][k+1][m] = GPp(R->GT[k+1],R->e[spc][i][k+1][m]);
+        }
+      L->EA[i] = R->e[spc][i][R->NL-1][0];
+      e += R->e[spc][i][R->NL-1][0];
+    }
+  }
 
-}
+  #pragma omp parallel private(nth,spc,q,m,tm,n,tn,l,j,nij,sij) num_threads(R->NP)
+  {
+    nth = omp_get_thread_num();
+    #pragma omp for schedule(dynamic,R->NB)
+    for(i=0;i<L->N;i++)
+    {
+      spc = L->ATMN[i];
+      for(q=0;q<3;q++)
+        L->f[i][q] = 0.0;
+      // for 3-layer MLP
+      // =======  dGni/dxi  ========
+      for(m=0;m<R->NU[2];m++)
+      {
+        tm = R->W[spc][2][0][m]*R->d[spc][i][2][m];
+        for(n=0;n<R->NU[1];n++)
+        {
+	      tn = tm*R->W[spc][1][m][n]*R->d[spc][i][1][n];
+	      for(l=0;l<R->NU[0];l++)
+	      {
+	        if(L->MRK[i]==1)
+	          for(q=0;q<3;q++)
+	            L->f[i][q] -= L->Fn[i][L->DNn[i]][l][q]*R->DR[spc][l]*tn*R->W[spc][0][n][l];
+	        for(q=0;q<6;q++)
+	          s[nth][q] -= L->Sn[i][l][q]*R->DR[spc][l]*tn*R->W[spc][0][n][l];
+	      }
+        }
+      }      
+      // =======  dGnj/dxi  ========
+      if(L->MRK[i]==1)
+        for(j=0;j<L->DNn[i];j++)
+        {
+	      nij = L->DNi[i][j];
+	      if(j==L->DNn[i]) sij = spc; else sij = L->DNs[i][j];
+
+	      for(m=0;m<R->NU[2];m++)
+	      {
+	        tm = R->W[sij][2][0][m]*R->d[L->DNs[i][j]][nij][2][m];
+	        for(n=0;n<R->NU[1];n++)
+  	        {
+	          tn = tm*R->W[sij][1][m][n]*R->d[sij][nij][1][n];
+	          for(l=0;l<R->NU[0];l++)
+	          for(q=0;q<3;q++)
+		        L->f[i][q] -= L->Fn[i][j][l][q]*R->DR[sij][l]*tn*R->W[sij][0][n][l];;
+	        }      
+	      }
+        }
+    }  
+  }
   L->e = e;
   for(q=0;q<6;q++)  
     for(nth=0,L->s[q]=0.0;nth<R->NP;nth++)
@@ -499,7 +481,7 @@ void INIT_MLP(ANN *R)
 {
   int  k,n,m,i,spc;
   FILE *in;
-  char s[200];
+  char s[400];
 
   sprintf(s,"mkdir -p %s/",R->otpt);
   system(s);
@@ -626,7 +608,7 @@ void TRAN_MLP(ANN *R, Cell *C, LNK *L)
   int n,i;
 
   FILE *out;
-  char s[200];
+  char s[400];
 
   OOO = (PAR *)malloc(R->NP*sizeof(PAR));
   for(n=0;n<R->NP;n++)
@@ -643,7 +625,7 @@ void TRAN_MLP(ANN *R, Cell *C, LNK *L)
     }
   }
 
-  sprintf(s,"%s/out.dat",R->otpt);
+  sprintf(s,"%s/err-out.dat",R->otpt);
 
   //=====  Train the MLP here =====
   for(i=0;i<1;i++)
@@ -652,6 +634,9 @@ void TRAN_MLP(ANN *R, Cell *C, LNK *L)
     
     printf("Total number of parameters: %3d\n",R->NW);
     out=fopen(s,"w");
+    FPRNT_HEAD(out);
+    fprintf(out,"|                            Model training                           |\n");
+    fprintf(out,"=======================================================================\n\n");
     fprintf(out,"Total number of parameters: %3d\n",R->NW);
     fclose(out);
     

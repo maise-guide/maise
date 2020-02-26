@@ -1,10 +1,17 @@
 #ifndef CELL
 #define CELL
 
+#include <gsl/gsl_math.h>
+#include <gsl/gsl_eigen.h>
+#include "clib.h"
+#include "cdef.h"
+#include "cutl.h"
+#include "util.h"
+
 extern const double Pi;
 
 void   Build_Cell(Cell *C, int J);
-void   LIST(Cell *C);
+void   LIST(Cell *C, int O);
 double NDR(Cell *C, int i, int j);
 double DX(Cell *C, int i, int n, int q);
 double ndx(Cell *C, int i, int j, int k);

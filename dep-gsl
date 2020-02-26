@@ -1,0 +1,50 @@
+#!/bin/bash
+#setup
+dir="libgsl0-dev_1.16+dfsg-1ubuntu1_amd64"
+url="http://archive.ubuntu.com/ubuntu/pool/main/g/gsl/$dir.deb" 
+test_gsl=$(gsl-config --version 2>&1 | grep -o "command not found")
+test_curl=$(curl --version 2>&1 | grep -o "command not found")
+test_wget=$(wget --version 2>&1 | grep -o "command not found")
+#commands
+if [ "$test_wget" != "command not found" ]; then
+  GET="wget $url -O $dir.deb"
+elif [ "$test_curl" != "command not found" ]; then
+  GET="curl -L --output $dir.deb $url"
+fi
+#setup working directory
+mkdir -p ./dep-ext
+#check for existing gsl
+if [ "$test_gsl" == "command not found" ]; then
+  mkdir -p ./lib/include/gsl
+  cd dep-ext
+  #download
+  echo "downloading...gsl to $PWD"
+  $GET &> gsl.log
+  #unpack
+  echo "unpacking....."
+  ar  -x $dir.deb
+  tar -xf data.tar.xz 2>&1
+  #install into ./lib
+  echo "installing....to $PWD../lib"
+  cp ./usr/lib/libgslcblas.a ../lib
+  cp ./usr/lib/libgsl.a      ../lib
+  cp ./usr/bin/gsl-config    ../lib
+  cp -r ./usr/include/gsl/gsl*.h  ../lib/include/gsl
+  #clean up
+  mkdir gsl
+  mv control.tar.gz  gsl &>> gsl.log
+  mv debian-binary   gsl &>> gsl.log
+  mv data.tar.xz     gsl &>> gsl.log
+  mv libgsl0-dev_1.16+dfsg-1ubuntu1_amd64.deb  gsl &>> gsl.log
+  mv usr             gsl &>> gsl.log
+  cd ../ &>> gsl.log
+  #adjust unpacked gsl-config to point to current location in ./lib
+  sed -i "s/\/usr\/include/.\/lib\/include/"   ./lib/gsl-config
+  sed -i "s/\/usr\//.\//"      ./lib/gsl-config
+else
+  echo "gsl found in $(gsl-config --prefix)"
+  echo "creating link to gsl-config in $PWD/lib"
+  #create sym link to existing gsl-config so that make finds it
+  ln -sf  $(which gsl-config) ./lib/gsl-config &> ./dep-ext/gsl.log
+fi
+echo "Done"

@@ -5,6 +5,12 @@
 #include <gsl/gsl_math.h> 
 #include <gsl/gsl_vector.h> 
 #include <gsl/gsl_multimin.h>
+#include "cdef.h"
+#include "ndef.h"
+#include "edef.h"
+#include "cell.h"
+#include "cmod.h"
+#include "cutl.h"
 
 void   STR_BUF(gsl_vector *x);
 void   BUF_STR(const gsl_vector *x);

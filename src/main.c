@@ -7,18 +7,7 @@
 //      of this license document, but changing it is not allowed.         //
 //========================================================================//
 
-#include <time.h>
-#include <stdlib.h>
-#include <string.h>
-#include "cdef.h"
-#include "edef.h"
-#include "ndef.h"
-#include "util.h"
-#include "cell.h"
-#include "emod.h"
-#include "cfnc.h"
-#include "nmod.h"
-#include "cmod.h"
+#include "mlib.h"
 
 int main(int argc, char** argv)
 {
@@ -27,14 +16,15 @@ int main(int argc, char** argv)
   PRS   P;
   Cell  C,D;
 
+  //========== print the header of maise ===========
+  PRNT_HEAD();
+
   //=====  read setup, atoms, and table files  =====
   READ_MAIN(&T,&R,&P,&C,1,argc);
-
 
   //========  run structure analysis jobs  =========
   if(T.JOBT/10==0)
     CELL_EXAM(&C,&D,argc,argv);
-
 
   //======  launch evolutionary search module  =====
   if(T.JOBT/10==1)

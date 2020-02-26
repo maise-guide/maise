@@ -1,5 +1,12 @@
-echo "   === Benchmarking script for the MAISE code ==="
-echo ""
+VER=$(grep VER ../makefile|head -1 |awk '{print $3}')
+
+printf "=======================================================================\n"
+printf "|               Module for Ab Initio Structure Evolution              |\n"
+printf "|                        version     %12s                     |\n" $VER
+printf "|                 https://github.com/maise-guide/maise                |\n"
+printf "=======================================================================\n"
+printf "|                          Benchmarking script                        |\n"
+printf "=======================================================================\n\n"
 
 if [ ! -e ../maise ]
 then
@@ -10,51 +17,76 @@ fi
 cp ../maise parse
 cp ../maise train
 cp ../maise relax
+cp ../maise esint
 
 cd parse
+printf " PARSE test ... "
 maise > out.dat
-diff PARS/e000014 pars &> res.dat
+diff PARS/e000014 ref/ &> res.dat
 n=$(wc -l res.dat|awk '{print $1}')
 if [ $n -eq 0 ]
 then
 rm -r PARS out.dat res.dat
-echo " PARSE test OK!"
+printf " OK!\n"
 else
 more out.dat >> res.dat
 mv res.dat ../issue_parse
-echo " PARSE test ERROR!"
+printf " ERROR!\n"
 fi
 cd ..
 
 
 cd train
+printf " TRAIN test ... "
+mkdir NNET
+cp ref/Ag.dat NNET/
+cp ref/Cu.dat NNET/
 maise > out.dat
-diff NNET/error.dat ref/ &> res.dat
-n=$(wc -l res.dat|awk '{print $1}')
-if [ $n -eq 0 ]
+e0=$(sed -n "3 p" ref/err-ene.dat|awk '{print $4}')
+e1=$(sed -n "3 p" NNET/err-ene.dat|awk '{print $4}')
+if [ $e0 != $e1 ]
 then
-rm NNET/model NNET/e* NNET/out* out.dat res.dat
-echo " TRAIN test OK!"
-else
 more out.dat >> res.dat
 mv res.dat ../issue_train
-echo " TRAIN test ERROR!"
+printf " ERROR!\n"
+else
+rm -r NNET out.dat
+printf " OK!\n"
 fi
 cd ..
 
 cd relax
+printf " RELAX test ... "
 maise >> out.dat
-diff CONTCAR output/ &> res.dat
+diff CONTCAR ref/ &> res.dat
 n=$(wc -l res.dat|awk '{print $1}')
 if [ $n -eq 0 ]
 then
 rm CO* O* out.dat res.dat
-echo " RELAX test OK!"
+printf " OK!\n"
 else
 more out.dat >> res.dat
 mv res.dat ../issue_relax
-echo " RELAX test ERROR!"
+printf " ERROR!\n"
 fi
 cd ..
 
+cd esint
+printf " ESINT test ... "
+maise >> out.dat
+e0=$(sed -n "3 p" ref/ebest.dat|awk '{print $2}')
+e1=$(sed -n "3 p" ebest.dat|awk '{print $2}')
+if [ $e0 != $e1 ]
+then
+more out.dat >> res.dat
+mv res.dat ../issue_esint
+printf " ERROR!\n"
+echo "Fail"
+else
+rm -r EVOS/* e*dat pos* log* out.dat INI/*
+printf " OK!\n"
+fi
+cd ..
+
+rm -rf */maise
 echo ""

@@ -1,5 +1,1 @@
 make --jobs
-cp maise examples/parse
-cp maise examples/train
-cp maise examples/relax
-cp maise bin

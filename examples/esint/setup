@@ -1,0 +1,69 @@
+=============================================================================================================
+                                        JOB/MODEL types
+=============================================================================================================
+JOBT  10                structure analysis   (00) use analysis tools specified by flags
+                        evolutionary search  (10) run  (11) soft exit  (12) hard exit (13) analysis
+                        cell simulation      (20) relaxation (21) molecular dynamics
+			data parsing         (30) prepare inputs for NN training
+			NN training          (40) full training (41) stratified training
+=============================================================================================================
+                                    OPTIMIZATION parameters
+=============================================================================================================
+NPAR  1                 number of cores for parallel NN training or cell simulation
+                                       (10) EF final step (11) EF first/final steps (12) EF all steps
+PGPA  0.0               pressure in GPa
+=============================================================================================================
+                               STRUCTURE/DESCRIPTOR/NN parameters
+=============================================================================================================
+NMAX  10
+NSPC  1                 number of species types
+TSPC  29
+ASPC  4
+
+=============================================================================================================
+                               EVOLUTIONARY SEARCH settings
+=============================================================================================================
+CODE  0
+RLXT  3
+MINT  0
+MITR  1000
+ETOL  0.0000000001
+
+NDIM  3                 (3) crystal (2) film (0) particle
+LBOX  20.0              box size for particle calculations (ignored for crystals)
+NPOP  5 
+SITR  0                 starting iteration (0) start from random or specified structures
+NITR  3                 number of iterations
+TINI  0                 starting options if SITR=0
+TIME  1000.0            max time per relaxation
+DENE  0.030             store distinct structures in POOL within this energy/atom window
+KMSH  0.06              k-mesh: 0.30 for s/c, 0.05 for metals
+
+TETR  0.00              random using tetris
+PLNT  0.00              seeded
+PACK  0.00              biased
+BLOB  0.00              random using blob shape
+MATE  0.70              crossover using two halves
+SWAP  0.00              crossover using core-shell
+RUBE  0.00              Rubik's cube operation
+REFL  0.00              symmetrization via reflection
+INVS  0.00              symmetrization via inversion
+CHOP  0.00              chop to make facets
+MUTE  0.30              distortion
+
+MCRS  0.50              mutation rate in crossover
+SCRS  0.20              crossover:  swapping rate
+LCRS  0.10              crossover:  mutation strength for lattice vectors
+ACRS  0.10              crossover:  mutation strength for atomic positions
+MPCR  0.25              crossover:  minimum percentage from each parent
+SDST  0.20              distortion: swapping rate
+LDST  0.20              distortion: mutation strength for lattice vectors
+ADST  0.15              distortion: mutation strength for atomic positions
+ELPS  0.15              random:     nanoparticle ellipticity
+
+=============================================================================================================
+                                      INITIAL SEED
+=============================================================================================================
+SEED  120               starting seed for the random number generator - 0 uses time as seed
+WDIR  INI
+MMAX  1000

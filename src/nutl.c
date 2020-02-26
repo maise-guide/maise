@@ -1,22 +1,11 @@
-#include <unistd.h>
-#include <time.h>
-#include <stdio.h>
-#include <stdlib.h>
-#include <string.h>
-#include <math.h>
-#include "cdef.h"
-#include "ndef.h"
-#include "edef.h"
-#include "util.h"
-#include "nprs.h"
-#include "nmlp.h"
+
 #include "nutl.h"
 
 //==============================================================================
 void READ_STRAT3(ANN *R)
 {
   int   i,j,k,l,m,n;
-  char  s[200],s1[200],s2[200];
+  char  s[700],s1[200],s2[200];
   int   NG[20],NC[3];
   FILE  *in,*mlp;
   int   t,a;
@@ -168,7 +157,7 @@ void READ_STRAT3(ANN *R)
 void READ_STRAT2(ANN *R)
 {
   int    i,spc,j,k,l,m,n;
-  char   s[200],s2[200];
+  char   s[500],s2[200];
   FILE   *in,*mlp;
   int    t,a;
   int    NG[20],NC[3];
@@ -304,7 +293,7 @@ void READ_STRAT2(ANN *R)
 //==============================================================================
 void ANA_STR(ANN *R)
 {
-  char   s[200];
+  char   s[400];
   FILE   *in;
   int    N,MAX,COMP,ns,spc[10],t[10];
   int    i,n,k,tag=0;
@@ -403,7 +392,7 @@ double cpu_time( )
 //==============================================================================
 // Mark atoms for force trainig
 //==============================================================================
-void MARK_CL(Cell *C, int M, long seed)
+int MARK_CL(Cell *C, int M, long seed)
 {
   int i,j,m,k;
 
@@ -414,7 +403,7 @@ void MARK_CL(Cell *C, int M, long seed)
     for(i=0; i < C->N;i++)
       C->FRC[i] = 1;
 
-    return;
+    return C->N*3;
   }
 
   for(i=0; i < C->N;i++)
@@ -442,6 +431,8 @@ void MARK_CL(Cell *C, int M, long seed)
     fprintf(stderr,"MARK_CL FAIL\n");
     exit(1);
   }
+  else
+    return k*3;
 }
 //==============================================================================
 // Building ANN object using configuration
@@ -535,10 +526,10 @@ void Build_LNK(LNK *L, int N, int NM, int D, int EFS)
   sprintf(L->path,"none");
 }
 //==============================================================================
-void SAVE_ANN(ANN *R, double TIME)
+void SAVE_ANN(ANN *R, double E_TIME,double C_TIME)
 {
   int    i,spc;
-  char   s[200],b[200],t[200],e[200];
+  char   s[600],b[200],t[300],e[200];
   double *V,sum;
   FILE*  out;
   time_t rawtime;
@@ -569,9 +560,6 @@ void SAVE_ANN(ANN *R, double TIME)
   for(i=0,t[0]=0,sprintf(t+strlen(t)," "); i < R->NSPC;i++,sprintf(t+strlen(t)," "))
     atom_symb(R->SPCZ[i],t+strlen(t));
   fprintf(out,"|  species names        | %s%s",t,e+22+strlen(t));
-  for(i=0,t[0]=0; i < R->NSPC;i++)
-    sprintf(t+strlen(t),"%12.8lf",R->E0[R->SPCZ[i]]);
-  fprintf(out,"|  species references   | %s%s",t,e+22+strlen(t));
 
   sprintf(t," %d",R->NL);  
   fprintf(out,"|  number of layers     | %s%s",t,e+22+strlen(t));
@@ -608,8 +596,11 @@ void SAVE_ANN(ANN *R, double TIME)
   fprintf(out,"|  maise version        | %s%s",t,e+22+strlen(t));
   sprintf(t," %d",R->NP);
   fprintf(out,"|  parallelization      | %s%s",t,e+22+strlen(t));
-  sprintf(t," %1.2lf sec",TIME);
-  fprintf(out,"|  training time        | %s%s",t,e+22+strlen(t));
+  if ( fabs(C_TIME/(double)R->NP-E_TIME)/E_TIME > 0.5 )
+    sprintf(t," %1.2lf  %1.2lf sec-",C_TIME,E_TIME);
+  else
+    sprintf(t," %1.2lf  %1.2lf sec",C_TIME,E_TIME);
+  fprintf(out,"|  cpu and wall times   | %s%s",t,e+22+strlen(t));
   sprintf(t," %1.1e",R->LREG);
   fprintf(out,"|  regularization       | %s%s",t,e+22+strlen(t));
   sprintf(t," %d",R->ITER);
@@ -645,7 +636,7 @@ void SAVE_ANN(ANN *R, double TIME)
 //==============================================================================
 void READ_ANN(ANN *R)
 {
-  char   s[200],s1[200];
+  char   s[400],s1[200];
   int    i,n,spc,k;
   FILE   *in;
   double *V;
@@ -699,13 +690,10 @@ void READ_ANN(ANN *R)
   while( fgets(s,200,in) )
     if( strncmp(s,"|  species references   |",25) == 0 )
     {
-      for(i=0,n=0,k=26; i < R->NSPC;i++,k+=n)
-        sscanf(s+k,"%lf%n",&R->E0[R->SPCZ[i]],&n);
-      break;
+      printf("Error: the model is in old format (contains reference energies)!\n");
+      exit(1);
     }
-
-  while( fgets(s,200,in) )
-    if( strncmp(s,"|  number of layers     |",25) == 0 )
+    else if( strncmp(s,"|  number of layers     |",25) == 0 )
     {
       sscanf(s+26,"%d",&R->NL);
       break;
@@ -974,8 +962,6 @@ void  atom_symb(int i, char *s)
 //==============================================================================
 double NP_VOL(Cell *C)
 {
-  double mass[100]={  1.0078,   3.0160,   6.0151,   9.0122,  10.0129,  12.0000,  14.0031,  15.9949,  18.9984,  19.9924,  22.9898,  23.9850,  26.9815,  27.9769,  30.9738,  31.9721,  34.9689,  35.9675,  38.9637,  39.9626,  44.9559,  45.9526,  49.9472,  49.9460,  54.9380,  53.9396,  58.9332,  57.9353,  62.9296,  63.9291,  68.9256,  69.9242,  74.9216,  73.9225,  78.9183,  77.9204,  84.9118,  83.9134,  88.9058,  89.9047,  92.9064,  91.9068,  96.9064,  95.9076, 102.9055, 101.9056, 106.9051, 105.9065, 112.9041, 111.9048, 120.9038, 119.9041, 126.9045, 123.9059, 132.9055, 129.9063, 137.9071, 135.9071, 140.9077, 141.9077, 144.9128, 143.9120, 150.9199, 151.9198, 158.9254, 155.9243, 164.9303, 161.9288, 168.9342, 167.9339, 174.9408, 173.9400, 179.9475, 179.9467, 184.9530, 183.9525, 190.9606, 189.9599, 196.9666, 195.9658, 202.9723, 203.9730, 208.9804, 208.9824, 209.9871, 210.9906, 223.0197, 223.0185, 227.0278, 230.0331, 231.0359, 233.0396, 236.0466, 238.0496, 241.0568, 243.0614, 247.0703, 249.0749, 252.0830, 257.0951}    ;
-
   int    i;
   double I[3][3],e[3][3],w[3];
   double M,a,b,c;
@@ -986,38 +972,38 @@ double NP_VOL(Cell *C)
     {fprintf(stderr,"Error: fail to read species for moment of intertia matrix calculation %3d %3d!\n",i,C->ATMZ[i]);exit(1);}
 
   for(i=0,M=0.0; i < C->N;i++)
-    M+=mass[C->ATMZ[i]];
+    M+=C->mass[C->ATMZ[i]];
 
   for(i=0,a=0.0,b=0.0,c=0.0; i < C->N;i++)
   {
-    a+=mass[C->ATMZ[i]]*C->X[i][0];
-    b+=mass[C->ATMZ[i]]*C->X[i][1];
-    c+=mass[C->ATMZ[i]]*C->X[i][2];
+    a+=C->mass[C->ATMZ[i]]*C->X[i][0];
+    b+=C->mass[C->ATMZ[i]]*C->X[i][1];
+    c+=C->mass[C->ATMZ[i]]*C->X[i][2];
   }
 
   //=====  diagonal elements  =====
   for(i=0,I[0][0]=(-(b*b/M)-(c*c/M)); i < C->N;i++)
-    I[0][0]+=((mass[C->ATMZ[i]]*C->X[i][1]*C->X[i][1]+mass[C->ATMZ[i]]*C->X[i][2]*C->X[i][2]));
+    I[0][0]+=((C->mass[C->ATMZ[i]]*C->X[i][1]*C->X[i][1]+C->mass[C->ATMZ[i]]*C->X[i][2]*C->X[i][2]));
 
   for(i=0,I[1][1]=(-(a*a/M)-(c*c/M)); i < C->N;i++)
-    I[1][1]+=((mass[C->ATMZ[i]]*C->X[i][0]*C->X[i][0]+mass[C->ATMZ[i]]*C->X[i][2]*C->X[i][2]));
+    I[1][1]+=((C->mass[C->ATMZ[i]]*C->X[i][0]*C->X[i][0]+C->mass[C->ATMZ[i]]*C->X[i][2]*C->X[i][2]));
 
   for(i=0,I[2][2]=(-(b*b/M)-(a*a/M)); i < C->N;i++)
-    I[2][2]+=((mass[C->ATMZ[i]]*C->X[i][1]*C->X[i][1]+mass[C->ATMZ[i]]*C->X[i][0]*C->X[i][0]));
+    I[2][2]+=((C->mass[C->ATMZ[i]]*C->X[i][1]*C->X[i][1]+C->mass[C->ATMZ[i]]*C->X[i][0]*C->X[i][0]));
 
   //=====  off diagonal elements  =====
   for(i=0,I[0][1]=a*b/M; i < C->N;i++)
-    I[0][1]-=(mass[C->ATMZ[i]]*C->X[i][0]*C->X[i][1]);
+    I[0][1]-=(C->mass[C->ATMZ[i]]*C->X[i][0]*C->X[i][1]);
 
   I[1][0]=I[0][1];
 
   for(i=0,I[0][2]=a*c/M; i < C->N;i++)
-    I[0][2]-=(mass[C->ATMZ[i]]*C->X[i][0]*C->X[i][2]);
+    I[0][2]-=(C->mass[C->ATMZ[i]]*C->X[i][0]*C->X[i][2]);
 
   I[2][0]=I[0][2];
 
   for(i=0,I[1][2]=b*c/M; i < C->N;i++)
-    I[1][2]-=(mass[C->ATMZ[i]]*C->X[i][1]*C->X[i][2]);
+    I[1][2]-=(C->mass[C->ATMZ[i]]*C->X[i][1]*C->X[i][2]);
   I[2][1]=I[1][2];
 
   EV(I,e,w);

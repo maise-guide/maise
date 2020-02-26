@@ -33,11 +33,12 @@ typedef struct
   double **W;     // Wyckoff positions
   double ANG[3];
   double LAT[3];
-  double m[102];  // species mass
-
+  double m[96];    // atomic mass (adjusted mass)
+  double mass[96]; // atomic mass (atomic units)
   int    NRDF;    // number of bins in the RDF
   double ***RDF;  // RDF to calculate CdotC
   double p;       // hydrostatic pressure
+  double pint;    // internal pressure
 
   double P;       // currently enthalpy = E + pV
   double K;       // kinetic energy
@@ -80,9 +81,7 @@ typedef struct
   double Rmax;    // Rmax for CxC
   double Rmin;    // Rmin for CxC
   double DR;      // Gaussian spread for RDF
-  double Rm[200]; // min allowed radius distance in INI/atoms
-  int    STOP;    // if >0 parsing stops when distances are shorter than Rm
-  int    stop;    // counter for consecutive fails
+  double Rm[96];  // min allowed radius distance in INI/atoms
   
   int    SGN;       // space group number
   char   SGS[10];   // space group symbol
@@ -95,7 +94,7 @@ typedef struct
 
   int    NS;        // number of irriduceable sites
 
-  char   TAG[100];
+  char   TAG[200];
   char   TYPE[10][20];
 
   int    D;         // dimensionality of descriptor output and NN input
@@ -117,6 +116,7 @@ typedef struct
   int    it;        // iteration number in cell relaxation
   double LJa;       // Lennard-Jones parameter, to be generalized
   double LJe;       // Lennard-Jones parameter, to be generalized 
+  double DISP;      // displacement in Ang for frozen phonon calculation
 
   int    NW;
   double WW[16][50];   // parameters in classical potentials with up to 4 species
@@ -132,7 +132,6 @@ typedef struct
   double **EV;      // phonon eigenvectors
   double *ev;       // phonon eigenvalues
   int    EVOK;      // allocation flag
-
 }Cell;
 
 #endif

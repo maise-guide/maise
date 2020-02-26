@@ -178,9 +178,9 @@ void NANO_CHOP(Tribe *T, int J, Cell *C, int P)
       exit(1);
     }
 
-    LIST(C);
+    LIST(C,0);
     RDF(C,1);
-    LIST(&T->C[k]);
+    LIST(&T->C[k],0);
     RDF(&T->C[k],1);
     if( 1.0-CxC(C,&T->C[k])<1e-6 )
     {
@@ -1513,9 +1513,9 @@ void BULK_MATE(Tribe *T, int J)
     // -----------------------------------------------------------------------
     frac = (double)T->C[p].N/(double)T->C[k1].N;
     MATE_LT(&T->C[k1],&T->C[k2],&T->C[p],frac);
-    V = (Cell_VOLUME(&T->C[k1])+Cell_VOLUME(&T->C[k2]))*0.5;
+    V = (CELL_VOL(&T->C[k1])+CELL_VOL(&T->C[k2]))*0.5;
     
-    if( fabs(Cell_VOLUME(&T->C[p])-V)/V < 0.1 )
+    if( fabs(CELL_VOL(&T->C[p])-V)/V < 0.1 )
     {
       // -----------------------------------------------------------------------
       //   slice the second parent and try to have proper N
@@ -1605,21 +1605,21 @@ void BULK_MATE(Tribe *T, int J)
 	s = u = -1;
 	if(PM[p])
 	{
-	  V = Cell_VOLUME(&T->C[p]);
+	  V = CELL_VOL(&T->C[p]);
 	  for(u=0;u<T->Nu;u++)
 	  {
 	    Copy_C(&T->C[p],&T->C[N]);
 	    Real(&T->C[N]);
 	    if( SHKE_CL(&T->C[N],T->ml,T->C[p].R0*T->ma)!=0 )  //SHKE_CL already made not to shift
 	    if( SHRT_LV(&T->C[N])!=0 )                         //SHRT_LV only deals with lattice - should be fine
-	    if( Cell_VOLUME(&T->C[N]) > 0.5*V )
+	    if( CELL_VOL(&T->C[N]) > 0.5*V )
 	    {
 	      if( T->JS!=2 && !(T->ml>(10^-10) || T->cl>(10^-10)) )
 	      {
 		if(T->ND==3)
-		  SCALE_Cell(&T->C[N], pow(Cell_VOLUME(&T->C[N])/V,-1.0/3.0) + 0.1*Random());
+		  SCALE_Cell(&T->C[N], pow(CELL_VOL(&T->C[N])/V,-1.0/3.0) + 0.1*Random());
 		if(T->ND==2)
-		  SCALE_Cell(&T->C[N], pow(Cell_VOLUME(&T->C[N])/V,-1.0/2.0) + 0.1*Random());
+		  SCALE_Cell(&T->C[N], pow(CELL_VOL(&T->C[N])/V,-1.0/2.0) + 0.1*Random());
 	      }
 	      if(T->NSPC>1)
 		for(i=s=0;i<T->C[N].N;i++)
@@ -1703,7 +1703,7 @@ void BULK_MATE(Tribe *T, int J)
     Real(&T->C[p]);
     SHRT_LV(&T->C[p]);
     JAR(&T->C[p]);
-    LIST(&T->C[p]);
+    LIST(&T->C[p],0);
   }
 
   free_i1D(PM);
@@ -1734,18 +1734,18 @@ void BULK_MUTE(Tribe *T, int J)
     for(k=0;k<T->N-1&&f[k+1]<r;k++); //selects random k
 
     Copy_C(&T->C[k],&T->C[p]);
-    V = Cell_VOLUME(&T->C[p]);
+    V = CELL_VOL(&T->C[p]);
 
-    if( SHKE_CL(&T->C[p],T->cl,T->C[p].R0*T->ca)==0 || SHRT_LV(&T->C[p])==0 || fabs( Cell_VOLUME(&T->C[p])/V-1.0 ) > 0.5 )
+    if( SHKE_CL(&T->C[p],T->cl,T->C[p].R0*T->ca)==0 || SHRT_LV(&T->C[p])==0 || fabs( CELL_VOL(&T->C[p])/V-1.0 ) > 0.5 )
       p--;
     else
     {
       if( T->JS!=2 && !(T->ml>(10^-10) || T->cl>(10^-10)) )
       {
 	if(T->ND==3)
-	  SCALE_Cell(&T->C[p], pow(Cell_VOLUME(&T->C[p])/V,-1.0/3.0) + 0.1*(0.5-Random()));
+	  SCALE_Cell(&T->C[p], pow(CELL_VOL(&T->C[p])/V,-1.0/3.0) + 0.1*(0.5-Random()));
 	if(T->ND==2)
-	  SCALE_Cell(&T->C[p], pow(Cell_VOLUME(&T->C[p])/V,-1.0/2.0) + 0.1*(0.5-Random()));
+	  SCALE_Cell(&T->C[p], pow(CELL_VOL(&T->C[p])/V,-1.0/2.0) + 0.1*(0.5-Random()));
       }
       if(T->NSPC>1)
 	for(i=s=0;i<T->C[p].N;i++)

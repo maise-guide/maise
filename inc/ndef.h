@@ -37,8 +37,6 @@ typedef struct
   double EF;         // test     error for F
   double ES;         // test     error for S
   double ET;         // test     error for EFS (total)
-  double E0[200];    // atom reference energy for DFT in INI/atoms
-  double Rm[200];    // min allowed radius distance in INI/atoms
   int    *train;
   int    *test;
 
@@ -46,7 +44,6 @@ typedef struct
   double Eavg;
   double Edev;
   double *TEeval;
-  double Ebias;
   double WE;      // weights for EFS
   double WF;
   double WS;
@@ -107,8 +104,10 @@ typedef struct
   double TMAX;
   double TSTP;
   double DELT;
-  double COPL;
-  int    THRM;
+  double CPLT; //coupling constant: for thermostat
+  double CPLP;
+  double ICMP; //isothermal compressibility: for barostat-> effective: ICMP/COPL
+  int    MDTP; // type of MD run
   int    MOVI;
   char   VER[200]; // version
   double Rc;

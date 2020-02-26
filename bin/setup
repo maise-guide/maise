@@ -3,7 +3,7 @@
 =============================================================================================================
 JOBT  20                structure analysis   (00) use analysis tools specified by flags
                         evolutionary search  (10) run  (11) soft exit  (12) hard exit (13) analysis
-                        cell simulation      (20) relaxation (21) molecular dynamics
+                        cell simulation      (20) relaxation (21) molecular dynamics (22) phonon calculations
 			data parsing         (30) prepare inputs for NN training
 			NN training          (40) full training (41) stratified training
 =============================================================================================================
@@ -11,7 +11,7 @@ JOBT  20                structure analysis   (00) use analysis tools specified b
 =============================================================================================================
 NPAR  1                 number of cores for parallel NN training or cell simulation
 MINT  0                 gsl minimier type (0) BFGS2 (1) CG-FR (2) CG-PR (3) steepest descent 
-MITR  100               maximum N for NN training or cell opimization steps
+MITR  10               maximum N for NN training or cell opimization steps
 RLXT  3                 cell optimization type (2) force only (3) full cell (7) volume (ISIF in VASP)
 STOP  0                 stop as soon as distances are shorter than the table file
 ETOL  1e-8              error tolerance for NN training or cell optimization convergence
@@ -83,16 +83,18 @@ SEED  5                 starting seed for the random number generator - 0 uses t
 RAND  5                 optional for fixed parsing
 
 =============================================================================================================
-                                    THERMOSTAT parameters
+                              MOLECULAR DYNAMICS parameters
 =============================================================================================================
+MDTP  20                MD type (10) NVE (20) NVT Nose-Hoover (30) NPT Nose-Hoover + Brendsen
+                                (40) Isobaric run     (MDTP+1) read in velocities from POSCAR
 TMIN  1000.0            min temperature in MD runs
 TMAX  1000.0            max temperature in MD runs
-TSTP  50                tempterature step in MD runs
-DELT  1.0               time step in femtoseconds
-NSTP  10                number of steps
-COPL  25.0              coupling constant
-THRM  1                 thermostat (0) molecular dynamics (1) Nose-Hoover thermostat
-
+TSTP  100.0             tempterature step in MD runs
+DELT  2.0               time step in femtoseconds
+NSTP  1000              number of steps
+CPLT  25.0              thermostat coupling constant
+CPLP  100.0             barostat coupling constant
+ICMP  0.01              isothermal compressibility (in 1/GPa)
 =============================================================================================================
                                    INPUT/OUTPUT directories
 =============================================================================================================

@@ -1,15 +1,5 @@
-#include <stdio.h>
-#include <stdlib.h>
-#include <math.h>
-#include <gsl/gsl_math.h>
-#include <gsl/gsl_eigen.h>
-#include "cdef.h"
-#include "edef.h"
-#include "ndef.h"
-#include "nutl.h"
-#include "cutl.h"
-#include "util.h"
 #include "cell.h"
+
 //=========================================================================
 //
 //=========================================================================
@@ -89,7 +79,7 @@ void Build_Cell(Cell *C, int J)
 //=========================================================================
 // finds NM nearest neighbors in 3D case
 //=========================================================================
-void LIST(Cell *C)
+void LIST(Cell *C, int O)
 {
   int i,j,k,q,q1,j1;
   int ic[3],N[3];
@@ -103,94 +93,95 @@ void LIST(Cell *C)
   Reciprocal(C);
   for(q=0;q<C->ND;q++)
     N[q] = ceil( C->Rc*VectorLen(C->R[q],3) );
- if(!SERIAL)
-   #pragma omp parallel private(j1,R,j,ic,q,r,q1,x,k,a) num_threads(C->NP)
-{
-  R  = make_d1D(C->NM);
- if(!SERIAL)
-  #pragma omp for schedule(dynamic,C->NB)  
-  for(i=0;i<C->N;i++)
+  #pragma omp parallel private(j1,R,j,ic,q,r,q1,x,k,a) num_threads(C->NP)
   {
-    C->Nn[i] = C->nn[i] = 0;
-    for(j1=0;j1<C->NM;j1++)
+    R  = make_d1D(C->NM);
+    #pragma omp for schedule(dynamic,C->NB)  
+    for(i=0;i<C->N;i++)
     {
-      R[j1] = 10000000000.0;
-      C->Ni[i][j1] = 0;
-      C->NDX[i][j1] = 0.0;
-    }
-    for(j=0;j<C->N;j++)
-      for(ic[0]=-N[0];ic[0]<=N[0];ic[0]++)
-      for(ic[1]=-N[1];ic[1]<=N[1];ic[1]++)
-      for(ic[2]=-N[2];ic[2]<=N[2];ic[2]++)
-        if(! (i==j&&ic[0]==0&&ic[1]==0&&ic[2]==0) )
+      C->Nn[i] = C->nn[i] = 0;
+      for(j1=0;j1<C->NM;j1++)
+      {
+        R[j1] = 10000000000.0;
+        C->Ni[i][j1] = 0;
+        C->NDX[i][j1] = 0.0;
+      }
+      for(j=0;j<C->N;j++)
+        for(ic[0]=-N[0];ic[0]<=N[0];ic[0]++)
+        for(ic[1]=-N[1];ic[1]<=N[1];ic[1]++)
+        for(ic[2]=-N[2];ic[2]<=N[2];ic[2]++)
+          if(! (i==j&&ic[0]==0&&ic[1]==0&&ic[2]==0) )
+          {
+            for(q=0,r=0.0;q<D3;q++)
+            {
+              for(q1=0,x=0.0;q1<D3;q1++) 
+                x += (double)(ic[q1]) *C->L[q1][q]; 
+              x += C->X[j][q]-C->X[i][q]; 
+              r += x*x; 
+            }
+
+            if(r<RC)
+            {
+              R[C->Nn[i]] = r;
+              C->Ni[i][C->Nn[i]] = j;
+              for(q=0;q<D3;q++)
+              {
+                for(q1=0,x=0.0;q1<D3;q1++)
+                  x += (double)( ic[q1] ) *C->L[q1][q];
+                C->S[i][C->Nn[i]][q] = x;
+              }
+	      C->Nn[i]++;
+              if( C->Nn[i]==C->NM )
+              {
+	        if(C->JOBT/10==0)
+		  fprintf(stderr,"Increase 'Max number of nearest neighbors' % lf % lf %3d\n",sqrt(r),C->Rc,C->NM);
+	        else
+		  fprintf(stderr,"Increase 'Max number of nearest neighbors' in setup % lf % lf\n",sqrt(r),C->Rc);
+                SAVE_CELL(C,"CONTCAR",0);
+                exit(1);
+              }
+            }
+          }
+      //===== to order all nearest neighbors, N^2 cost  =====
+      if(O==1)
+      {
+        for(j=0;  j<C->Nn[i];j++)
+	  for(k=j+1;k<C->Nn[i];k++)
+	    if(R[k]<R[j])
+	    {                                                                                                                                                                         
+	      atomSwap(C,i,j,k);
+	      dSwap(&R[j],&R[k]);
+	    }                                
+      //===== to put the nearest neighbor as C->Ni[i][0] =====
+      }
+      else
+      {
+        for(j=1;  j<C->Nn[i];j++)
+	  if(R[j]<R[0])
+	  {
+	    atomSwap(C,i,j,0);
+	    dSwap(&R[j],&R[0]);
+	  }
+      }
+      C->nn[i] = C->Nn[i];
+
+      for(j=0;j<C->Nn[i];j++)
+        C->NDX[i][j] = sqrt(R[j]);
+
+      if(C->JOBT/10>1&&C->MODT==1)
+      for(j=0;j<C->Nn[i];j++)
+        for(k=0;k<C->Nn[i];k++)
         {
           for(q=0,r=0.0;q<D3;q++)
-          {
-            for(q1=0,x=0.0;q1<D3;q1++) 
-              x += (double)(ic[q1]) *C->L[q1][q]; 
-            x += C->X[j][q]-C->X[i][q]; 
-            r += x*x; 
-          }
-
-          if(r<RC)
-          {
-            R[C->Nn[i]] = r;
-            C->Ni[i][C->Nn[i]] = j;
-            for(q=0;q<D3;q++)
-            {
-              for(q1=0,x=0.0;q1<D3;q1++)
-                x += (double)( ic[q1] ) *C->L[q1][q];
-              C->S[i][C->Nn[i]][q] = x;
-            }
-	    C->Nn[i]++;
-            if( C->Nn[i]==C->NM )
-            {
-	      if(C->JOBT/10==0)
-		fprintf(stderr,"Increase 'Max number of nearest neighbors' % lf % lf %3d\n",sqrt(r),C->Rc,C->NM);
-	      else
-		fprintf(stderr,"Increase 'Max number of nearest neighbors' in setup % lf % lf\n",sqrt(r),C->Rc);
-              SAVE_CELL(C,"CONTCAR",0);
-              exit(1);
-            }
-          }
+            r += DX(C,i,j,q)*DX(C,i,k,q);
+          C->cos[i][j][k] = r/(C->NDX[i][j]*C->NDX[i][k]);
+          for(q=0;q<3;q++)
+            a[q] = DX(C,i,j,q)-DX(C,i,k,q);
+          C->ndx[i][j][k] = sqrt(DotProd(a,a,3));
         }
-    //===== to order all nearest neighbors, N^2 cost  =====
-    if(0)
-    for(j=0;  j<C->Nn[i];j++)
-    for(k=j+1;k<C->Nn[i];k++)
-      if(R[k]<R[j])
-      {                                                                                                                                                                         
-	atomSwap(C,i,j,k);
-        dSwap(&R[j],&R[k]);
-      }                                
-    //===== to put the nearest neighbor as C->Ni[i][0] =====
-    if(1)
-    for(j=1;  j<C->Nn[i];j++)
-      if(R[j]<R[0])
-      {
-	atomSwap(C,i,j,0);
-	dSwap(&R[j],&R[0]);
-      }
-
-    C->nn[i] = C->Nn[i];
-
-    for(j=0;j<C->Nn[i];j++)
-      C->NDX[i][j] = sqrt(R[j]);
-
-    if(C->JOBT/10>1&&C->MODT==1)
-    for(j=0;j<C->Nn[i];j++)
-      for(k=0;k<C->Nn[i];k++)
-      {
-        for(q=0,r=0.0;q<D3;q++)
-          r += DX(C,i,j,q)*DX(C,i,k,q);
-        C->cos[i][j][k] = r/(C->NDX[i][j]*C->NDX[i][k]);
-        for(q=0;q<3;q++)
-          a[q] = DX(C,i,j,q)-DX(C,i,k,q);
-        C->ndx[i][j][k] = sqrt(DotProd(a,a,3));
-      }
+    }
+    free_d1D(R);
   }
-  free_d1D(R);
-}
 }
 //========================================================================= 
 // Gives distance between atoms i and j; no boudnary conditions !!!!

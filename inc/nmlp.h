@@ -1,6 +1,14 @@
 #ifndef NMLP
 #define NMLP
 
+#include <omp.h>
+#include "clib.h"
+#include "cdef.h"
+#include "ndef.h"
+#include "nmin.h"
+#include "nutl.h"
+#include "util.h"
+
 double GPc(int G, double x);
 double GPp(int G, double x);
 double GP(int G, double x);

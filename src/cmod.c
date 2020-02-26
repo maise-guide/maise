@@ -1,65 +1,21 @@
-#include <stdio.h>
-#include <time.h>
-#include <math.h>
-#include <string.h>
-#include "cdef.h"
-#include "ndef.h"
-#include "edef.h"
-#include "cutl.h"
-#include "cell.h"
-#include "cpot.h"
-#include "nprs.h"
-#include "nmlp.h"
-#include "nmod.h"
-#include "nutl.h"
-#include "cmin.h"
-#include "cfnc.h"
-#include "util.h"
+#include "cmod.h"
 
 extern const double Pi;
 extern const double eV2GPa;
 const double kb = 11604.0;
 
 //========================================================================
-double KINETIC(Cell *C)
+double CELL_KIN(Cell *C)
 {
   int i,q;
 
-  for(q=0,C->K=0.0;q<D3;q++)
-    for(i=0;i<C->N;i++)
-      C->K += C->m[C->ATMZ[i]]*C->V[q][i]*C->V[q][i];
-  return (C->K *= 0.5);
-}
+  for(i=0,C->K=0.0;i<C->N;i++)
+    for(q=0;q<D3;q++)
+      C->K += C->m[C->ATMZ[i]]*C->V[i][q]*C->V[i][q];
 
-//=======================================================================
-double P_Lindemann(Cell *C, int J)
-{
-  int i,j;
-  double r,LI;
+  C->K *= 0.5;
 
-  if(J==0)
-  {
-    for(i=0,C->LI=0;i<C->N;i++)
-      for(j=0;j<C->Nn[i];j++)
-	C->R1[i][j] = C->R2[i][j] = 0.0;
-    return 0.0;
-  }
-  if(J==1)
-  {
-    LIST(C);
-    C->LI++;
-    LI = 0.0;
-    for(i=0;i<C->N;i++)
-      for(j=0;j<C->Nn[i];j++)
-      {
-	C->R2[i][j] += C->NDX[i][j]*C->NDX[i][j];
-	C->R1[i][j] += C->NDX[i][j];
-	if( (r=C->R2[i][j]*(double)C->LI - C->R1[i][j]*C->R1[i][j]) > 1e-12 )
-	  LI += sqrt( r ) / C->R1[i][j]/ (double)C->Nn[i];
-      }
-    return LI/(double)(C->N);
-  }
-  return 0.0;
+  return C->K;
 }
 //=======================================================================
 double Lindemann(Cell *C, int J)
@@ -67,33 +23,38 @@ double Lindemann(Cell *C, int J)
   int i,j,q;
   double x,r,LI;
 
-  if(J==0)
+  if( C->ND >= 0 )
   {
-    for(i=0,C->LI=0;i<C->N;i++)
-      for(j=i+1;j<C->N;j++)
-	C->R1[i][j] = C->R2[i][j] = 0.0;
-    return 0.0;
-  }
-  if(J==1)
-  {
-    C->LI++;
-    LI = 0.0;
-    for(i=0;i<C->N;i++)
-      for(j=i+1;j<C->N;j++)
-      {
-	for(q=0,r=0.0;q<D3;q++)
+    if (J == 0)
+    {
+      for(i=0,C->LI=0;i<C->N;i++)
+	for(j=i+1;j<C->N;j++)
+	  C->R1[i][j] = C->R2[i][j] = 0.0;
+      return 0.0;
+    }
+
+    if( J == 1 )
+    {
+      C->LI++;
+      LI = 0.0;
+      for(i=0;i<C->N;i++)
+	for(j=i+1;j<C->N;j++)
 	{
-	  x  = C->X[q][i] - C->X[q][j];
-	  r += x*x;
+	  for(q=0,r=0.0;q<D3;q++)
+	  {
+	    x  = C->X[i][q] - C->X[j][q];
+	    r += x*x;
+	  }
+	  C->R2[i][j] += r;
+	  C->R1[i][j] += sqrt(r);
+	  if( (r=C->R2[i][j]*(double)C->LI - C->R1[i][j]*C->R1[i][j]) > 1e-12 )
+	    LI += sqrt( r ) / C->R1[i][j];
 	}
-	C->R2[i][j] += r;
-	C->R1[i][j] += sqrt(r);
-	if( (r=C->R2[i][j]*(double)C->LI - C->R1[i][j]*C->R1[i][j]) > 1e-12 )
-	  LI += sqrt( r ) / C->R1[i][j];
-      }
-    return 2.0*LI/(double)(C->N*(C->N-1));
+      return 2.0*LI/(double)(C->N*(C->N-1));
+    }  
   }
-  return 0.0;
+  
+  return -1.0;
 }
 //=========================================================================
 double CELL_ENE(ANN *R, PRS *P, PRS *W, Cell *C, LNK *L)
@@ -107,17 +68,14 @@ double CELL_ENE(ANN *R, PRS *P, PRS *W, Cell *C, LNK *L)
     C->E = ENE_ANN(R,L);
 
     for(i=0;i<C->N;i++)
-      C->E+=R->E0[C->ATMZ[i]];
-
-    for(i=0;i<C->N;i++)
-      C->EA[i] = L->EA[i]+R->E0[C->ATMZ[i]];
+      C->EA[i] = L->EA[i];
   }
   if( R->MODT>1 )
     C->E = ENE_POT(C);
 
   C->H = C->E;
   if(C->ND==3)
-    C->H += C->p*Cell_VOLUME(C);
+    C->H += C->p*CELL_VOL(C);
   return C->H;
 }
 //=========================================================================
@@ -132,10 +90,7 @@ double CELL_FRC(ANN *R, PRS *P, PRS *W, Cell *C, LNK *L)
     C->E = FRC_ANN(R,L);
 
     for(i=0;i<C->N;i++)
-      C->E+=R->E0[C->ATMZ[i]];
-
-    for(i=0;i<C->N;i++)
-      C->EA[i] = L->EA[i]+R->E0[C->ATMZ[i]];
+      C->EA[i] = L->EA[i];
     for(i=0;i<C->N;i++)
       for(q=0;q<3;q++)
 	C->F[i][q] = L->f[i][q];
@@ -157,255 +112,427 @@ double CELL_FRC(ANN *R, PRS *P, PRS *W, Cell *C, LNK *L)
   C->H = C->E;
 
   if(C->ND==3)
-    C->H += C->p*Cell_VOLUME(C);
+    C->H += C->p*CELL_VOL(C);
   return C->H;
 }
 //=========================================================================
-void  MDOUT(Cell *C, int PIPE, int DISK, int NS, int n, int k, double E0, double T,double li)
+void  MDOUT(Cell *C,double PE,double KE,double LV,double IP,double DE,double LI, int PIPE, int DISK, int NS, int sam, double T0,double E0,double li)
     // PUTS the center of mass at the origin!
 {
   FILE   *out;
-  char   file[100];
+  char   file[400],s[200];
+  double steps;
+  
+  steps = (double) (sam);
 
-  if(PIPE)
-    printf("%8d:  P = % 24.14lf       K = % 24.14lf        dE = % 24.14lf     LI = % 24.16lf\n",NS*n+k,C->H/(double)C->N,C->K*kb/1.5/(double)C->N,(C->H+C->K-E0)/(double)C->N,li);
+  if(PIPE && steps > 0.0)
+    printf("ave. %8d:  U= % 12.6lf   K= % 12.6lf   IP= % 12.6lf   LV= %12.6lf  DE=% 12.6lf  LI=% 12.6lf\n",NS*(sam-1),PE/steps,KE/steps,IP/steps,LV/steps,DE/steps,li);
+
   if(DISK==0)
     return;
-  sprintf(file,"%s/T%04d.dat",C->WDIR,(int)(T*kb));
-  if(n==0&&k==0)
+  sprintf(file,"%s/TEMP-%04d.dat",C->WDIR,(int)T0);
+  if(sam == 1)
     out = fopen(file,"w");
   else
     out = fopen(file,"a");
-  fprintf(out,"%8d  % 14.8lf  % 14.8lf  % 14.8lf % 14.8lf\n",NS*n+k,C->H/(double)C->N,C->K*kb/1.5/(double)C->N,(C->H+C->K-E0)/(double)C->N,li);
+  fprintf(out,"%8d  % 12.6lf  % 12.6lf  % 12.6lf  % 12.6lf  % 12.6lf  % 12.6lf\n",NS*(sam-1),C->H/(double)C->N,C->K*kb/1.5/(double)C->N,C->pint*eV2GPa,C->LAT[0],(C->H+C->K)/(double)C->N-E0,li);
   fclose(out);
   JAR(C);
 
+  // save the current snapsshot
+  strcpy(s,C->TAG);
+  sprintf(C->TAG," MD steps: % d",NS*(sam-1));
+  sprintf(file,"%s/CONTCAR",C->WDIR);
+  SAVE_CELL(C,file,0);
+  strcpy(C->TAG,s);
 }
 //=========================================================================
 void Maxwell(Cell *C, double T, int therm)
 {
-  int    i,q;
+  int    i,q,t,fixed;
   double x,v,f,Q,V[3];
+  int move[C->N];
 
-  if(therm==2)
+  if(therm % 10 > 0)
     return;
+
+  for(i=0,fixed=0;i<C->N;i++)
+  {
+    for(q=0,t=0;q<3;q++)
+      if(C->FF[i][q]==0)
+	t++;
+    if(t==3)
+    {move[i]=0;fixed++;}
+    else
+      move[i]=1;
+  }
 
   v = sqrt(3.0*T);
   for(q=0;q<3;q++)
     V[q] = 0.0;
   for(i=0;i<C->N;i++)
-  {
-    f = Random()*2.0*Pi;
-    Q = Random()    *Pi;
-    C->V[i][0] = v * sin(Q)*cos(f)/sqrt(C->m[C->ATMZ[i]]);
-    C->V[i][1] = v * sin(Q)*sin(f)/sqrt(C->m[C->ATMZ[i]]);
-    C->V[i][2] = v * cos(Q)       /sqrt(C->m[C->ATMZ[i]]);
+    if(move[i]==1)
+    {
+      f = Random()*2.0*Pi;
+      Q = Random()    *Pi;
+      C->V[i][0] = v * sin(Q)*cos(f)/sqrt(C->m[C->ATMZ[i]]);
+      C->V[i][1] = v * sin(Q)*sin(f)/sqrt(C->m[C->ATMZ[i]]);
+      C->V[i][2] = v * cos(Q)       /sqrt(C->m[C->ATMZ[i]]);
+      for(q=0;q<3;q++)
+	V[q] += C->V[i][q];
+    }
+    else
+      C->V[i][0] = C->V[i][1] = C->V[i][2] = 0.0;
+
+  for(i=0;i<C->N;i++)
+    if(move[i]==1)
+      for(q=0;q<3;q++)
+	C->V[i][q] -= V[q]/(double)(C->N-fixed);
+
+  for(i=0,x=0.0;i<C->N;i++)
     for(q=0;q<3;q++)
-      V[q] += C->V[i][q];
-  }
+      x += C->V[i][q]*C->V[i][q]*(double)C->m[C->ATMZ[i]];
+  x = v/sqrt(x/(double)C->N);
+  
   for(i=0;i<C->N;i++)
     for(q=0;q<3;q++)
-      C->V[i][q] -= V[q]/(double)C->N;
+      C->V[i][q] *= x;
 
-  if(therm==0)   //for dynamic thermostat
-    {
-      for(i=0,x=0.0;i<C->N;i++)
-	for(q=0;q<3;q++)
-	  x += C->V[i][q]*C->V[i][q]*(double)C->m[C->ATMZ[i]];
-      x = v/sqrt(x/(double)C->N);
-      
-      for(i=0;i<C->N;i++)
-	for(q=0;q<3;q++)
-	  C->V[i][q] *= x;
-    }  
-}
-//=========================================================================
-void Dynamics(ANN *R, PRS *P, PRS *W, Cell *C, LNK *L, double T, int PIPE)
-{
-  int    i,k,q,n,NS,NI;
-  double E0;
-
-  double dt,a;
-
-  T    = T/kb;
-  dt   = R->DELT;
-  a    = 0.0;
-  NS   = 1;
-  NI   = 50;
-
-  for(i=0,C->K=0.0;i<C->N;i++)
-    for(q=0;q<D3;q++)
-      C->K += 0.5*C->V[i][q]*C->V[i][q]*C->m[C->ATMZ[i]];
-
-  printf("T = % lf K\n",C->K*kb/1.5/(double)C->N);
-
-  C->H = CELL_FRC(R,P,W,C,L);
-  E0 = C->H + C->K;
-
-  for( n=0;n<NI;n++)
-    for(k=0, MDOUT(C,PIPE,1,NS,n,k,E0,T,0.0) ;k<NS;k++)
-    {
-      for(i=0;i<C->N;i++)
-	for(q=0;q<3;q++)
-	{
-	  C->X[i][q] += C->V[i][q]*dt + 0.5*C->F[i][q]*dt*dt/C->m[C->ATMZ[i]];
-	  C->V[i][q] +=  0.5*C->F[i][q]*dt/C->m[C->ATMZ[i]];      
-	}
-      C->H = CELL_FRC(R,P,W,C,L);
-      for(i=0,C->K=0.0;i<C->N;i++)
-	for(q=0;q<D3;q++)
-	  C->K += 0.5*C->V[i][q]*C->V[i][q]*C->m[C->ATMZ[i]];
-      for(i=0;i<C->N;i++)
-	for(q=0;q<D3;q++)
-	{
-	  C->V[i][q] = (C->V[i][q]+0.5*C->F[i][q]*dt/C->m[C->ATMZ[i]])/(1.0+a);
-	  C->F[i][q] += -a*C->V[i][q];
-	}
-
-    }
-  MDOUT(C,PIPE,1,NS,n-1,k,E0,T,0.0);
 }
 //========================================================================= 
 //========================================================================= 
-void Thermostat(ANN *R, PRS *P, PRS *W, Cell *C, LNK *L, double T, int PIPE) 
+void Dynamics(ANN *R, PRS *P, PRS *W, Cell *C, LNK *L, double T0, int PIPE,char *fname) 
 { 
-  int    i,k,q,n,NS,NI; 
-  double E0; 
-
-  double dt,fi,xi,v2,fs,tau; 
+  int    i,k,q,n,NS,NI,spc1,spc2,sam,x,NRDF; 
+  double dt,fi,xi,fs,tau,li,T,vi,ktt,E0,a; 
   FILE   *out; 
-  char   file[100]; 
-  double KE,PE;
-  int sam=-1;
-  double r,LI=0.0;
-  int x=0;
+  char   file[400]; 
+  int    move[C->N],fixed;
+  double KE,PE,LI,LV,IP,DE;
+  double ***H,**B,**D;
+  int    time1,time2,wall_time;
+  double cpus_time;
+  struct timeval t1, t2;
+  struct rusage t3;
+  int    RUNT;
 
-  KE=PE=0.0;
+  // type of the MD run
+  RUNT = R->MDTP / 10;
+
+  // initiate some arrays
+  B = make_d2D(C->N,3); // average position of atoms
+  D = make_d2D(C->N,3); // net displacement of atoms
+  for(i=0;i<C->N;i++)
+    for(q=0;q<3;q++)
+    {  
+      D[i][q] = 0.0;
+      B[i][q] = C->X[i][q];
+    }
+
+  // find which atoms are fixed!
+  for(i=0,fixed=0;i<C->N;i++)
+  {
+    for(q=0,k=0;q<3;q++)
+      if(C->FF[i][q]==0)
+	k++;
+    if(k==3)
+    {move[i]=0;fixed++;}
+    else
+      move[i]=1;
+  }
+
+  // initiate the timing
+  gettimeofday(&t1, NULL);
+  time1=clock();
+
+  // initiate the RDF
+  H = make_d3D(C->NRDF,C->MNT,C->MNT);
+  NRDF = 0;
+  for(k=0;k<C->NRDF;k++)
+    for(spc1=0;spc1<C->NSPC;spc1++)
+      for(spc2=0;spc2<C->NSPC;spc2++)
+	H[k][spc1][spc2] = 0.0;
+
+  // initiate the required variables
+  IP   = 0.0;
+  LI   = 0.0;
+  KE   = 0.0;
+  PE   = 0.0;
+  DE   = 0.0;
+  a    = 0.0;
   dt   = R->DELT;
-  T    = T/kb;
-  tau  = R->COPL;
-  xi   = 0.0; 
+  T    = T0/kb;
+  tau  = R->CPLT;
+  ktt  = R->ICMP/R->CPLP;
+  sam  = 0;
+  x    = 0;
   NS   = 10;
   if(R->NSTP<10)
     NS = 1;
   NI   = R->NSTP/NS;
+  LV   = 0.0;
+  for(i=0;i<3;i++) 
+    C->LAT[i] = C->R0*VectorLen(C->L[i],3);    
+  E0   = CELL_KIN(C)/(double)C->N+CELL_ENE(R,P,W,C,L)/(double)C->N;
+  // initialize the Lindemann index and scaling factors
+  Lindemann(C,0); 
+  vi   = 1.0;
+  xi   = 0.0;
+  fs   = 0.0;
 
-  if(C->ND==0)  Lindemann(C,0); else P_Lindemann(C,0);
-  
-  C->H = CELL_ENE(R,P,W,C,L);
-
-  for(i=0,C->K=0.0;i<C->N;i++)
-    for(q=0;q<D3;q++)
-      C->K += 0.5*C->V[i][q]*C->V[i][q]*C->m[C->ATMZ[i]];
-  E0 = C->H + C->K; 
-
-  KE=-C->K;
-  PE=-C->H;
-
-  if(PIPE)        
-    printf("%d %d %d %lf\n",NI,NS,NI*NS,T); 
-  
-  C->H = CELL_FRC(R,P,W,C,L);
-
-  for( n=k=0;n<NI;n++)   
+  for( n=0;n<NI;n++)
   {
-    C->H = CELL_ENE(R,P,W,C,L);
-    for(i=0,C->K=0.0;i<C->N;i++)
-      for(q=0;q<3;q++)
-	C->K += 0.5*C->V[i][q]*C->V[i][q]*C->m[C->ATMZ[i]];
-
-    if(C->ND==0)  r =  Lindemann(C,1); 
-    else          r =P_Lindemann(C,1);    
-
-    MDOUT(C,PIPE,1,NS,n,0,E0,T,r);
-    KE+=C->K;
-    PE+=C->H;
+    C->H    = CELL_FRC(R,P,W,C,L); // for output and book-keeping of energies
+    C->K    = CELL_KIN(C);
+    C->pint = CELL_PRS(C);
+    li      = Lindemann(C,1); 
+    LI     += li;
+    KE     += C->K*kb/1.5/(double)C->N;
+    PE     += C->H/(double)C->N;
+    LV     += C->LAT[0];
+    IP     += C->pint*eV2GPa;
+    DE     += (C->K+C->H)/(double)C->N-E0;
     sam++;
-    LI+=r;
+    MDOUT(C,PE,KE,LV,IP,DE,LI,PIPE,1,NS,sam,T0,E0,li);
 
-    for(k=0;k<NS;k++)   
-    {   
-      x++;
-      C->H = CELL_FRC(R,P,W,C,L);
-      for(i=0,v2=0.0;i<C->N;i++)   
-	for(q=0;q<3;q++)   
-	{   
-	  fi = C->F[i][q]/C->m[C->ATMZ[i]]-xi*C->V[i][q];   
-	  v2 += C->V[i][q]*C->V[i][q]*C->m[C->ATMZ[i]];   
-	  C->X[i][q] += C->V[i][q]*dt + 0.5*fi*dt*dt;
-	  C->V[i][q] += fi*dt;	  
-	}   
-      fs = 1.0/(tau*tau)*(v2/( (3.0*(double)C->N+0.0)*T)-1.0 );   
-      xi += dt*fs;          
-      JAR(C);
-      if(R->MOVI>0&&x%R->MOVI==0)
+    for(k=0;k<NS;k++)
+    {         
+      x++; // MD steps index
+      C->H    = CELL_FRC(R,P,W,C,L);
+      C->K    = CELL_KIN(C);
+      C->pint = CELL_PRS(C);
+
+      for(i=0;i<C->N;i++) // update the RDFs
+	if(NDX(C,i,0)>C->Rmax)
+	  break;
+      if(i==C->N)
       {
-	sprintf(file,"mkdir -p %s/movie%04d",C->WDIR,(int)(T*kb));
+	NRDF++;
+	RDF(C,1);
+	for(q=0;q<C->NRDF;q++)
+	  for(spc1=0;spc1<C->NSPC;spc1++)
+	    for(spc2=0;spc2<C->NSPC;spc2++)
+	      H[q][spc1][spc2] += C->RDF[q][spc1][spc2];
+      }
+
+      // ####################### update thermostat and barostat scalings
+      if (RUNT == 2 || RUNT == 3)
+      {
+	fs = 1.0/(tau*tau)*(2.0*C->K/( (3.0*(double)C->N)*T)-1.0 );
+	xi += dt*fs;
+      }
+      if (RUNT == 3 || RUNT == 4)
+      {
+	vi = pow(1.0 - (ktt*dt/3.0)*(C->p-C->pint)*eV2GPa,1.0/3.0);
+      }
+
+      // ####################### NVE and isobaric integrations
+      if (RUNT == 1 || RUNT == 4)
+      {
+	for(i=0;i<C->N;i++)
+	  for(q=0;q<3;q++)
+	  {
+	    if(move[i]==1)
+	    {
+	      C->X[i][q] += C->V[i][q]*dt + 0.5*C->F[i][q]*dt*dt/C->m[C->ATMZ[i]];
+	      B[i][q]    += (C->V[i][q]*dt + 0.5*C->F[i][q]*dt*dt/C->m[C->ATMZ[i]])/2.0;
+	      C->V[i][q] += 0.5*C->F[i][q]*dt/C->m[C->ATMZ[i]];      
+	    }
+	  }
+	C->H = CELL_FRC(R,P,W,C,L);
+	C->K = CELL_KIN(C);
+	for(i=0;i<C->N;i++)
+	  for(q=0;q<D3;q++)
+	    if(move[i]==1)
+	    {
+	      C->V[i][q] = (C->V[i][q]+0.5*C->F[i][q]*dt/C->m[C->ATMZ[i]])/(1.0+a);
+	      C->F[i][q] += -a*C->V[i][q];
+	    }
+	
+	JAR(C);
+      }
+      
+      // ######################### NVT, NPT integrations
+      if (RUNT == 2 || RUNT == 3)
+      {
+	for(i=0;i<C->N;i++)
+	  for(q=0;q<3;q++)   
+	    if(move[i]==1)
+	    {
+	      fi          = C->F[i][q]/C->m[C->ATMZ[i]]-xi*C->V[i][q];    
+	      C->X[i][q] += C->V[i][q]*dt + 0.5*fi*dt*dt;
+	      B[i][q]    += (C->V[i][q]*dt + 0.5*fi*dt*dt)/2.0;
+	      C->V[i][q] += fi*dt;
+	    }
+	
+	JAR(C);
+      }
+
+      // ######################### rescaling for constant NPT and isobaric runs
+      if (RUNT == 3 || RUNT == 4)
+      {
+	for(i=0;i<3;i++)
+	{
+	  for(q=0;q<3;q++)
+	  {
+	    C->L[i][q] *= vi;
+	    C->X[i][q] *= vi;
+	  }
+	  C->LAT[i] = C->R0*VectorLen(C->L[i],3);
+	}
+	Reciprocal(C);
+      }
+      
+      // ######################### MD movie
+      if( R->MOVI> 0 && x % R->MOVI == 0 )
+      {
+	sprintf(file,"mkdir -p %s/movie%04d",C->WDIR,(int)T0);
 	system(file);
-	C->H=CELL_ENE(R,P,W,C,L);
-	sprintf(C->TAG,"%lf",C->H);
-	sprintf(file,"%s/movie%04d/POSCAR-%d",C->WDIR,(int)(T*kb),x);
+	sprintf(C->TAG,"%lf",CELL_ENE(R,P,W,C,L));
+	sprintf(file,"%s/movie%04d/POSCAR-%d",C->WDIR,(int)T0,x);
 	SAVE_CELL(C,file,0);
-      }//for MD movie
-    }
+      }
+
+    } 
   }      
-  C->H = CELL_ENE(R,P,W,C,L);
-  for(i=0,C->K=0.0;i<C->N;i++)
-    for(q=0;q<D3;q++)
-      C->K += 0.5*C->V[i][q]*C->V[i][q]*C->m[C->ATMZ[i]];
-  
-  if(C->ND==0)  r=Lindemann(C,1); else r=P_Lindemann(C,1);    
-  MDOUT(C,PIPE,1,NS,n-1,k,E0,T,r);KE+=C->K;PE+=C->H;sam++;
-  LI+=r;
-  
-  sprintf(file,"%s/ave.dat",C->WDIR);
-  out=fopen(file,"a");
-  
-  fprintf(out,"% lf % lf % lf % lf\n",T*kb,PE/(double)sam/(double)C->N,KE*kb/1.5/(double)C->N/(double)sam,LI/(double)sam);
+
+  C->H    = CELL_FRC(R,P,W,C,L);
+  C->K    = CELL_KIN(C);
+  C->pint = CELL_PRS(C);
+  li      = Lindemann(C,1);
+  LI     += li;
+  KE     += C->K*kb/1.5/(double)C->N;
+  PE     += C->H/(double)C->N;
+  LV     += C->LAT[0];
+  DE     += (C->K+C->H)/(double)C->N-E0;
+  IP     += C->pint*eV2GPa;
+  sam++;
+  MDOUT(C,PE,KE,LV,IP,DE,LI,PIPE,1,NS,sam,T0,E0,li);
+
+  // compute wall and cpu time
+  getrusage(RUSAGE_SELF, &t3);
+  gettimeofday(&t2, NULL);
+  time2=clock();
+  wall_time  = (t2.tv_sec - t1.tv_sec) + (t2.tv_usec - t1.tv_usec) / (double) 1e6;
+  cpus_time  = ((double) (time2 - time1)) / (double) CLOCKS_PER_SEC;
+
+  //output the averages of E, T, and Lindemann index for each temperature
+  out=fopen(fname,"a");
+  fprintf(out,"% 12.4lf   % 12.6lf   % 12.6lf   % 12.6lf   % 12.6lf   % 12.6lf   % 12.6lf   % 10d   % 14.2lf",T0,PE/(double)sam,KE/(double)sam,IP/(double)sam,LV/(double)sam,DE/(double)sam,li,(sam-1)*NS,cpus_time);
+  if(cpus_time/(double)R->NP < 0.5*wall_time)
+    fprintf(out,"-\n");
+  else
+    fprintf(out,"\n");
   fclose(out);  
-  printf("% lf % lf % lf % lf\n",T*kb,PE/(double)sam/(double)C->N,KE*kb/1.5/(double)C->N/(double)sam,LI/(double)sam);
+  printf("\n === % lf   % lf   % lf   % lf   % lf   % lf   % lf   % 10d   % 14.2lf\n\n",T0,PE/(double)sam,KE/(double)sam,IP/(double)sam,LV/(double)sam,DE/(double)sam,li,(sam-1)*NS,cpus_time);
   
-  sprintf(file,"%s/CONTCAR_%04d",C->WDIR,(int)(kb*T));
+  // output the final structure
+  sprintf(file,"%s/CONTCAR-%04d",C->WDIR,(int)T0);
   SAVE_CELL(C,file,0);
-} 
+
+  // output the average position  of atoms
+  for(i=0;i<C->N;i++)
+    for(q=0;q<3;q++)
+    {
+      D[i][q]    = C->X[i][q];
+      C->X[i][q] = B[i][q];
+    }
+  JAR(C);
+  sprintf(file,"%s/AVERAGE-%04d",C->WDIR,(int)T0);
+  SAVE_CELL(C,file,0);
+  for(i=0;i<C->N;i++)
+    for(q=0;q<3;q++)
+      C->X[i][q] = D[i][q];
+  JAR(C);
+
+  // output the average RDF
+  for(q=0;q<C->NRDF;q++)
+    for(spc1=0;spc1<C->NSPC;spc1++)
+      for(spc2=0;spc2<C->NSPC;spc2++)
+	C->RDF[q][spc1][spc2] = H[q][spc1][spc2]/(double)NRDF;
+  sprintf(file,"%s/RDF-%04d.dat",C->WDIR,(int)T0);
+  Print_RDF_FULL(C,file);
+
+  free_d2D(B,C->N);
+  free_d2D(D,C->N);
+  free_d3D(H,C->NRDF,C->MNT);
+}
+//=========================================================================  
+//=========================================================================
+double CELL_PRS(Cell *C)
+{
+  int i;
+  double v1 = CELL_VOL(C);
+
+  for (i =0,C->pint=0.0;i<3;i++) 
+    C->pint += C->U[i]/v1/3.0;
+
+  return C->pint;
+}
 //=========================================================================  
 //=========================================================================
 void CELL_MD(ANN *R, PRS *P, PRS *W, Cell *C, LNK *L)
 {
   int n,N;
   double Tmin, Tmax, dT, T;
-  char s[200];
+  char s[400],fname[400];
+  FILE *out;
+
+  if (R->MDTP/10 == 1)
+    sprintf(s,"|                        NVE Molecular dynamics                       |");
+  if (R->MDTP/10 == 2)
+    sprintf(s,"|                        NVT Molecular dynamics                       |");
+  if (R->MDTP/10 == 3)
+    sprintf(s,"|                        NPT Molecular dynamics                       |");
+  if (R->MDTP/10 == 4)
+    sprintf(s,"|                      Isobaric Molecular dynamics                    |");
+
+  printf("%s\n",s);
+  printf("=======================================================================\n\n");
+
+  if (R->MDTP < 10)
+  {
+    printf("Error: the MD job type (MDTP=%d) is not supported.\n",R->MDTP);
+    exit(1);
+  }
+
+  sprintf(fname,"%s/ave-out.dat",C->WDIR);
+  if(access(fname,F_OK)==-1)
+  {
+    out=fopen(fname,"w");
+    FPRNT_HEAD(out);
+    fprintf(out,"%s\n",s);
+    fprintf(out,"=======================================================================\n\n");
+    fprintf(out,"   Target_T       Potential_E    Kinetic_E       Intern_P      Lattice_V       E_change      Lindemann        Steps          CPU_time\n");
+    fprintf(out,"     (K)           (eV/atom)        (K)           (GPa)           (A)          (eV/atom)                                        (s) \n\n");
+    fclose(out);
+  }
 
   Tmin = R->TMIN;
   Tmax = R->TMAX;
   dT   = R->TSTP;
   
-  READ_ATM(R,C);
-
   sprintf(s,"mkdir -p %s",C->WDIR);
   system(s);
   N = (int)fabs((Tmax-Tmin)/dT);
-  Maxwell(C,Tmin/kb,R->THRM);
+  Maxwell(C,Tmin/kb,R->MDTP);
   C->POS = 1;
   P->EFS = 1;
   for(n=0;n<=N;n++)
   {
     T = Tmin + (double)n*dT;
-    if(R->THRM==0) Dynamics(R,P,W,C,L,T,1);
-    if(R->THRM> 0) Thermostat(R,P,W,C,L,T,1);
+    Dynamics(R,P,W,C,L,T,1,fname);
   }
 }
 //======================================================
 void CELL_OUT(Cell *C)
 {
   int    i;
-  double V,a;
+  double V;
   char   s[200],b[200],t[200];
   FILE   *out;
   time_t rawtime;
   struct tm * timeinfo;
-
-  a   = 180.0/Pi;
 
   sprintf(s,"OUTCAR");
   out = fopen(s,"a");
@@ -440,7 +567,7 @@ void CELL_OUT(Cell *C)
     fprintf(out,"   total number of atoms  %s\n",t);
     fprintf(out,"%s\n\n\n",b);
   }  
-  V = Cell_VOLUME(C);
+  V = CELL_VOL(C);
   fprintf(out,"%s                   LATTICE VECTORS                                                 VOLUME (Angst^3/atom) \n%s",b,b);
   fprintf(out,"      % 12.6lf  % 12.6lf  % 12.6lf  % 45.6lf vol\n",C->L[0][0],C->L[0][1],C->L[0][2],V/(double)C->N);
   fprintf(out,"      % 12.6lf  % 12.6lf  % 12.6lf\n",C->L[1][0],C->L[1][1],C->L[1][2]);
@@ -453,11 +580,11 @@ void CELL_OUT(Cell *C)
     fprintf(out,"%s",b);
     fprintf(out,"  Total   ");
     for(i=0;i<6;i++)
-      fprintf(out,"% 15.8lf ",C->U[i]/Cell_VOLUME(C));
+      fprintf(out,"% 15.8lf ",C->U[i]/CELL_VOL(C));
     fprintf(out,"\n");
     fprintf(out,"  in kB   ");
     for(i=0;i<6;i++)
-      fprintf(out,"% 15.8lf ",C->U[i]*eV2GPa*10.0/Cell_VOLUME(C));
+      fprintf(out,"% 15.8lf ",C->U[i]*eV2GPa*10.0/CELL_VOL(C));
     fprintf(out,"\n%s",b);
   }
   fprintf(out,"  iter %3d   total enthalpy= % 14.8lf   energy=  % 14.8lf   % 14.8lf  % 14.8lf\n%s\n\n\n",C->it,C->H,C->E,C->H/(double)C->N,C->E/(double)C->N,b);
@@ -469,36 +596,33 @@ void CELL_OUT(Cell *C)
   fclose(out);
 }
 //======================================================
-int CELL_OK(Cell *C, double *Rm)
+int CELL_OK(Cell *C)
 {
   int i;
-
+  
   for(i=0;i<C->N;i++)
-    if(NDX(C,i,0)<Rm[C->ATMZ[i]]+Rm[C->ATMZ[C->Ni[i][0]]])
+    if(NDX(C,i,0)<C->Rm[C->ATMZ[i]]+C->Rm[C->ATMZ[C->Ni[i][0]]])
       return 0;
-  return 1;
-}
-//======================================================
-int STOP_OK(Cell *C, double *Rm, double x)
-{
-  int i;
-
-  for(i=0;i<C->N;i++)
-    if(NDX(C,i,0)<x*Rm[C->ATMZ[i]]+Rm[C->ATMZ[C->Ni[i][0]]])
-      return 0;
+  
   return 1;
 }
 //======================================================
 void CELL_PHON(ANN *R, PRS *P, PRS *W, Cell *C, LNK *L)
 {
-  int    i,q,j,k,N;
-  double dx,*A,*e,*b;
+  int    i,q,j,k,N,*I;
+  double dx,*A,*e,*b,*r,x[3],v[3];
+  FILE   *out;
+
+  printf("|                          Phonon calculation                         |\n");
+  printf("=======================================================================\n\n");
 
   N = C->N*D3;
 
   A  = make_d1D(N*N);
   e  = make_d1D(N*N);
   b  = make_d1D(N);
+  r  = make_d1D(N);
+  I  = make_i1D(N);
 
   if(C->EVOK==0)
   {
@@ -507,7 +631,12 @@ void CELL_PHON(ANN *R, PRS *P, PRS *W, Cell *C, LNK *L)
     C->EVOK = 1;
   }
 
-  dx = 1e-3;
+  CELL_FRC(R,P,W,C,L);
+  C->OUT = 10;
+  system("rm -f OUTCAR");
+  CELL_OUT(C);
+
+  dx = C->DISP;
 
   for(i=0;i<C->N;i++)
     for(q=0;q<3;q++)
@@ -524,6 +653,7 @@ void CELL_PHON(ANN *R, PRS *P, PRS *W, Cell *C, LNK *L)
           A[(i*3+q)*N+j*3+k] = 0.5*(C->F[j][k]-A[(i*3+q)*N+j*3+k])/dx;
       C->X[i][q] += dx;
     }
+
   if(0)
     for(i=0;i<C->N;i++)
       for(q=0;q<3;q++)
@@ -533,6 +663,7 @@ void CELL_PHON(ANN *R, PRS *P, PRS *W, Cell *C, LNK *L)
 	    printf("% 16.12lf ",A[(i*3+q)*N+j*3+k]);
 	printf("\n");
       }
+
   EVN(A,e,b,N);
 
   for(i=0;i<C->N;i++)
@@ -544,21 +675,77 @@ void CELL_PHON(ANN *R, PRS *P, PRS *W, Cell *C, LNK *L)
           C->EV[i*3+q][j*3+k] = e[(i*3+q)*N+j*3+k];
     }
 
-  if(1)
+  if(0)
     for(i=0;i<C->N*3;i++)
-      printf("%3d % 24.16lf % 24.16lf\n",i,C->ev[i],C->EV[N-7][i]);
+      printf("%3d % 24.16lf % 24.16lf\n",i,C->ev[i],C->EV[N-7+C->ND][i]);
+
+  if(1)
+  {
+    Sort(C->ev,I,N);
+
+    //===== find translational modes =====
+    for(i=0;i<C->N*3;i++)
+      for(q=0,b[i]=0.0;q<3;q++)
+      {
+        for(j=0,dx=0.0;j<C->N;j++)
+          dx += C->EV[i][j*3+q];
+	b[i] += dx*dx;
+      }      
+
+    //===== find rotational modes for nanoparticles =====
+    for(i=0;i<C->N*3;i++)
+      for(q=0,r[i]=0.0;q<3;q++)
+      {
+        for(j=0,dx=0.0;j<C->N;j++)
+	{
+	  for(k=0;k<3;k++)
+	    x[k] = C->EV[i][j*3+k];
+	  VectorProd(x,C->X[j],v);
+          dx += v[q];
+	}
+        r[i] += dx*dx;
+      }
+
+    printf(" Eigenvalues at the Gamma point (eV)\n\n");
+    for(i=0;i<C->N*3;i++)
+      if( b[I[N-i-1]]>C->DISP || (C->ND==0&&r[I[N-i-1]]>C->DISP) )
+	printf("\x1B[32m%3d % 24.16lf \x1B[0m \n",i,C->ev[I[N-i-1]]);
+      else
+	printf("%3d % 24.16lf\n",i,C->ev[I[N-i-1]]);
+  }
+
+  out = fopen("OUTCAR","a");
+  fprintf(out,"----------------------------------------------------------------------------------------------------------\n");
+  fprintf(out,"                Eigenvalues and eigenvalues at the Gamma point\n");
+  fprintf(out,"----------------------------------------------------------------------------------------------------------\n");
+  for(i=0;i<C->N*3;i++)
+  {
+    fprintf(out,"eigenvalue %3d % 24.16lf (eV)\n",i,C->ev[I[N-i-1]]);
+    for(j=0;j<C->N;j++,fprintf(out,"\n"))
+      for(q=0,fprintf(out,"%3d ",j);q<3;q++)
+	fprintf(out,"% 24.16lf",C->EV[I[N-i-1]][j*3+q]);
+  }
+  fprintf(out,"----------------------------------------------------------------------------------------------------------\n");
+  fclose(out);
 
   free_d1D(A);
   free_d1D(e);
   free_d1D(b);
-
+  free_d1D(r);
+  free_i1D(I);
 }
 //======================================================
 void CELL_RELX(ANN *R, PRS *P, PRS *W, Cell *C, LNK *L)
 {
   double H;
   FILE  *out;
-  double time;
+  double time1,time2;
+  struct timeval t1, t2;
+  struct rusage t3;
+  double wall_time,cpus_time;
+
+  printf("|                            Cell relaxation                          |\n");
+  printf("=======================================================================\n\n");
 
   if(C->RLXT == 0 && R->MITR > 0)
   {
@@ -567,9 +754,11 @@ void CELL_RELX(ANN *R, PRS *P, PRS *W, Cell *C, LNK *L)
   }
   
   system("rm -f OUTCAR OSZICAR");
-  C->stop = 0;
-  
-  time=cpu_time();
+
+  // initiate the timing
+  gettimeofday(&t1, NULL);
+  time1=clock();
+
   H = CELL_FRC(R,P,W,C,L);
   
   if(R->MITR==0)
@@ -593,12 +782,23 @@ void CELL_RELX(ANN *R, PRS *P, PRS *W, Cell *C, LNK *L)
   }
   if(C->OUT%10==0)
     CELL_OUT(C);
-  LIST(C);
-  if(!CELL_OK(C,R->Rm))
+  LIST(C,0);
+
+  if(!CELL_OK(C))
     system("echo >> OUTCAR;echo ERROR distances are too short >> OUTCAR");
   
+  // compute wall and cpu time
+  getrusage(RUSAGE_SELF, &t3);
+  gettimeofday(&t2, NULL);
+  time2=clock();
+  wall_time  = (t2.tv_sec - t1.tv_sec) + (t2.tv_usec - t1.tv_usec) / (double) 1e6; // = real time
+  cpus_time  = ((double) (time2 - time1)) / (double) CLOCKS_PER_SEC; // = sys+user time
+  //double syst_time  = (double) t3.ru_stime.tv_sec + (double) t3.ru_stime.tv_usec / (double) 1e6; // = sys time
+  //double user_time  = cpus_time - syst_time; // = user time
+
   out=fopen("OUTCAR","a");
-  fprintf(out,"  \n Total CPU time used (sec):  % 14.8lf \n",cpu_time()-time);
+  
+  fprintf(out,"  \n Total CPU time used (sec):  % 14.8lf     wall time (sec): % 14.8lf\n",cpus_time,wall_time);
   fclose(out);
   
   C->it = 0;
@@ -611,6 +811,10 @@ void CELL_TEST(ANN *R, PRS *P, PRS *W, Cell *C, LNK *L)
 {
   int    i,q,OK;
   double t,dx,Em,Ep,**F;
+
+
+  printf("|                              Cell test                              |\n");
+  printf("=======================================================================\n\n");
 
   dx = 0.00001;
   F  = make_d2D(C->N,3);
@@ -625,7 +829,7 @@ void CELL_TEST(ANN *R, PRS *P, PRS *W, Cell *C, LNK *L)
       C->X[i][q] -= 2.0*dx;
       Em = CELL_ENE(R,P,W,C,L);
       F[i][q] = -(Ep-Em)/(dx*2.0);
-      C->X[i][q] += dx;
+      C->X[i][q] = t;
     }
   CELL_FRC(R,P,W,C,L);
 
@@ -696,8 +900,8 @@ void CELL_MAIN(ANN *R, PRS *P, Cell *C)
 
   if( R->JOBT==20 ) CELL_RELX(R,P,W,C,&L);
   if( R->JOBT==21 ) CELL_MD(R,P,W,C,&L);
-  if( R->JOBT==22 ) CELL_TEST(R,P,W,C,&L);
-  if( R->JOBT==23 ) CELL_PHON(R,P,W,C,&L);
+  if( R->JOBT==22 ) CELL_PHON(R,P,W,C,&L);
+  if( R->JOBT==23 ) CELL_TEST(R,P,W,C,&L);
 
   JAR(C);
 

@@ -1,6 +1,17 @@
 #ifndef UTIL
 #define UTIL
 
+#include <gsl/gsl_math.h>
+#include <gsl/gsl_eigen.h>
+#include "clib.h"
+#include "cdef.h"
+#include "cell.h"
+#include "cutl.h"
+#include "edef.h"
+#include "ndef.h"
+#include "nutl.h"
+#include "util.h"
+
 struct Node
 {
   char line[200];
@@ -16,13 +27,14 @@ extern const double pi;
 extern const double eV2kV;
 extern const double eV2GPa;
 
+void   PRNT_HEAD();
+void   FPRNT_HEAD(FILE *out);
 int    READ_CELL(Cell *C, char filename[]);
 void   SAVE_CELL(Cell *C, char filename[], int SD) ;
 void   Read_OUTCAR(Cell *C, char file[], int NC);
 double Read_OSZI(char *file);
 void   Print_List(Cell *C);
 void   Print_LOG(char buf[]);
-void   READ_ATM(ANN *R, Cell *C);
 void   READ_MAIN(Tribe *T, ANN *R, PRS *P, Cell *C, int J, int ARGC);
 void   EV (double A[3][3], double e[3][3], double b[3]);
 void   EVN(double *A, double *e, double *b, int N);

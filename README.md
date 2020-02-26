@@ -12,7 +12,7 @@ Module for Ab Initio Structure Evolution (MAISE) features
 MAISE has been developed by
 
 <bra /> Alexey Kolmogorov <kolmogorov@binghamton.edu>  
-<bra /> Samad Hajinazar <shajina1@binghamton.edu>  
+<bra /> Samad Hajinazar <hajinazar@binghamton.edu>  
 <bra /> Ernesto Sandoval <esandov1@binghamton.edu>  
 
 ---
@@ -56,13 +56,13 @@ different configurations in the pool of found low-energy structures.
 The source code for MAISE can be obtained from the commandline by running:
 
 ```
-git clone https://github.com/maise-guide/maise.git
+git clone git://github.com/maise-guide/maise.git
 ```
 
 or 
 
 ```
-git clone git://github.com/maise-guide/maise.git
+git clone https://github.com/maise-guide/maise.git
 ```
 
 or
@@ -79,20 +79,18 @@ The code has been extensively tested on Linux platforms. We will appreciate user
 
 1 For full functionality, MAISE requires the [GSL library](https://www.gnu.org/software/gsl/) and the [Spglib package](https://atztogo.github.io/spglib) (Version 1.11.2.1, February 2019). 
 
-2 MAISE installation will check if these libraries are already present. If not, they will be automatically downloaded to ./ext-dep and installed in ./lib . 
+2 The MAISE installation automatically configures the dependencies by checking if these libraries are already present. If not, they will be downloaded to the local directory ./ext-dep and will be installed in the local ./lib directory. The downloaded and installed libraries can be deleted after the successful compilation of MAISE. 
 
 3 If the GSL or SPGLIB library installation is not completed automatically please install them manually and copy (i) libgsl.a, libgslcblas.a and libsymspg.a into the ./lib subdirectory; (ii) the spglib.h header into ./lib/include subdirectory; and (iii) all gsl headers into the ./lib/include/gsl subdirectory.
 
-4 By default, the code will be compiled for parallel execution with OpenMP. If you do not wish to compile the parallel version set 'SERIAL    ?= 1' in maise/makefile
+4 Use 'make --jobs' for full compilation, 'make clean' for cleaning most relevant  objects, and 'make clean-all' for cleaning all objects.
 
-5 Use 'make --jobs' for full compilation, 'make clean' for cleaning most relevant  objects, and 'make clean-all' for cleaning all objects.
-
-A “check” script is available in the examples/ directory which can be run after compiling the maise to ensure the proper functionality of the code. This script automatically checks for the performance of the code in parsing the data, training the neural network, and evaluating a crystal structure. If the compilation is fine the “check” script will output so; otherwise error logs will be provided with further information about the issue.
+5 A “check” script is available in the examples/ directory which can be run after compiling the maise to ensure the proper functionality of the code. This script automatically checks for the performance of the code in parsing the data, training the neural network, relaxing a crystal structure, and performing an internal evolutionary search. If the compilation is fine the “check” script will output so; otherwise error logs will be provided with further information about the issue.
 
 ---
 ## Input
 
-Main input files that define a simulation are 'setup' with job settings, 'model' with NN parameters, 'basis' with the symmetry functions converting a structure into the NN input, and 'table' with typical chemical element sizes. The atomic structure is read from the 'POSCAR' file that follows the VASP format. 
+Main input files that define a simulation are 'setup' with job settings, 'model' with NN parameters, and 'basis' with the symmetry functions converting a structure into the NN input. The atomic structure is read from the 'POSCAR' file that follows the VASP format. 
 
 <table>
   <tr>
@@ -107,9 +105,6 @@ Main input files that define a simulation are 'setup' with job settings, 'model'
   <tr>
     <td
     align="center"><a href="https://github.com/maise-guide/maise/blob/master/bin/setup">setup</td> <td align="center">+</td> <td align="center">+</td> <td align="center">+</td> <td align="center">+</td> <td align="center">+</td> <td align="center">+</td> <td align="center"> </td> 
-  </tr>
-  <tr>
-    <td align="center"><a href="https://github.com/maise-guide/maise/blob/master/bin/table">table</td> <td align="center">+</td> <td align="center"> </td> <td align="center"> </td> <td align="center">+</td> <td align="center"> </td> <td align="center"> </td> <td align="center"> </td>
   </tr>
   <tr>
     <td align="center"><a href="https://github.com/maise-guide/maise/blob/master/bin/model">model</td> <td align="center"> </td> <td align="center"> </td> <td align="center"> </td> <td align="center">+*</td> <td align="center">+#</td> <td align="center">+#</td> <td align="center"> </td>
@@ -142,6 +137,7 @@ maise -flag
 
 |Flag| Flag Description|
 |:---:|:-|
+| man|    output the list of available flags                              |
 | rdf|    compute and plot the RDF for POSCAR                             |
 | cxc|    compute dot product for POSCAR0 and POSCAR1 using RDF           |
 | cmp|    compare RDF, space group, and volume of POSCAR0 and POSCAR1     |
@@ -151,7 +147,7 @@ maise -flag
 | dim|    find    whether POSCAR is periodic (3) or non-periodic (0)      |
 | box|    reset   the box size for nanoparticles                          |
 | sup|    make    a supercell specified by na x nb x nc                   |
-| vol|    compute volume per atom for crystal or nano structures    |
+| vol|    compute volume per atom for crystal or nano structures          |
 
 ## Examples
 
@@ -184,33 +180,31 @@ Directory 'examples/' has samples of maise jobs for parsing data, training neura
 ### EVOS crossover/mutation 
 [ACRS](#acrs) [ADST](#adst) [ELPS](#elps) [LCRS](#lcrs) [LDST](#ldst) [MCRS](#mcrs) [SCRS](#scrs) [SDST](#sdst)   
 ### Molecular dynamics             
-[COPL](#copl) [DELT](#delt) [MOVI](#movi) [NSTP](#nstp) [THRM](#thrm) [TMAX](#tmax) [TMIN](#tmin) [TSTP](#tstp)     
+[CPLT](#cplt) [CPLP](#cplp) [ICMP](#icmp) [DELT](#delt) [MOVI](#movi) [NSTP](#nstp) [MDTP](#mdtp) [TMAX](#tmax) [TMIN](#tmin) [TSTP](#tstp)     
 ### Species related 
 [ASPC](#aspc) [NSPC](#nspc) [TSPC](#tspc) 
 ### I/O 
 [COUT](#cout) [DATA](#data) [DEPO](#depo) [EVAL](#eval) [OTPT](#otpt) [WDIR](#wdir)
 ### Neural Network model
-[MODT](#modt) [NCMP](#ncmp) [NNGT](#nngt) [NNNN](#nnnn) [NNNU](#nnnu) [NSYM](#nsym) 
+[NCMP](#ncmp) [NNGT](#nngt) [NNNN](#nnnn) [NNNU](#nnnu) [NSYM](#nsym) 
 ### Neural Network training    
 [FMRK](#fmrk) [LREG](#lreg) [NTRN](#ntrn) [NTST](#ntst) [TEFS](#tefs) [NPAR](#npar)
 ## Parsing
 [EMAX](#emax) [FMAX](#fmax) [FMIN](#fmin) [VMAX](#vmax) [VMIN](#vmin) [MMAX](#mmax) 
 ### Cell Relaxation
-[ETOL](#etol) [MINT](#mint) [MITR](#mitr) [PGPA](#pgpa) [RLXT](#rlxt) [STOP](#stop) [TIME](#time)
+[ETOL](#etol) [MINT](#mint) [MITR](#mitr) [PGPA](#pgpa) [RLXT](#rlxt) [TIME](#time)
 
 ---
 ## Setup input tag description
 ---
 | TAG | DESCRIPTION |
 |:--|:---------|
-| <a name="jobt"></a>JOBT | structure analysis   (00) use analysis tools specified by flags, evolutionary search  (10) run  (11) soft exit  (12) hard exit (13) analysis, cell simulation      (20) relaxation (21) molecular dynamics, data parsing (30) prepare inputs for NN training , NN training          (40) full training (41) stratified training|
+| <a name="jobt"></a>JOBT | structure analysis (00) use analysis tools specified by flags, evolutionary search (10) run (11) soft exit (12) hard exit (13) analysis, cell simulation (20) relaxation (21) molecular dynamics (22) phonon calculations, data parsing (30) prepare inputs for NN training , NN training (40) full training (41) stratified training|
 | <a name="code"></a>CODE | Type of the code in use. (0) MAISE-INT (1) VASP-EXT (2) MAISE-EXT|
-| <a name="modt"></a>MODT | Type of the interatomic potential in use:  (1)  NN  (3)  Sutton-Chen  (4) Gupta|
 | <a name="npar"></a>NPAR | Number of cores for parallel NN training or cell simulation|
 | <a name="mint"></a>MINT | The optimizer algorithm for the neural network training and the cell optimization. (gsl minimizer type (0) BFGS2 (1) CG-FR (2) CG-PR (3) steepest descent |
 | <a name="mitr"></a>MITR | Maximum number of the optimization steps; if the desired accuracy is not reached for NN training or cell optimization steps|
 | <a name="rlxt"></a>RLXT | Cell optimization type (2) force only (3) full cell (7) volume (ISIF in VASP)|
-| <a name="stop"></a>STOP | Number of cell optimization steps with atomic distances shorter than those set in table file's atom part.|
 | <a name="etol"></a>ETOL | Error tolerance for training or cell optimization convergence|
 | <a name="tefs"></a>TEFS | Training target value (0) E (1) EF (2) ES (3) EFS (4) TOY|
 | <a name="fmrk"></a>FMRK | Fraction of atoms that will be parsed to use for EF or EFS trainings|
@@ -248,9 +242,11 @@ Directory 'examples/' has samples of maise jobs for parsing data, training neura
 | <a name="tstp"></a>TSTP | Temperature step in MD runs (K) in running form TMIN to TMAX|
 | <a name="delt"></a>DELT | Time step in the MD runs|
 | <a name="nstp"></a>NSTP | Number of steps per temperature in MD runs|
-| <a name="copl"></a>COPL | Coupling constant in Nose-Hoover thermostat for MD runs. Suggested: 25.0|
+| <a name="cplt"></a>CPLT | Coupling constant in Nose-Hoover thermostat for MD runs. Suggested: 25.0|
+| <a name="cplp"></a>CPLP | Coupling constant in Brendsen barostat for MD runs. Suggested: 100.0|
+| <a name="icmp"></a>ICMP | Isothermal compressibility in Brendsen barostat for MD runs (in 1/GPa)|
 | <a name="movi"></a>MOVI | Number of steps after which a snapshot of structure will be saved during the MD run|
-| <a name="thrm"></a>THRM | Thermostat type for the MD runs (0) Dynamic (1) Nose-Hoover
+| <a name="mdtp"></a>MDTP | MD run type (10) NVE (20) NVT: Nose-Hoover (30) NPT: Nose-Hoover and Brendsen (40) Isobaric (11,21,31,41) runs with velocisities read in from POSCAR file|
 | <a name="depo"></a>DEPO | Path to the DFT datasets to be parsed|
 | <a name="data"></a>DATA | Location of the parsed data to parse or read for training (will be overwritten during parsing)|
 | <a name="otpt"></a>OTPT | Directory for storing model parameters in the training process|

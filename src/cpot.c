@@ -1,17 +1,4 @@
-#include <stdio.h>
-#include <stdlib.h>
-#include <math.h>
-#include <string.h>
-#include "cdef.h"
-#include "edef.h"
-#include "ndef.h"
-#include "nmlp.h"
-#include "nmod.h"
-#include "nutl.h"
-#include "util.h"
-#include "cell.h"
 #include "cpot.h"
-#include "nmin.h"
 
 //==================================================
 double dFC(double R1, double R2, double r)
@@ -34,7 +21,7 @@ double ENE_POT(Cell *C)
   int    i,j,p;
   double r,e,t,y,E,u;
 
-  LIST(C);
+  LIST(C,0);
 
   for(i=0,E=0.0;i<C->N;i++)
   {
@@ -78,7 +65,7 @@ double FRC_POT(Cell *C)
 
   h = make_d1D(C->N);
 
-  LIST(C);
+  LIST(C,0);
 
   for(i=0,E=0.0;i<C->N;i++)
   {
@@ -236,7 +223,7 @@ void READ_POT(Cell *C, char *dir)
     if( C->Rc < C->WW[2*n*n][C->NW-1] )
       C->Rc = C->rc = C->WW[2*n*n][C->NW-1];
   
-  if(1)
+  if(0)
     for(n=0;n<C->nspc;n++)
       for(m=n;m<C->nspc;m++)
       {

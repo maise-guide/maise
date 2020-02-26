@@ -6,6 +6,13 @@
 #include <gsl/gsl_vector.h> 
 #include <gsl/gsl_multimin.h>
 #include <signal.h>
+#include <omp.h>
+#include "clib.h"
+#include "cdef.h"
+#include "ndef.h"
+#include "nmlp.h"
+#include "nutl.h"
+#include "util.h"
 
 void   sig_term_handler(int signum, siginfo_t *info, void *ptr);
 void   catch_sigterm();

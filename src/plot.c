@@ -1,10 +1,5 @@
-#include <stdio.h>
-#include <stdlib.h>
-#include <string.h>
-#include "cdef.h"
-#include "ndef.h"
-#include "edef.h"
-#include "util.h"
+#include "plot.h"
+
 //=============================================================================
 void PLOT(ANN *R, int type, int N1, int N2, int M, char *test, char *CMP)
 {
@@ -15,15 +10,15 @@ void PLOT(ANN *R, int type, int N1, int N2, int M, char *test, char *CMP)
 
   int smart_range = 1;  //set to 0 for manually adjusting ranges, 1 for finding them from CONTCARS
 
-  int     color[]={1,2,3,4,5,9,7,1,2,3,1,2,3,4,5,9,7,1,2,3,1,2,3,4,5,9,7,1,2,3};
+  int     color[]={0,1,2,3,4,5,6,7,8,9,0,1,2,3,4,5,6,7,8,9,0,1,2,3,4,5,6,7,8,9};
 
   FILE   *in[101],*ot[101];
   FILE   *out;
   int    i,j,k,t0;
   char   s[101][200],u[101][200],buf[101][200],nntp[100][2];
-  double tmp,data[101][101],t1,t2,t3;
-  char   name[200];
-  char   compound[200];
+  double tmp,data[101][101],t1,t2;
+  char   name[400];
+  char   compound[400];
   char   ctmp[200];
 
   printf("%s\n",CMP);
@@ -114,12 +109,12 @@ void PLOT(ANN *R, int type, int N1, int N2, int M, char *test, char *CMP)
       fprintf(out,"set terminal pngcairo size 800, 600\n");
       fprintf(out,"set title \"%s (%s)\"\n",CMP,test);
       fprintf(out,"set xrange [%lf:%lf]\n",xmin-abs(xmin*0.05),xmax+abs(xmax*0.05));
-      fprintf(out,"set yrange [%lf:%lf]\n",ymin-abs(ymin*0.05),ymin+2.0);
+      fprintf(out,"set yrange [%lf:%lf]\n",ymin-abs(ymin*0.05),ymax+abs(ymax*0.05));
       fprintf(out,"set autoscale fix\n");
       fprintf(out,"set size 1.0,1.0\n");
       fprintf(out,"set ylabel \"energy (eV/atom)\"\n");
       fprintf(out,"set xlabel \"N-N distance (A)\"\n");
-      fprintf(out,"set output \'%s/%s_%s.png\'\n",R->otpt,CMP,test);
+      fprintf(out,"set output \'%s/%s-%s.png\'\n",R->otpt,CMP,test);
       fprintf(out,"set multiplot\n");
       fprintf(out,"set key top\n");
       fprintf(out,"plot ");
@@ -153,7 +148,7 @@ void PLOT(ANN *R, int type, int N1, int N2, int M, char *test, char *CMP)
   //===== VAC =====
   if( type == 1 )
   {    
-    sprintf(name,"%s/vac_%s.dat",R->otpt,CMP);
+    sprintf(name,"%s/vac-%s.dat",R->otpt,CMP);
     in[0]=fopen(name,"r");
     fscanf(in[0],"%d %lf %lf %s %lf\n",&t0,&t1,&t2,buf[0],&tmp);
     ymin=t1;
@@ -183,7 +178,7 @@ void PLOT(ANN *R, int type, int N1, int N2, int M, char *test, char *CMP)
     fprintf(out,"set size 1.0,1.0\n");
     fprintf(out,"set ylabel \"energy (eV/vac)\"\n");
     fprintf(out,"set xlabel \"structure\"\n");
-    fprintf(out,"set output \'%s/%s_vac.png\'\n",R->otpt,CMP);
+    fprintf(out,"set output \'%s/%s-vac.png\'\n",R->otpt,CMP);
     fprintf(out,"set multiplot\n");
     fprintf(out,"set style line 1 lc rgb \'#0060ad\' lt 1 lw 2 pt 4  ps 1.5\n");
     fprintf(out,"set style line 2 lc rgb \'#dd181f\' lt 1 lw 2 pt 13 ps 1.5\n");
@@ -197,7 +192,7 @@ void PLOT(ANN *R, int type, int N1, int N2, int M, char *test, char *CMP)
   //======================== SUB 
   if( type == 2 )
   {  
-    sprintf(compound,"%s/sub_%s.dat",R->otpt,CMP);
+    sprintf(compound,"%s/sub-%s.dat",R->otpt,CMP);
     k=nlines(compound);
     in[0]=fopen(compound,"r");
     fgets(name,200,in[0]);
@@ -237,7 +232,7 @@ void PLOT(ANN *R, int type, int N1, int N2, int M, char *test, char *CMP)
       fprintf(out,"set size 1.0,1.0\n");
       fprintf(out,"set ylabel \"energy (eV/vac)\"\n");
       fprintf(out,"set xlabel \"structure\"\n");
-      fprintf(out,"set output \'%s/%s_sub_%d.png\'\n",R->otpt,CMP,i);
+      fprintf(out,"set output \'%s/%s-sub-%d.png\'\n",R->otpt,CMP,i);
       fprintf(out,"set multiplot\n");
       fprintf(out,"set style line 1 lc rgb \'#0060ad\' lt 1 lw 2 pt 4  ps 1.5\n");
       fprintf(out,"set style line 2 lc rgb \'#dd181f\' lt 1 lw 2 pt 13 ps 1.5\n");
@@ -256,7 +251,7 @@ void PLOT(ANN *R, int type, int N1, int N2, int M, char *test, char *CMP)
   //======================== PHD
   if( type == 3 )
   {  
-    sprintf(compound,"%s/phd_%s00.dat",R->otpt,CMP);
+    sprintf(compound,"%s/phd-%s00.dat",R->otpt,CMP);
     k=nlines(compound);
     in[0]=fopen(compound,"r");
     fgets(name,200,in[0]);
@@ -286,7 +281,7 @@ void PLOT(ANN *R, int type, int N1, int N2, int M, char *test, char *CMP)
     fprintf(out,"set size 1.0,1.0\n");
     fprintf(out,"set ylabel \"energy (eV/vac)\"\n");
     fprintf(out,"set xlabel \"composition ratio\"\n");
-    fprintf(out,"set output \'%s/%s_phd.png\'\n",R->otpt,CMP);
+    fprintf(out,"set output \'%s/%s-phd.png\'\n",R->otpt,CMP);
     fprintf(out,"set multiplot\n");
     fprintf(out,"set style line 1 lc palette lt 1 lw 2 pt 4  ps 1.5\n");
     fprintf(out,"set style line 2 lc palette lt 1 lw 2 pt 13 ps 1.5\n");
@@ -300,7 +295,7 @@ void PLOT(ANN *R, int type, int N1, int N2, int M, char *test, char *CMP)
   //===== SRF =====
   if( type == 4 )
   {    
-    sprintf(name,"%s/srf_%s.dat",R->otpt,CMP);
+    sprintf(name,"%s/srf-%s.dat",R->otpt,CMP);
     in[0]=fopen(name,"r");
     fscanf(in[0],"%d %lf %lf %s %lf\n",&t0,&t1,&t2,buf[0],&tmp);
     ymin=t1;
@@ -330,7 +325,7 @@ void PLOT(ANN *R, int type, int N1, int N2, int M, char *test, char *CMP)
     fprintf(out,"set size 1.0,1.0\n");
     fprintf(out,"set ylabel \"energy (eV/A^2)\"\n");
     fprintf(out,"set xlabel \"structure\"\n");
-    fprintf(out,"set output \'%s/%s_srf.png\'\n",R->otpt,CMP);
+    fprintf(out,"set output \'%s/%s-srf.png\'\n",R->otpt,CMP);
     fprintf(out,"set multiplot\n");
     fprintf(out,"set style line 1 lc rgb \'#0060ad\' lt 1 lw 2 pt 4  ps 1.5\n");
     fprintf(out,"set style line 2 lc rgb \'#dd181f\' lt 1 lw 2 pt 13 ps 1.5\n");
@@ -340,6 +335,5 @@ void PLOT(ANN *R, int type, int N1, int N2, int M, char *test, char *CMP)
     fprintf(out,"plot \"\" using 1:3:5:xticlabels(4) with labels offset 0,char 1 tc rgb \"red\"\n");
     fprintf(out,"unset multiplot\n");
     fclose(out);
-    system("rm -f tmp_srf");
   }
 }

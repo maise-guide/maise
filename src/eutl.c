@@ -1,13 +1,4 @@
-#include <stdio.h>
-#include <stdlib.h>
-#include <math.h>
-#include "cdef.h"
-#include "edef.h"
-#include "ndef.h"
-#include "nutl.h"
-#include "cutl.h"
-#include "util.h"
-#include "cell.h"
+#include "eutl.h"
 
 //==================================================================
 //     Check if atoms are too close; MUCH faster than using List
@@ -110,7 +101,7 @@ int ADJT_CL(Cell *C, double *Rm, int N)
   {
     if(CHCK_Rm(C,Rm,0.7)==0)    // 0.7 here is NOT hard-core factor
       return 0;
-    LIST(C);
+    LIST(C,0);
     for(i=0;i<C->N;i++)
       for(q=0;q<3;q++)
 	C->F[i][q] = 0.0;
@@ -130,7 +121,7 @@ int ADJT_CL(Cell *C, double *Rm, int N)
     for(i=0;i<C->N;i++)
       for(q=0;q<3;q++)
 	C->X[i][q] += a*C->F[i][q];
-    LIST(C);
+    LIST(C,0);
   }
   JAR(C);
   return CHCK_Rm(C,Rm,1.0);
@@ -256,7 +247,7 @@ void RAND_LV(Cell *C)
       }
       VectorNorm(C->L[i]);
     }
-    V = fabs(Cell_VOLUME(C));
+    V = fabs(CELL_VOL(C));
   }
   
   for(i=0;i<3;i++)
@@ -265,7 +256,7 @@ void RAND_LV(Cell *C)
     for(q=0;q<3;q++)
       C->L[i][q] *= L[i];
   }
-  SCALE_LATTICE(C,pow(Cell_VOLUME(C),-1.0/3.0));
+  SCALE_LATTICE(C,pow(CELL_VOL(C),-1.0/3.0));
   Lat_Order(C);
   Lat_Align(C);
   if(C->L[2][2]<0.0)
@@ -375,112 +366,13 @@ double COMP_CL(Cell *C, Cell *D)
   AV = 0.1;
   AR = 0.8;
 
-  V1 = Cell_VOLUME(C);
-  V2 = Cell_VOLUME(D);
+  V1 = CELL_VOL(C);
+  V2 = CELL_VOL(D);
   V  = 0.5*(V1-V2)/(V1+V2);
 
   W = AR*CxC(C,D) + AE*exp( -0.5*(C->P-D->P)*(C->P-D->P)/(DE*DE) ) + AV*exp( -0.5*V*V/(DV*DV) );
 
   return W;
-}
-//==================================================================
-//     Center particle for particle calculations
-//     Collects atoms in the middle, works only for cubic cells
-//==================================================================
-void CNTR_CL(Cell *C)
-{
-  int i,j,q,*M,*I,*J,s,ic[3],n,ND;
-  double R,r[3];
-
-  M = make_i1D(C->N-1);
-  I = make_i1D(C->N-1);
-  J = make_i1D(C->N-1);
-
-  Relative(C);
-  for(i=0;i<C->N;i++)
-    for(q=0;q<3;q++)
-      C->X[i][q] += 0.5;
-  Real(C);
-  JAR(C);
-
-  ND = C->ND;
-  C->ND = 3;
-  LIST(C);
-  C->ND = ND;
-  for(i=0;i<C->N;i++)
-    M[i] = 0;  
-  M[0] = 1;
-  I[0] = J[0] = 0;
-  
-  for(i=0,R=0.0;i<C->N;i++)
-    if( NDX(C,i,0)>R )
-      R = NDX(C,i,0)+1e-12;
-
-  R = 5.0;
-
-  for(n=s=0;n<C->N;n++)
-  {
-    if(n>s)
-    {
-      SAVE_CELL(C,"CONTCAR",0);
-      fprintf(stderr,"ERROR in CNTR_PR %3d %3d\n",n,s);
-      exit(1);
-    }
-    i = J[n];
-    for(j=0;j<C->Nn[i]&&NDX(C,i,j)<R;j++)
-      if( M[C->Ni[i][j]]==0 )
-      {
-	s++;
-	M[C->Ni[i][j]] = 1;
-	J[s] = C->Ni[i][j];
-	I[s] = i;
-      }
-  }
-  
-  for(s=1;s<C->N;s++)
-  {
-    i = I[s];
-    j = J[s];
-    if( NDR(C,i,j)-R > 1e-6 )
-    {
-      for(ic[0]=-1;ic[0]<=1;ic[0]++)
-      for(ic[1]=-1;ic[1]<=1;ic[1]++)
-      for(ic[2]=-1;ic[2]<=1;ic[2]++)
-      {
-	for(q=0;q<3;q++)
-	  r[q] = C->X[j][q] + (double)ic[q]*C->L[q][q] - C->X[i][q];
-	if( VectorLen(r,3)-R  < 0.0 )
-	{
-	  for(q=0;q<3;q++)
-	    C->X[j][q] += (double)ic[q]*C->L[q][q];
-	  ic[0]=ic[1]=ic[2] = 2;
-	}
-      }
-    }
-    if( NDR(C,i,j)-R > 1e-6 )
-      fprintf(stderr,"WRONG! %lf %3d %3d\n",NDR(C,i,j),i,j);
-  }
-
-  for(i=0;i<C->N;i++)
-    if(M[i]==0)
-    {
-      printf("CNTR_CL ERROR %3d\n",i);
-      fprintf(stderr,"CNTR_CL ERROR %3d\n",i);
-      Print_List(C);
-      exit(0);
-    }
-  for(q=0;q<3;q++)
-    for(i=0,r[q]=0.0;i<C->N;i++)
-      r[q] += C->X[i][q]/(double)C->N;
-
-  for(q=0;q<3;q++)
-    for(i=0;i<C->N;i++)
-      C->X[i][q] += -r[q] + 0.5*C->L[q][q];  
-
-  free_i1D(M);
-  free_i1D(I);
-  free_i1D(J);
-
 }
 //==================================================================
 //     Randomize initial structures
@@ -494,11 +386,11 @@ void TEMP_CL(Tribe *T, Cell *C, int p)
   for(m=0,s=0;m<T->Nm;m++)
   {
     Copy_C(C,&T->C[p]);
-    V = Cell_VOLUME(&T->C[p]);
-    if( ! (SHKE_CL(&T->C[p],T->cl,T->C[p].R0*T->ca)==0 || SHRT_LV(&T->C[p])==0 || fabs( Cell_VOLUME(&T->C[p])/V-1.0 ) > 0.5) )
+    V = CELL_VOL(&T->C[p]);
+    if( ! (SHKE_CL(&T->C[p],T->cl,T->C[p].R0*T->ca)==0 || SHRT_LV(&T->C[p])==0 || fabs( CELL_VOL(&T->C[p])/V-1.0 ) > 0.5) )
     {
       if( T->JS!=2  && !(T->ml>(10^-10) || T->cl>(10^-10)) )              // added in 4.1
-	SCALE_Cell(&T->C[p], pow(Cell_VOLUME(&T->C[p])/V,-1.0/3.0) + 0.1*(0.5-Random()));
+	SCALE_Cell(&T->C[p], pow(CELL_VOL(&T->C[p])/V,-1.0/3.0) + 0.1*(0.5-Random()));
       if(T->NSPC>1)
 	for(i=s=0;i<T->C[p].N;i++)
 	  if(Random()<T->cs)

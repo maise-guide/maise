@@ -1,6 +1,13 @@
 #ifndef CFNC
 #define CFNC
 
+#include "clib.h"
+#include "cdef.h"
+#include "cell.h"
+#include "cutl.h"
+#include "nutl.h"
+#include "sutl.h"
+
 extern const double Pi;
 extern const int D3;
 

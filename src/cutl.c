@@ -1,14 +1,5 @@
-#include <stdlib.h>
-#include <math.h>
-#include <string.h>
-#include <gsl/gsl_math.h>
-#include <gsl/gsl_eigen.h>
-#include "cdef.h"
-#include "edef.h"
-#include "ndef.h"
-#include "cell.h"
-#include "nutl.h"
-#include "util.h"
+#include "cutl.h"
+
 //======================================================================
 // Rotate unit cell along q0 axis to put atom k in the q0-q1 plane
 //======================================================================
@@ -183,7 +174,7 @@ void NANO_ROT(Cell *C, int J)
 //==================================================================
 //
 //==================================================================
-double Cell_VOLUME(Cell *C)
+double CELL_VOL(Cell *C)
 {   
   if(C->ND==0)
     return NP_VOL(C);

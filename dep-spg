@@ -1,0 +1,111 @@
+#!/bin/bash
+#setup
+ver="1.11.2.1"
+url="https://github.com/atztogo/spglib/archive/v$ver.tar.gz"
+dir="spglib.tar.gz"
+test_OS=$(uname) 
+test_cmake=$(cmake --version 2>&1 | grep -o "command not found")
+test_wget=$(wget --version 2>&1 | grep -o "command not found")
+test_curl=$(curl --version 2>&1 | grep -o "command not found")
+#commands
+if [ "$test_wget" != "command not found" ]; then
+  GET="wget $url -O $dir"
+elif [ "$test_curl" != "command not found" ]; then
+  GET="curl -L --output $dir $url"
+fi
+if [ "$test_OS" == Linux ]; then
+  SED="sed -i"
+  LIBTOOL="libtoolize"
+elif [ "$test_OS" == Darwin ]; then
+  SED="sed -i -e"
+  LIBTOOL="glibtoolize"
+fi
+#working directories
+mkdir -p lib/include
+mkdir -p dep-ext
+cd       dep-ext
+#download
+if [ ! -e spglib.tar.gz ] ; then
+  echo "downloading...spglib-1.11.2.1 to $PWD"
+  $GET &> spglib.log
+fi
+#unpack
+if [ ! -e spglib-$ver ] ; then
+  echo "unpacking.....in $PWD"
+  tar -xf spglib.tar.gz &>> spglib.log
+fi
+#compiling
+echo "compiling.....in $PWD/spglib-$ver"
+cd spglib-$ver
+#compile with cmake or autotools
+if [ "$test_cmake" != "command not found" ]; then
+  mkdir -p _build
+  cd    _build
+  cmake .. &>> ../spglib.log
+  make     &>> ../spglib.log
+  make  &>> spglib.log &>> ../spglib.log && make install DESTDIR=$PWD/../ &>> ../spglib.log
+  cd ../
+else 
+#compile with autotools
+  mkdir -p m4   > /dev/null 2>&1
+  test_libtool=$($LIBTOOL --version 2>&1 | grep -o "command not found")
+  $SED "s/AM_PROG_LIBTOOL/LT_INIT/" configure.ac
+  if [ "$test_OS" != Darwin ]; then
+    $SED "s/m4_esyscmd_s/m4_esyscmd/" configure.ac
+    if [ "$test_libtool" == "command not found" ]; then
+      LIBTOOL="$PWD/lib-tool/usr/bin/libtoolize --force --install --copy"
+      dir="libtool.deb"
+      url="http://ftp.br.debian.org/debian/pool/main/libt/libtool/libtool_2.4.2-1.11_all.deb"
+      if [ "$test_wget" != "command not found" ]; then
+        GET="wget $url -O $dir"
+      elif [ "$test_curl" != "command not found" ]; then
+        GET="curl -L --output $dir $url"
+      fi
+      mkdir -p lib-tool 2>&1  
+      cd  lib-tool 2>&1
+      $GET &>> ../../spglib.log
+      ar  -x $dir &>> ../../spglib.log
+      tar -xf data.tar.xz &>> ../../spglib.log
+      old="=/usr"
+      new="=$PWD/usr"
+      sed -i "s@$old@$new@" ./usr/bin/libtoolize 
+      export ACLOCAL_PATH=$PWD/usr/share/aclocal:$ACLOCAL_PATH
+      unlink $PWD/usr/share/libtool/config/config.guess
+      unlink $PWD/usr/share/libtool/config/config.sub
+      cd ../ 2>&1
+    fi
+  fi
+
+  aclocal       &>> ../spglib.log
+  autoheader    &>> ../spglib.log
+  $LIBTOOL      &>> ../spglib.log
+  touch INSTALL NEWS README AUTHORS
+  automake -acf &>> ../spglib.log
+  autoconf      &>> ../spglib.log
+  ./configure   &>> ../spglib.log
+
+  if [ "$test_libtool" == "command not found" ]; then
+    cp ./config.guess ./lib-tool/usr/share/libtool/config
+    cp ./config.sub ./lib-tool/usr/share/libtool/config
+    aclocal       &>> ../spglib.log
+    autoheader    &>> ../spglib.log
+    $LIBTOOL      &>> ../spglib.log
+    automake -acf &>> ../spglib.log
+    autoconf      &>> ../spglib.log
+    ./configure   &>> ../spglib.log
+  fi
+
+  make &>> ../spglib.log && make install DESTDIR=$PWD &>> ../spglib.log
+fi
+#installation to ./lib
+echo "installing....to $PWD/../../lib"
+cp ./usr/local/lib/libsymspg.a ../../lib &>> ../spglib.log
+cp ./src/spglib.h ../../lib/include      &>> ../spglib.log  
+cd ../../ &>> ../spglib.log
+#installation check
+if [ ! -e ./lib/libsymspg.a ]; then
+  echo "spglib installation failed!"
+else 
+  echo "Done"
+fi
+exit
