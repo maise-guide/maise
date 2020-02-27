@@ -73,6 +73,7 @@ cd ..
 
 cd esint
 printf " ESINT test ... "
+mkdir EVOS
 maise >> out.dat
 e0=$(sed -n "3 p" ref/ebest.dat|awk '{print $2}')
 e1=$(sed -n "3 p" ebest.dat|awk '{print $2}')
@@ -83,7 +84,7 @@ mv res.dat ../issue_esint
 printf " ERROR!\n"
 echo "Fail"
 else
-rm -r EVOS/* e*dat pos* log* out.dat INI/*
+rm -r EVOS e*dat pos* log* out.dat
 printf " OK!\n"
 fi
 cd ..

@@ -610,7 +610,7 @@ int CELL_OK(Cell *C)
 void CELL_PHON(ANN *R, PRS *P, PRS *W, Cell *C, LNK *L)
 {
   int    i,q,j,k,N,*I;
-  double dx,*A,*e,*b,*r,x[3],v[3];
+  double dx,*A,*B,*e,*b,*r,x[3],v[3];
   FILE   *out;
 
   printf("|                          Phonon calculation                         |\n");
@@ -619,6 +619,7 @@ void CELL_PHON(ANN *R, PRS *P, PRS *W, Cell *C, LNK *L)
   N = C->N*D3;
 
   A  = make_d1D(N*N);
+  B  = make_d1D(N*N);
   e  = make_d1D(N*N);
   b  = make_d1D(N);
   r  = make_d1D(N);
@@ -653,6 +654,11 @@ void CELL_PHON(ANN *R, PRS *P, PRS *W, Cell *C, LNK *L)
           A[(i*3+q)*N+j*3+k] = 0.5*(C->F[j][k]-A[(i*3+q)*N+j*3+k])/dx;
       C->X[i][q] += dx;
     }
+  for(i=0;i<C->N;i++)
+    for(q=0;q<3;q++)
+      for(j=0;j<C->N;j++)
+        for(k=0;k<3;k++)
+	  B[(i*3+q)*N+j*3+k] = 0.0;
 
   if(0)
     for(i=0;i<C->N;i++)
@@ -664,7 +670,7 @@ void CELL_PHON(ANN *R, PRS *P, PRS *W, Cell *C, LNK *L)
 	printf("\n");
       }
 
-  EVN(A,e,b,N);
+  EVN(A,B,e,b,N);
 
   for(i=0;i<C->N;i++)
     for(q=0;q<3;q++)
@@ -718,6 +724,13 @@ void CELL_PHON(ANN *R, PRS *P, PRS *W, Cell *C, LNK *L)
   fprintf(out,"----------------------------------------------------------------------------------------------------------\n");
   fprintf(out,"                Eigenvalues and eigenvalues at the Gamma point\n");
   fprintf(out,"----------------------------------------------------------------------------------------------------------\n");
+
+  if(0)
+  for(i=0;i<3*C->N;i++,printf("\n"))
+    for(j=0;j<C->N*3;j++)
+      printf("% 1.2lf ",DotProd(C->EV[i],C->EV[j],3*C->N));
+  printf("\n");
+
   for(i=0;i<C->N*3;i++)
   {
     fprintf(out,"eigenvalue %3d % 24.16lf (eV)\n",i,C->ev[I[N-i-1]]);
@@ -729,6 +742,7 @@ void CELL_PHON(ANN *R, PRS *P, PRS *W, Cell *C, LNK *L)
   fclose(out);
 
   free_d1D(A);
+  free_d1D(B);
   free_d1D(e);
   free_d1D(b);
   free_d1D(r);

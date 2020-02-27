@@ -280,6 +280,7 @@ void RANK_TR(Tribe *T)
     if(T->E[p]>Pmax)
       Pmax = T->E[p];
   }
+
   if( Pmax-Pmin < 1e-12 )
   {
     sprintf(buf,"The energy diversity is too small % lf \n",Pmax-Pmin);
@@ -287,6 +288,7 @@ void RANK_TR(Tribe *T)
     Print_LOG(buf);
     exit(1);
   }
+
   for(p=0;p<2*T->N;p++)
     T->f[p] = 0.5*( 1.0 - tanh(2.0*(T->E[p]-Pmin)/(Pmax-Pmin)-1.0) );
   Sort(T->E,I,2*T->N);
@@ -313,6 +315,7 @@ void RANK_TR(Tribe *T)
     LIST(&T->C[p],0);
     RDF(&T->C[p],1);
   }
+
   for(p=2*T->N-1;p>=1;p--)
     for(k=p-1;k>=0;k--)
       if( (t=COMP_CL(&T->C[p],&T->C[k])) > T->CUT)
@@ -343,7 +346,8 @@ void RANK_TR(Tribe *T)
   for(i=0;i<T->C[0].N;i++)
     T->C[0].ATMN[i] = T->C[0].ATMN[i];
   SAVE_CELL(&T->C[0],"poscar",0);
-  SAVE_CELL(&T->C[0],"INI/POSCAR000",0);
+  if(access("INI/",F_OK)!=-1)
+    SAVE_CELL(&T->C[0],"INI/POSCAR000",0);
   free_i1D(I);
 }
 //==================================================================
@@ -638,6 +642,7 @@ void RELX_TR(Tribe *T)
 	system(buf);
       }
   }
+
   for(p=T->N;p<2*T->N;p++)
   {
     sprintf(buf,"EVOS/G%03d/M%03d/CONTCAR.1",T->n,p);
@@ -664,6 +669,7 @@ void RELX_TR(Tribe *T)
       system(buf);
       Copy_C(&T->C[T->N+p],&T->C[p]);
     }
+
   if(T->CODE>1)
   {
     for(p=T->N;p<2*T->N;p++)
@@ -678,6 +684,7 @@ void RELX_TR(Tribe *T)
   sprintf(buf,"cp EVOS/G%03d/M000/CONTCAR.1 poscar",T->n);
 
   free_i1D(I);
+
 }
 //==================================================================
 //     Evolve Tribe

@@ -22,10 +22,10 @@
 -----------------------------------------------------------------------------
 |                            training details                               |
 -----------------------------------------------------------------------------
-|  trained on           |  Fri Feb 14 18:47:51 2020                         |
-|  maise version        |  maise.2.3.00                                     |
+|  trained on           |  Thu Feb 27 15:13:17 2020                         |
+|  maise version        |  maise.2.3.01                                     |
 |  parallelization      |  1                                                |
-|  cpu and wall times   |  0.22  0.23 sec                                   |
+|  cpu and wall times   |  0.19  0.21 sec                                   |
 |  regularization       |  1.0e-06                                          |
 |  number of epochs     |  10                                               |
 -----------------------------------------------------------------------------

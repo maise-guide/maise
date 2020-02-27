@@ -36,40 +36,44 @@ void FPRNT_HEAD(FILE *out)
   fprintf(out,"=======================================================================\n");
 }
 //==============================================================================
-void EVN(double *A, double *e, double *b, int N)
+void EVN(double *B, double *C,double *e, double *b, int N)
 {
+  double *data;
+  gsl_complex A[N*N];
+  data = make_d1D(N);
+  int i,j;
 
-  gsl_matrix_view m = gsl_matrix_view_array (A, N, N);
-  gsl_vector_complex *eval = gsl_vector_complex_alloc (N);
+  for(i=0;i<N*N;i++)
+    GSL_SET_COMPLEX(&A[i],B[i],C[i]);
+
+  gsl_matrix_complex *m = gsl_matrix_complex_alloc (N, N);
+
+  for(i=0;i<N;i++)
+    for(j=0;j<N;j++)
+      gsl_matrix_complex_set(m,i,j,A[(i*N+j)]);
+  
+  gsl_vector *eval = gsl_vector_alloc (N);
   gsl_matrix_complex *evec = gsl_matrix_complex_alloc (N, N);
-  gsl_eigen_nonsymmv_workspace * w = gsl_eigen_nonsymmv_alloc (N);
-
-  gsl_eigen_nonsymmv (&m.matrix, eval, evec, w);
-  gsl_eigen_nonsymmv_free (w);
-  gsl_eigen_nonsymmv_sort (eval, evec, GSL_EIGEN_SORT_ABS_DESC);
+  gsl_eigen_hermv_workspace * w = gsl_eigen_hermv_alloc (N);
+  
+  gsl_eigen_hermv (m, eval,evec, w);
+  gsl_eigen_hermv_free (w);
+  gsl_eigen_hermv_sort (eval, evec, GSL_EIGEN_SORT_VAL_DESC);
+  
+  for(i=0;i<N;i++)
   {
-    int i, j;
-
-    for(i=0;i<N;i++)
+    gsl_vector_complex_view evec_i = gsl_matrix_complex_column (evec, i);
+    b[i] = (double) gsl_vector_get(eval,i);
+    for(j=0;j<N;j++)
     {
-      gsl_complex eval_i             = gsl_vector_complex_get (eval, i);
-      gsl_vector_complex_view evec_i = gsl_matrix_complex_column (evec, i);
-
-      b[i] = (double)GSL_REAL(eval_i);
-      if( fabs(GSL_IMAG(eval_i)) > 1e-1 )
-        printf(" OOPS % 1.16lf\n",GSL_IMAG(eval_i));
-
-      for(j=0;j<N;++j)
-      {
-        gsl_complex z = gsl_vector_complex_get(&evec_i.vector, j);
-        e[i*N+j] = (double)GSL_REAL(z);
-      }
+      gsl_complex z = gsl_vector_complex_get(&evec_i.vector, j);
+      e[i*N+j] = (double) GSL_REAL(z);
     }
   }
 
-  gsl_vector_complex_free(eval);
+  gsl_vector_free(eval);
   gsl_matrix_complex_free(evec);
-
+  free_d1D(data);
   return;
 }
 //==============================================================================

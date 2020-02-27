@@ -37,7 +37,7 @@ void   Print_List(Cell *C);
 void   Print_LOG(char buf[]);
 void   READ_MAIN(Tribe *T, ANN *R, PRS *P, Cell *C, int J, int ARGC);
 void   EV (double A[3][3], double e[3][3], double b[3]);
-void   EVN(double *A, double *e, double *b, int N);
+void   EVN(double *A, double *B, double *e, double *b, int N);
 void   EXIT(char *s);
 double RANG();
 void   VectorProd(double *a, double *b, double *c);

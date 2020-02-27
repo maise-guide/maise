@@ -416,9 +416,9 @@ double MLP_MIN(ANN *R, LNK *L)
     err=sqrt(tot_err_gsl());
     SAVE_ANN(RRR,0.0,0.0);
     status = gsl_multimin_test_gradient (s->gradient, 2.27e-19);
-    printf("%6d %18.16lf\n",RRR->ITER,err);
+    printf("%6d %18.16lf % 12.6lf % 12.6lf % 12.6lf % 12.6lf\n",RRR->ITER,err,RRR->RE,RRR->RF,RRR->EE,RRR->EF);
     out = fopen(add_m,"a");
-    fprintf(out,"%6d %18.16lf\n",RRR->ITER,err);
+    fprintf(out,"%6d %18.16lf % 12.6lf % 12.6lf % 12.6lf % 12.6lf\n",RRR->ITER,err,RRR->RE,RRR->RF,RRR->EE,RRR->EF);
     fclose(out);
   } 
 
