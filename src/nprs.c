@@ -882,7 +882,7 @@ void PARS_DAT(ANN *R, PRS *P, Cell *C, LNK *L)
 {
   int    i,j,n,m,nn,k,Nmax,x,ND,*NFIT,NRDF,spc1,spc2,TAG,N,totf;
   double *EFIT,***H,EMAX,t;
-  char    buf[400],buf2[400],s[500],d[400],dn[400][400],kw[400];
+  char    buf[500],buf2[400],s[700],d[600],dn[400][400],kw[400];
   FILE    *stamp,*in,*dir,*rtable,*nd,*ve;
   PRS     W[9];   // 2*NSPC+1, so for maximum 3 species one needs 9
 

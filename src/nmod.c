@@ -368,7 +368,7 @@ double EVAL_ENE(ANN *R, PRS *P, PRS *W, Cell *C, LNK *L)
 //======================================================
 void EVAL_ANN(ANN *R, PRS *P, Cell *C, LNK *L)
 {
-  char   fname[700],s1[400],s[400],buf[200],buf2[200],nntp[20][2],str[200],CMP[10][200];
+  char   fname[700],s1[600],s[600],buf[200],buf2[200],nntp[20][2],str[200],CMP[10][200];
   FILE   *in,*out;
   FILE   *f1,*f2;
   int    q,i,N,rindex,j,Q,AB[100][10],k,I[1000];

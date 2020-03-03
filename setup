@@ -18,6 +18,7 @@ ETOL  1e-8              error tolerance for NN training or cell optimization con
 COUT  12                output options (00) E  final step (01) E  first/final steps (02) E  all steps
                                        (10) EF final step (11) EF first/final steps (12) EF all steps
 PGPA  0.0               pressure in GPa
+DISP  0.001             displacement in Ang in frozen phonon calculations
 =============================================================================================================
                                STRUCTURE/DESCRIPTOR/NN parameters
 =============================================================================================================

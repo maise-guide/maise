@@ -885,7 +885,7 @@ int READ_CELL(Cell *C, char filename[])
     fscanf(in,"\n");
   }
 
-  if( C->POS==1 )
+  if( C->POS==1 && C->JOBT == 21 ) //only for JOBT = MD read the velocities
   {
     p = 0;
     for(i=0; i < C->N;i++)
@@ -1213,6 +1213,7 @@ void READ_MAIN(Tribe *T, ANN *R, PRS *P, Cell *C, int J, int ARGC)
   while( fgets(buf,200,in) )
   {
     //======================  JOB TYPE parameter  ===========================
+    if( strncmp(buf,"JOBT",4) == 0 ) { sscanf(buf+4,"%d" , &R->JOBT); T->JOBT = C->JOBT = R->JOBT; }
     if( strncmp(buf,"NPAR",4) == 0 ) { sscanf(buf+4,"%d"  ,&R->NP  );       }
     if( strncmp(buf,"NPAR",4) == 0 ) { sscanf(buf+4,"%d"  ,&C->NP  );       }
     if( strncmp(buf,"NBLK",4) == 0 ) { sscanf(buf+4,"%d"  ,&R->NB  );       }
@@ -1226,9 +1227,9 @@ void READ_MAIN(Tribe *T, ANN *R, PRS *P, Cell *C, int J, int ARGC)
     if( strncmp(buf,"CPLP",4) == 0 ) { sscanf(buf+4,"%lf" ,&R->CPLP);       }
     if( strncmp(buf,"ICMP",4) == 0 ) { sscanf(buf+4,"%lf" ,&R->ICMP);       }
     if( strncmp(buf,"MDTP",4) == 0 ) { sscanf(buf+4,"%d"  ,&R->MDTP);       }
-    if( strncmp(buf,"MOVI",4) == 0 ) { sscanf(buf+4,"%d"  ,&R->MOVI);       }
-    if( R->MDTP%10 == 1)
+    if( R->MDTP%10 == 1 )
       C->POS = 1;
+    if( strncmp(buf,"MOVI",4) == 0 ) { sscanf(buf+4,"%d"  ,&R->MOVI);       }
     //====================  main structure parameters  ======================
     if( strncmp(buf,"NBLK",4) == 0 ) { sscanf(buf+4,"%d"  ,&C->NB  );       }
     if( strncmp(buf,"COUT",4) == 0 ) { sscanf(buf+4,"%d"  ,&C->OUT );       }
@@ -1237,9 +1238,6 @@ void READ_MAIN(Tribe *T, ANN *R, PRS *P, Cell *C, int J, int ARGC)
     if( strncmp(buf,"NMAX",4) == 0 ) { sscanf(buf+4,"%d"  ,&R->A   );       }
     if( strncmp(buf,"MMAX",4) == 0 ) { sscanf(buf+4,"%d"  ,&C->NM  );       }
     //====================  main EVOS parameters  ===========================
-    if( strncmp(buf,"JOBT",4) ==0 ) { sscanf(buf+4,"%d" ,&T->JOBT  );       }
-    if( strncmp(buf,"JOBT",4) ==0 ) { sscanf(buf+4,"%d" ,&C->JOBT  );       }
-    if( strncmp(buf,"JOBT",4) ==0 ) { sscanf(buf+4,"%d" ,&R->JOBT  );       }
     if( strncmp(buf,"CODE",4) ==0 ) { sscanf(buf+4,"%d" ,&T->CODE  );       }
     if( strncmp(buf,"QUET",4) ==0 ) { sscanf(buf+4,"%d" ,&T->QT    );       }
     if( strncmp(buf,"NDIM",4) ==0 ) { sscanf(buf+4,"%d" ,&T->ND    );       }
@@ -1247,10 +1245,10 @@ void READ_MAIN(Tribe *T, ANN *R, PRS *P, Cell *C, int J, int ARGC)
     if( strncmp(buf,"LBOX",4) ==0 ) { sscanf(buf+4,"%lf",&T->B     );       }
     if( strncmp(buf,"NPOP",4) ==0 && J == 1 ) { sscanf(buf+4,"%d" ,&T->N ); }
     if( strncmp(buf,"SITR",4) ==0 && J == 1 ) { sscanf(buf+4,"%d" ,&T->n ); }
-    if( strncmp(buf,"NITR",4) == 0      ) { sscanf(buf+4,"%d" ,&T->NI);     }
+    if( strncmp(buf,"NITR",4) == 0          ) { sscanf(buf+4,"%d" ,&T->NI); }
     if( strncmp(buf,"TINI",4) == 0 && J == 1) { sscanf(buf+4,"%d" ,&T->JS); }
     if( strncmp(buf,"RAND",4) == 0) { sscanf(buf+4,"%ld" ,&R->seed2);       }
-    if( strncmp(buf,"SEED",4) == 0) { sscanf(buf+4,"%ld",&T->seed);         }
+    if( strncmp(buf,"SEED",4) == 0) { sscanf(buf+4,"%ld" ,&T->seed);        }
     //==================== operation EVOS parameters  =======================
     if( strncmp(buf,"TETR",4) == 0 ) { sscanf(buf+4,"%lf",&t ); T->TES[ 0] = (int)(t*(double)T->N); } sprintf(T->NES[ 0],"TETR");  
     if( strncmp(buf,"PLNT",4) == 0 ) { sscanf(buf+4,"%lf",&t ); T->TES[ 1] = (int)(t*(double)T->N); } sprintf(T->NES[ 1],"PLNT");  

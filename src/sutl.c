@@ -337,7 +337,8 @@ int sym_dataset(Cell *C, const double origin_shift[3], char w[], int equivalent_
   }
 
   dataset = spg_get_dataset(lattice, position, types, C->N, tol);
-  spg_get_symmetry_with_collinear_spin(rotation, translation, equivalent_atoms, max_size, lattice, position, types, spins, C->N, tol);
+  if(J==1)
+    spg_get_symmetry_with_collinear_spin(rotation, translation, equivalent_atoms, max_size, lattice, position, types, spins, C->N, tol);
   spg_get_international(symbol,lattice, position, types, C->N, tol);
   strncpy(C->SGS,symbol,9);
 
