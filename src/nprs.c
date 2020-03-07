@@ -22,6 +22,7 @@ void GNcheck(char *s, int coor)
 
   fgets(buf,200,in);
   sscanf(buf,"%lf %lf\n",&a,&r);
+  if(0)
   if( fabs(a-0.529177249) > 1e-8 )
   {
     fclose(in);
