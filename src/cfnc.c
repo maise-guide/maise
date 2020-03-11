@@ -1,3 +1,4 @@
+#include "user.h"
 #include "cfnc.h"
 
 //==================================================================
@@ -423,7 +424,7 @@ void PLOT_RDF(Cell *C, int argc, char **argv)
 
   C->ND = FIND_NDIM(C);
   LIST(C,1);
-  Print_List(C);
+  PRNT_LIST(C);
   printf("\nNeighbor   list      written to     list.dat\n");
   RDF(C,1);
   Print_RDF_FULL(C,"RDF.dat");
@@ -453,10 +454,10 @@ void COMP_STR(Cell *C, Cell *D, int argc, char **argv)
   D->ND = FIND_NDIM(D);
 
   LIST(C,1);
-  Print_List(C);
+  PRNT_LIST(C);
   system("mv list.dat list0.dat");
   LIST(D,1);
-  Print_List(D);
+  PRNT_LIST(D);
   system("mv list.dat list1.dat");
 
   RDF(C,1);
@@ -576,7 +577,7 @@ void CELL_EXAM(Cell *C, Cell *D, int argc, char **argv)
   double tol,L;
   int    i,NM,N[3];
 
-  NM = 300;
+  NM = 500;
 
   //================   list available options  ===============
   if(argc<2)
@@ -718,6 +719,12 @@ void CELL_EXAM(Cell *C, Cell *D, int argc, char **argv)
     printf("% lf\n",CELL_VOL(C)/(double)C->N);
     exit(0);
   }
+  //================  run user-defined functions   ==========
+  if(strncmp(argv[1],"-usr",4)==0)  
+  {
+    USER_CELL(C,D,argc,argv);
+    exit(0);
+  }
 
   //================   manual for flag operations =============
   if(strncmp(argv[1],"-man",4)==0)
@@ -737,6 +744,7 @@ void CELL_EXAM(Cell *C, Cell *D, int argc, char **argv)
     printf("-box    reset   the box size for nanoparticles                          \n");
     printf("-sup    make    a supercell specified by na x nb x nc                   \n");
     printf("-vol    compute volume per atom for crystal or nano structures          \n");
+    printf("-usr    run user-defined functions                                      \n");
     exit(0);
   }
 
@@ -753,6 +761,7 @@ void CELL_EXAM(Cell *C, Cell *D, int argc, char **argv)
   printf("-box    reset   the box size for nanoparticles                          \n");
   printf("-sup    make    a supercell specified by na x nb x nc                   \n");
   printf("-vol    compute volume per atom for crystal or nano structures          \n");
+  printf("-usr    run user-defined functions                                      \n");
   exit(0);
 }
 //==================================================================

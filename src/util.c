@@ -851,7 +851,7 @@ int READ_CELL(Cell *C, char filename[])
 
   //======================
   fgets(buf,100,in); 
-  if( strncmp(buf,"S",1) == 0 || strncmp(buf,"s",1) == 0 )
+  if( (strncmp(buf,"S",1) == 0) || (strncmp(buf,"s",1) == 0) )
     fgets(buf,100,in);
 
   for(i=0; i < C->N;i++)
@@ -861,7 +861,7 @@ int READ_CELL(Cell *C, char filename[])
       strcpy(FF[q],"T\0");
 
     sscanf(s,"%lf %lf %lf %s %s %s",&C->X[i][0],&C->X[i][1],&C->X[i][2],FF[0],FF[1],FF[2]); 
-    if( strncmp(buf,"C",1) != 0 )
+    if( (strncmp(buf,"C",1) != 0) || (strncmp(buf,"c",1) != 0) )
     {
       for(q=0; q < D3;q++)
       {
@@ -1088,7 +1088,7 @@ double Read_OSZI(char *file)
   return E;
 }
 //==============================================================================
-void Print_List(Cell *C)
+void PRNT_LIST(Cell *C)
 {
   int i,j;
   FILE *out;
@@ -1100,8 +1100,8 @@ void Print_List(Cell *C)
     for(j=0; j < C->Nn[i];j++)
     {
       fprintf(out,"%3d % 2.5lf ",C->Ni[i][j],NDX(C,i,j));
-      if( ( j > 0 && j%12 == 0 && j != C->Nn[i]-1) || C->Nn[i] < 2 )
-	fprintf(out,"\n");
+      if( ( (j+1)%12 == 0 && j != C->Nn[i]-1) || C->Nn[i] < 2 )
+	fprintf(out,"\n     ");
     }
     fprintf(out,"\n");
   }

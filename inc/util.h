@@ -33,7 +33,7 @@ int    READ_CELL(Cell *C, char filename[]);
 void   SAVE_CELL(Cell *C, char filename[], int SD) ;
 void   Read_OUTCAR(Cell *C, char file[], int NC);
 double Read_OSZI(char *file);
-void   Print_List(Cell *C);
+void   PRNT_LIST(Cell *C);
 void   Print_LOG(char buf[]);
 void   READ_MAIN(Tribe *T, ANN *R, PRS *P, Cell *C, int J, int ARGC);
 void   EV (double A[3][3], double e[3][3], double b[3]);

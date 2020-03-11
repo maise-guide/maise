@@ -278,6 +278,7 @@ double dgnr(PRS *P, int n, double Rc, double r)
 //==================================================================                                                              
 double GNR(PRS *P, int n, double Rc, double r)
 {
+//  printf("%3d % lf % lf\n",n,P->GP[1][P->GF[n][2]],P->GP[2][P->GF[n][3]]);
   if(P->GF[n][0]==1)
     return fc(Rc,r);
   if(P->GF[n][0]==2)
@@ -510,6 +511,7 @@ void PRS_BP(PRS *P, PRS *W, Cell *C, LNK *L, int o, char *path)
 	        n12 = W[w12].GP[3][n2];
 	        n2ijk[n2] = fcijk*exp( -C->NDX[i][jj]*C->NDX[i][jj]*n01 - C->NDX[i][ k]*C->NDX[i][ k]*n02 - C->ndx[i][jj][k]*C->ndx[i][jj][k]*n12 );
 	      }
+
 	      for(z=0;z<W[0].GT[5];z++)
 	      for(l=0;l<W[0].GT[6];l++)
 	        lzijk[z][l] =  pow(1.0+P->GP[6][l]*C->cos[i][jj][k],P->GP[5][z]);
@@ -519,6 +521,7 @@ void PRS_BP(PRS *P, PRS *W, Cell *C, LNK *L, int o, char *path)
 	        {
 		  m=(P->NG2*ng2)+(g4 * ng4)+index[w1][w2];
 		  L->Cn[i][m] += lzijk[W[0].GF[n][6]][W[0].GF[n][7]] * n2ijk[W[0].GF[n][4]];
+//		  printf("%3d % lf % lf % lf\n",m,P->GP[3][W[0].GF[n][4]],P->GP[6][W[0].GF[n][7]],P->GP[5][W[0].GF[n][6]]);
 		  g4++;
 	        }
 	    }
