@@ -51,11 +51,12 @@ double FRC_ANN_PARA(ANN *R, LNK *L, double ***e, double ***d)
   for(q=0;q<6;q++)
     L->s[q] = 0.0;
   for(i=0;i<L->N;i++)    
+  if(L->MRK[i]==1)
   {
     spc = L->ATMN[i];
     for(q=0;q<3;q++)
       L->f[i][q] = 0.0;
-    // for 3-layer MLP
+    // for MLP with 2 hidden layers
     // =======  dGni/dxi  ========
     for(m=0;m<R->NU[2];m++)
     {
@@ -65,12 +66,10 @@ double FRC_ANN_PARA(ANN *R, LNK *L, double ***e, double ***d)
         tn = tm*R->W[spc][1][m][n]*d[i][1][n];
         for(l=0;l<R->NU[0];l++)
         {
-          if(L->MRK[i]==1)
-	  {
-	    tl = R->DR[spc][l]*tn*R->W[spc][0][n][l];
-            for(q=0;q<3;q++)
-              L->f[i][q] -= L->Fn[i][L->DNn[i]][l][q]*tl;
-	  }
+	  tl = R->DR[spc][l]*tn*R->W[spc][0][n][l];
+	  for(q=0;q<3;q++)
+	    L->f[i][q] -= L->Fn[i][L->DNn[i]][l][q]*tl;
+	  // ======= will not work if not all atoms are marked =======
 	  if(R->EFS>1)
 	    for(q=0;q<6;q++)
 	      L->s[q] -= L->Sn[i][l][q]*R->DR[spc][l]*tn*R->W[spc][0][n][l];
@@ -78,26 +77,25 @@ double FRC_ANN_PARA(ANN *R, LNK *L, double ***e, double ***d)
       }
     }
     // =======  dGnj/dxi  ========
-    if(L->MRK[i]==1)
-      for(j=0;j<L->DNn[i];j++)
+    for(j=0;j<L->DNn[i];j++)
+    {
+      sij = L->DNs[i][j];
+      nij = L->DNi[i][j];
+      for(m=0;m<R->NU[2];m++)
       {
-	sij = L->DNs[i][j];
-	nij = L->DNi[i][j];
-        for(m=0;m<R->NU[2];m++)
-        {
-          tm = R->W[sij][2][0][m]*d[nij][2][m];
-          for(n=0;n<R->NU[1];n++)
-          {
-            tn = tm*R->W[sij][1][m][n]*d[nij][1][n];
-            for(l=0;l<R->NU[0];l++)
-	    {
-	      tl = R->DR[sij][l]*tn*R->W[sij][0][n][l];
-              for(q=0;q<3;q++)
-                L->f[i][q] -= L->Fn[i][j][l][q]*tl;
-	    }
-          }
-        }
+	tm = R->W[sij][2][0][m]*d[nij][2][m];
+	for(n=0;n<R->NU[1];n++)
+	{
+	  tn = tm*R->W[sij][1][m][n]*d[nij][1][n];
+	  for(l=0;l<R->NU[0];l++)
+	  {
+	    tl = R->DR[sij][l]*tn*R->W[sij][0][n][l];
+	    for(q=0;q<3;q++)
+	      L->f[i][q] -= L->Fn[i][j][l][q]*tl;
+	  }
+	}
       }
+    }
   }
 
   return L->e;
@@ -106,7 +104,7 @@ double FRC_ANN_PARA(ANN *R, LNK *L, double ***e, double ***d)
 double DF_ANN_PARA(ANN *R, LNK *L, double ***Bp, double ****Wp,  double ***e,  double ***d,  double ***c, double ***xn, double ***xm)
 {
   int i,k,n,m,q,l,j,nij,sij,spc;
-  double E,tm,tn,tl,tmn,dfq[3];
+  double E,tm,tn,tl,tmn,rmn,tnl,rnl[3],dfq[3],dnl[3];
   
   for(i=0,E=0.0;i<L->N;i++)
   {
@@ -204,6 +202,36 @@ double DF_ANN_PARA(ANN *R, LNK *L, double ***Bp, double ****Wp,  double ***e,  d
 	    xm[m][j][q] += tmn*xn[n][j][q];
 	}
       }
+    
+    if(R->MIX==0)
+    {
+    for(m=0;m<R->NU[k];m++)
+      for(j=0;j<=L->DNn[i];j++)
+      {
+        sij = L->DNs[i][j];
+        nij = L->DNi[i][j];
+        tm = R->W[sij][k][0][m]*c[nij][k][m];
+        for(n=0;n<R->NU[k-1];n++)
+        {
+          tmn = tm*R->W[sij][k-1][m][n]*d[nij][k-1][n];
+          for(q=0;q<3;q++)
+            Bp[sij][k-1][m] -= tmn*xn[n][j][q];
+        }
+      }
+
+    for(n=0;n<R->NU[k-1];n++)
+      for(j=0;j<=L->DNn[i];j++)
+      {
+        sij = L->DNs[i][j];
+        nij = L->DNi[i][j];
+        for(m=0;m<R->NU[k];m++)
+        {
+          tn = R->W[sij][k][0][m]*d[nij][k][m]*R->W[sij][k-1][m][n]*c[nij][k-1][n];
+          tm = R->W[sij][k][0][m]*c[nij][k][m]*R->W[sij][k-1][m][n]*d[nij][k-1][n];
+          for(q=0;q<3;q++)
+            Bp[sij][k-2][n] -= tn*xn[n][j][q] + tm*xm[m][j][q];
+        }
+      }
 
     for(m=0;m<R->NU[k];m++)
       for(j=0;j<=L->DNn[i];j++)
@@ -231,54 +259,31 @@ double DF_ANN_PARA(ANN *R, LNK *L, double ***Bp, double ****Wp,  double ***e,  d
 	  for(q=0;q<3;q++)
 	    Wp[sij][k-1][m][n] -= tmn*xm[m][j][q];
         }
-
-    for(n=0;n<R->NU[k-1];n++)
-      for(l=0;l<R->NU[k-2];l++)
-        for(j=0;j<=L->DNn[i];j++)
+    }
+    for(j=0;j<=L->DNn[i];j++)
+      for(l=0;l<R->NU[0];l++)
+      {
+	sij = L->DNs[i][j];
+	if(R->MIX==0||R->mask[sij][l]==1)
+	for(n=0;n<R->NU[1];n++)
         {
-	  sij = L->DNs[i][j];
 	  nij = L->DNi[i][j];
-          for(m=0;m<R->NU[k];m++)
-          {
-            tmn = R->W[sij][k][0][m]*d[nij][k][m]*R->W[sij][k-1][m][n];
-            for(q=0;q<3;q++)
-              Wp[sij][k-2][n][l] -= tmn*L->Fn[i][j][l][q]*d[nij][k-1][n]*R->DR[sij][l]*dfq[q];
-            tmn *= c[nij][k-1][n]*e[nij][k-2][l];
-	    for(q=0;q<3;q++)
-	      Wp[sij][k-2][n][l] -= tmn*xn[n][j][q];
-            tmn = R->W[sij][k][0][m]*c[nij][k][m]*R->W[sij][k-1][m][n]*d[nij][k-1][n]*e[nij][k-2][l];
-	    for(q=0;q<3;q++)
-              Wp[sij][k-2][n][l] -= tmn*xm[m][j][q];
-          }
-        }
-
-    for(m=0;m<R->NU[k];m++)
-      for(j=0;j<=L->DNn[i];j++)
-      {
-        sij = L->DNs[i][j];
-        nij = L->DNi[i][j];
-        tm = R->W[sij][k][0][m]*c[nij][k][m];
-        for(n=0;n<R->NU[k-1];n++)
-        {
-          tmn = tm*R->W[sij][k-1][m][n]*d[nij][k-1][n];
+	  tnl = d[nij][1][n]*e[nij][0][l];
 	  for(q=0;q<3;q++)
-	    Bp[sij][k-1][m] -= tmn*xn[n][j][q];
-        }
+	  {
+	    dnl[q] = L->Fn[i][j][l][q]*d[nij][1][n]*R->DR[sij][l]*dfq[q];
+	    rnl[q] = c[nij][1][n]*e[nij][0][l]*xn[n][j][q];
+	  }
+	  for(m=0;m<R->NU[2];m++)
+	  {
+	    tmn = R->W[sij][2][0][m]*d[nij][2][m]*R->W[sij][1][m][n];
+	    rmn = R->W[sij][2][0][m]*c[nij][2][m]*R->W[sij][1][m][n]*tnl;
+	    for(q=0;q<3;q++)
+	      Wp[sij][0][n][l] -= tmn*(dnl[q]+rnl[q])+rmn*xm[m][j][q];
+	  }
+	}
       }
-
-    for(n=0;n<R->NU[k-1];n++)
-      for(j=0;j<=L->DNn[i];j++)
-      {
-        sij = L->DNs[i][j];
-        nij = L->DNi[i][j];
-        for(m=0;m<R->NU[k];m++)
-        {
-          tn = R->W[sij][k][0][m]*d[nij][k][m]*R->W[sij][k-1][m][n]*c[nij][k-1][n];
-	  tm = R->W[sij][k][0][m]*c[nij][k][m]*R->W[sij][k-1][m][n]*d[nij][k-1][n];
-	  for(q=0;q<3;q++)
-	    Bp[sij][k-2][n] -= tn*xn[n][j][q] + tm*xm[m][j][q];
-        }
-      }
+    
   }
   return E;
 }
@@ -312,21 +317,27 @@ double DE_ANN_PARA(ANN *R, LNK *L, double ***Bp, double ****Wp,  double ***e)
   {
     spc = L->ATMN[i];
     k = R->NL-2;
-    Bp[spc][k][0] += c;
-    for(m=0;m<R->NU[k];m++)
-      Wp[spc][k][0][m] += c*e[i][k][m];
-    k--;
-
-    for(m=0;m<R->NU[k+1];m++)
+    if(R->MIX==0)
     {
-      tm = c*R->W[spc][k+1][0][m]*GPp(R->GT[k+1],e[i][k+1][m]);
-      Bp[spc][k][m] += tm;
-      for(n=0;n<R->NU[k];n++)
-	Wp[spc][k][m][n] += tm*e[i][k][n];
+      Bp[spc][k][0] += c;
+      for(m=0;m<R->NU[k];m++)
+	Wp[spc][k][0][m] += c*e[i][k][m];
+      k--;
+      
+      for(m=0;m<R->NU[k+1];m++)
+      {
+	tm = c*R->W[spc][k+1][0][m]*GPp(R->GT[k+1],e[i][k+1][m]);
+	Bp[spc][k][m] += tm;
+	for(n=0;n<R->NU[k];n++)
+	  Wp[spc][k][m][n] += tm*e[i][k][n];
+      }
     }
+    else
+      k--;
+
     if(k)
     {
-      k--;
+      k--;      
       for(m=0;m<R->NU[k+2];m++)
       {
 	tm = c*R->W[spc][k+2][0][m]*GPp(R->GT[k+2],e[i][k+2][m]);
@@ -334,7 +345,7 @@ double DE_ANN_PARA(ANN *R, LNK *L, double ***Bp, double ****Wp,  double ***e)
 	{
 	  tn = tm*R->W[spc][k+1][m][n]*GPp(R->GT[k+1],e[i][k+1][n]);
 	  Bp[spc][k][n] += tn;
-	  for(l=0;l<R->NU[k];l++)
+          for(l=0;l<R->NU[k];l++)
 	    Wp[spc][k][n][l] += tn*e[i][k][l];
 	}
       }
@@ -373,13 +384,13 @@ double ENE_ANN(ANN *R, LNK *L)
       {
         for(m=0;m<R->NU[k+1];m++)
         {
-	      for(n=0,b[m]=R->B[spc][k][m];n<R->NU[k];n++)
-	        b[m] += a[n]*R->W[spc][k][m][n];
-	      b[m] = GP(R->GT[k+1],b[m]);
+	  for(n=0,b[m]=R->B[spc][k][m];n<R->NU[k];n++)
+	    b[m] += a[n]*R->W[spc][k][m][n];
+	  b[m] = GP(R->GT[k+1],b[m]);
         }
-
+	
         for(m=0;m<R->NU[k+1];m++)
-	      a[m] = b[m];
+	  a[m] = b[m];
       }
       L->EA[i] = b[0];
       E += b[0];

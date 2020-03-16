@@ -1435,7 +1435,7 @@ void READ_MAIN(Tribe *T, ANN *R, PRS *P, Cell *C, int J, int ARGC)
   //===== If the job is a cell operation, this will overwrite the setup and basis =====
   //===== parameters with those in the "model" file in the current directory. =====
   
-  if( R->JOBT/10==2 )
+  if( R->JOBT/10==2 || R->JOBT/10==5 )
   {
     if( (in=fopen("model","r")) == 0 )
     {
@@ -1510,15 +1510,17 @@ void READ_MAIN(Tribe *T, ANN *R, PRS *P, Cell *C, int J, int ARGC)
       P->D    = R->NU[0];
       R->D    = R->NU[0];
     }
-
     fclose(in);
-    C->A = 0;
-    READ_CELL(C,"POSCAR");
-    R->A = C->A;
-    P->NSPC = R->NSPC;
-    C->nspc = R->NSPC;
-    for(i=0;i<C->nspc;i++)
-      C->spcz[i] = P->SPCZ[i] = R->SPCZ[i];
+    if( R->JOBT/10==2 )
+    {
+      C->A = 0;
+      READ_CELL(C,"POSCAR");
+      R->A = C->A;
+      P->NSPC = R->NSPC;
+      C->nspc = R->NSPC;
+      for(i=0;i<C->nspc;i++)
+	C->spcz[i] = P->SPCZ[i] = R->SPCZ[i];
+    }
   }
 }
 //==============================================================================

@@ -400,14 +400,16 @@ void EVAL_ANN(ANN *R, PRS *P, Cell *C, LNK *L)
 
   //===== CAUTION does not check setup with 'model' file for NCMP and ... ! =====
   R->STR=1;
-  if( R->MODT>1 )
-    READ_POT(C,R->otpt);
-  else
+  C->ND = 3;
+  if(R->MODT==1)
   {
-    Build_ANN(R); 
+    Build_ANN(R);
     READ_ANN(R);
     Build_PRS(P,W,0);
   }
+  else
+    READ_POT(C,R->otpt);
+
   Adft = Bdft = Aann = Bann = 0.0;
   
   // ===== EVALUATE EOS (eval/EOS) =====

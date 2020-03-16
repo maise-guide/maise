@@ -1,7 +1,7 @@
 #=============================================================================#
 EXE        = maise
 CC         = gcc
-VER        = maise.2.3.05
+VER        = maise.2.3.06
 CFLAGS     = -O3 -Wall -fno-strict-overflow
 GSL_H      = $(shell ./lib/gsl-config --cflags 2> /dev/null)
 GSL_LIB    = $(shell ./lib/gsl-config --libs   2> /dev/null)
