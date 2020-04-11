@@ -309,7 +309,7 @@ void RAND_CL(Tribe *T, Cell *C, Cell *D, int J)
       C->XT = 0;
       Real(C);
 
-      if(CHCK_Rm(C,T->Rm,1.0)==1||ADJT_CL(C,T->Rm,5)==1)
+      if(CHCK_Rm(C,T->Rm,1.0)==1||ADJT_CL(C,T->Rm,10)==1)
 	break;
     }
     if(J==1)                        //KEEP LV and random X (except for the fixed positions)
@@ -325,7 +325,7 @@ void RAND_CL(Tribe *T, Cell *C, Cell *D, int J)
             C->X[i][2] = 0.5;
       C->XT = 0;
       Real(C);
-      if(CHCK_Rm(C,T->Rm,1.0)==1 || ADJT_CL(C,T->Rm,5)==1)
+      if(CHCK_Rm(C,T->Rm,1.0)==1 || ADJT_CL(C,T->Rm,10)==1)
 	break;
     }
     if(J==2 )                       //from given X

@@ -10,6 +10,7 @@ typedef struct
   int    TN;         // # of test data structures
   int    M;          // # of ANN (gaussian) centers
   int    D;          // # of dimensions in configuration space 
+  int    O;          // starting index for unconstrained inputs in stratified training
   int    NN;         // # of first nearest neighbors
   int    Q;          // # of output variables
   int    NE;

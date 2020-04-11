@@ -1,302 +1,163 @@
-
 #include "nutl.h"
 
 //==============================================================================
-void READ_STRAT3(ANN *R)
+void READ_STRAT(ANN *R)
 {
-  int   i,j,k,l,m,n;
-  char  s[700],s1[200],s2[200];
-  int   NG[20],NC[3];
-  FILE  *in,*mlp;
-  int   t,a;
+  int      i,j,k,m;
+  char     s[700],s2[200];
+  FILE    *mlp;
+  int      I,W,T,J;
+  int      indx,indm,sub_mdl,sub_ele,SKPR,SKPW;
+  int      NG[20],NC[20];
+  double  *M;
+  double **X;
+  int      spc[20],skp[20];
 
-  int   tag[10]={4,2,1,0,0,0,0,0,0,0};        //variable cmp
-  int   x,z,ind;
-  int   spc[3][2]={{0,1},{0,2},{1,2}};
-  int   bin[3][2]={{0,1},{0,2},{1,2}};
-  int   ter[3][3]={{0,1,3},{0,2,5},{3,4,5}};
-
-  //===== reading basis parameters from the first model file in the output directroy =====
+  // initialize sub-system models: depends on the number of elements
+  if(R->NSPC == 2)
+    for(i=0,k=0; i < R->NSPC;i++)
+    {
+      atom_symb(R->SPCZ[i],s);
+      sprintf(R->file_list[k],"%s/%s.dat",R->otpt,s);
+      k++;
+    }
+  if(R->NSPC == 3)
+    for(i=0,k=0; i < (R->NSPC-1);i++)
+      for(j=i+1; j < R->NSPC;j++)
+      {
+	atom_symb(R->SPCZ[i],s );
+	atom_symb(R->SPCZ[j],s2);
+	sprintf(R->file_list[k],"%s/%s%s.dat",R->otpt,s,s2);
+	k++;
+      }
+    
+  // read symm_func information from the first binary model
   for(i=0; i < 20;i++) 
-    NG[i]=0;
-  atom_symb(R->SPCZ[0],s1);
-  atom_symb(R->SPCZ[1],s2);
-  sprintf(s,"%s/%s%s.dat",R->otpt,s1,s2);
-  if( (in=fopen(s,"r")) == 0 )
+    NG[i]=NC[i]=0;
+  if( (mlp=fopen(R->file_list[0],"r")) == 0 )
   {
     printf("ERROR opening %s file to read basis parameters\n",s);         
     exit(1);
   }
-  while( fgets(s,200,in) )
+  while( fgets(s,200,mlp) )
     if( strncmp(s,"  B2A",5) == 0 )
       break;
   for(i=0; i < 4;i++) 
-    fgets(s,200,in);
+    fgets(s,200,mlp);
   for(i=0; i < R->NSYM;i++)
   {
-    fgets(s,200,in);
-    sscanf(s,"%d %d %d %d %d %d %d %d %d\n",&t,&a,&t,&t,&t,&t,&t,&t,&t);
-    NG[a]++;
-    if( a > 2 ) 
-      NG[0]++;                       // total number of triplet (NG4) functions
+    fgets(s,200,mlp);
+    sscanf(s,"%d %d %d %d %d %d %d %d %d\n",&k,&j,&k,&k,&k,&k,&k,&k,&k);
+    NG[j]++;
   }
-  fclose(in);
+  fclose(mlp);
 
-  NC[0]=R->NSPC;                     // number of components/sym_function: pair
-  for(t=R->NSPC,a=0;t > 0;t--) 
-    a+=t;
-
-  NC[1]=a;                           // number of components/sym_function: triplet
-
-  R->nw = R->NSPC*(NG[0])*R->NU[1];  // total number of adjustable weights
-
-  R->mask = make_i2D(R->NSPC+1,R->D);
-
-  for(i=0; i < R->D;i++)                // mark all as NON-adjustable=0 at first
-    for(j=0; j < R->NSPC;j++) 
-      R->mask[j][i] = 0;
-
-  for(i=0,l=1; i < R->NSPC-1;i++)
-    for(j=i+1; j < R->NSPC;j++)
-    {
-      atom_symb(R->SPCZ[i],s );
-      atom_symb(R->SPCZ[j],s2);
-      sprintf(R->file_list[l],"%s/%s%s.dat",R->otpt,s,s2);
-      l++;
-    }
-
-  for(i=0; i < R->NSPC;i++)
-    for(n=l=0; n < R->D;n++) 
-      if( n == NG[2]*NC[0]+l*NC[1]+tag[i])
-      {
-	R->mask[i][n] = 1;
-	l++;
-      }
-
-  //===== reading 'model' file parameters =====
-  for(ind=0; ind < 3;ind++)
+  // initialize variables: depends on the number of elements
+  I = W = 0;
+  if(R->NSPC == 2)
   {
-    mlp = fopen(R->file_list[ind+1],"r");
+    R->nw  = R->NSPC*(NG[2]+2*NG[4])*R->NU[1];  // total number of adjustable weights
+    R->O   = NG[2] + NG[4];                     // starting point for adjustable weights
+    I      = NG[2] + NG[4];                     // input_comp per element: elemental
+    SKPR   = 0;                                 // where to skip reading
+    SKPW   = 0;                                 // where to skip writing
+    sub_mdl= 2;                                 // number of subsystems
+    sub_ele= 1;                                 // number of elements per subsystem
+    spc[0] = 0; spc[1] = 1;                     // list of elements in all models
+    skp[0] = 0; skp[1] = 0;
+  }
+  if(R->NSPC == 3)
+  {
+    R->nw  = R->NSPC*(NG[4])*R->NU[1];  // total number of adjustable weights
+    R->O   = 3*NG[2] + 5*NG[4];         // starting point for adjustable weights |AA|AAA|...
+    I      = 2*NG[2]+3*NG[4];           // input_comp per element: binary  
+    SKPR   = NG[2]+NG[4];               // where to skip reading
+    SKPW   = 2*NG[2]+3*NG[4];           // where to skip writing
+    sub_mdl= 3;                         // number of subsystems
+    sub_ele= 2;                         // number of elements per subsystem
+    spc[0] = 0; spc[1] = 1; spc[2] = 0; spc[3] = 2; spc[4] = 1; spc[5] = 2;
+    skp[0] = 0; skp[1] = 1; skp[2] = 1; skp[3] = 0; skp[4] = 0; skp[5] = 1;
+  }
+  
+  // allocate arrays and list of elements for all sub-models
+  for(i=1,W=R->NU[1]*(I+1); i < R->NL-1;i++)
+    W += (R->NU[i]+1)*R->NU[i+1];        // weight+bias per element
+  M = make_d1D(W*sub_mdl*sub_ele);
+  X = make_d2D(I*sub_mdl*sub_ele,3);
+  
+  // ========== read subsystem 'model' files
+  indm = 0;
+  indx = 0;
+  for(i=0; i < sub_mdl;i++)
+  {
+    mlp = fopen(R->file_list[i],"r");
     while(fgets(s,200,mlp))
       if(strncmp(s,"        minimum",15)==0)
         break;
-    for(z=0;z<2;z++)
-    {
-      for(i=0;i<NG[2];i++)
-      {
-        j=i*3;
-        for(x=0;x<2;x++)
-        {
-          fgets(s,200,mlp);
-          sscanf(s,"%lf %lf %lf\n",&R->Rmin[spc[ind][z]][j+bin[ind][x]],&R->Rmax[spc[ind][z]][j+bin[ind][x]],&R->DR[spc[ind][z]][j+bin[ind][x]]);
-        }
-      }
-      for(i=0;i<NG[0];i++)
-      {
-        j=NG[2]*3+i*6;
-        for(x=0;x<3;x++)
-        {
-          fgets(s,200,mlp);
-          sscanf(s,"%lf %lf %lf\n",&R->Rmin[spc[ind][z]][j+ter[ind][x]],&R->Rmax[spc[ind][z]][j+ter[ind][x]],&R->DR[spc[ind][z]][j+ter[ind][x]]);
-        }
-      }
-    }
-    
-
-    while(fgets(s,200,mlp))
-      if(strncmp(s,"|                        neural",31)==0)
-        break;
-    fgets(s,200,mlp);
-    
-    for(z=0;z < 2;z++)
-    {
-      for(k=i=0; k < R->NL-1;k++)
-	for(m=0; m < R->NU[k+1];m++)
-	{
-	  fgets(s,200,mlp);
-	  sscanf(s,"%lf\n",&R->B[spc[ind][z]][k][m]);
-	}
-
-      for(m=k=0; m < R->NU[k+1];m++)
-      {
-	for(i=0; i < NG[2];i++)
-	{
-	  j=i*3;
-	  for(x=0; x < 2;x++)
-	  {
-	    fgets(s,200,mlp); 
-	    sscanf(s,"%lf\n",&R->W[spc[ind][z]][k][m][j+bin[ind][x]]);
-	  }
-	}
-
-	for(i=0; i < NG[0];i++)
-	{
-	  j=NG[2]*3+i*6;
-	  for(x=0; x < 3;x++)
-	  {
-	    fgets(s,200,mlp); 
-	    sscanf(s,"%lf\n",&R->W[spc[ind][z]][k][m][j+ter[ind][x]]);
-	  }
-	}
-      }
-
-      for(k=1; k < R->NL-1;k++)
-	for(m=0; m < R->NU[k+1];m++)
-	  for(n=0; n < R->NU[k];n++)
-	  {
-	    fgets(s,200,mlp);
-	    sscanf(s,"%lf\n",&R->W[spc[ind][z]][k][m][n]);
-	  }
-    }
-    fclose(mlp);
-  }
-}
-//==============================================================================
-//                                            
-//==============================================================================
-void READ_STRAT2(ANN *R)
-{
-  int    i,spc,j,k,l,m,n;
-  char   s[500],s2[200];
-  FILE   *in,*mlp;
-  int    t,a;
-  int    NG[20],NC[3];
-  int    tag[10]={0,2,0,0,0,0,0,0,0,0};           //fixed cmp
-  double **w;
-
-  //===== reading basis parameters from the first model file in the output directroy =====
-  for(i=0; i < 20;i++) 
-    NG[i]=0;
-  atom_symb(R->SPCZ[0],s2);
-  sprintf(s,"%s/%s.dat",R->otpt,s2);
-  if( (in=fopen(s,"r")) == 0 )
-  {
-    printf("ERROR opening %s file to read basis parameters\n",s);         
-    exit(1);
-  }
-  while( fgets(s,200,in) )
-    if( strncmp(s,"  B2A",5) == 0 )
-      break;
-
-  for(i=0; i < 4;i++)
-    fgets(s,200,in);
-
-  for(i=0; i < R->NSYM;i++)
-  {
-    fgets(s,200,in);
-    sscanf(s,"%d %d %d %d %d %d %d %d %d\n",&t,&a,&t,&t,&t,&t,&t,&t,&t);
-    NG[a]++;
-    if( a > 2) 
-      NG[0]++;          // total number of triplet (NG4) functions, in case of combinations                             
-  }
-  fclose(in);
-
-
-
-  NC[0]=R->NSPC;        // number of components/sym_function: pair
-  for(t=R->NSPC,a=0; t > 0;t--) 
-    a+=t;
-
-  NC[1]=a;              // number of components/sym_function: triplet
-
-  R->nw = R->NSPC*(NG[2]+2*NG[0])*R->NU[1];            // total number of adjustable weights  
-  w     = make_d2D(R->NSPC+1,((R->NW-R->nw)/R->NSPC)); // vectors containing NON-adjustable weights per species  
-
-  R->mask = make_i2D(R->NSPC+1,R->D);
-  //creating mask list: mark all as adjustable=1
-  for(i=0; i < R->D;i++) 
-    for(j=0; j < R->NSPC;j++) 
-      R->mask[j][i]=1;
-
-  for(i=0,l=1; i < R->NSPC;i++)
-  {
-    atom_symb(R->SPCZ[i],s);
-    sprintf(R->file_list[l],"%s/%s.dat",R->otpt,s);
-    l++;
-  }
-
-  for(spc=0; spc < R->NSPC;spc++)
-    for(n=j=l=0; n < R->D;n++) 
-    {
-      if( j<NG[2] && n == (j*NC[0])+spc ) 
-      { 
-	R->mask[spc][n]=0;
-	j++;
-      }
-      else if( n == NG[2]*NC[0]+l*NC[1]+tag[spc] )
-      {
-	R->mask[spc][n]=0;
-	l++;
-      }
-    }
-
-  //===== reading 'model' file parameters =====
-  for(spc=0; spc < R->NSPC;spc++)
-  {
-    mlp = fopen(R->file_list[spc+1],"r");     //file_list actual index starts from spc=1 to spc=NSPC
-    
-    while(fgets(s,200,mlp))
-      if(strncmp(s,"|  number of weights",20)==0)
-        break;
-    sscanf(s,"%s %s %s %s %s %d %s \n",s2,s2,s2,s2,s2,&t,s2);
-    if( t != (R->NW-R->nw)/R->NSPC )
-    {
-      fprintf(stderr,"Error: not consistent elemental and multi-component parameters\n");
-      exit(1);
-    }
-    
-    while(fgets(s,200,mlp))
-      if(strncmp(s,"        minimum",15)==0)
-        break;
-    
-    for(i=0; i < R->D;i++)
-      if( R->mask[spc][i] == 0 )
-      {
-	fgets(s,200,mlp);
-	sscanf(s,"%lf %lf %lf\n",&R->Rmin[spc][i],&R->Rmax[spc][i],&R->DR[spc][i]);
-      }      
-
-    while(fgets(s,200,mlp))
-      if(strncmp(s,"|                        neural",31)==0)
-        break;
-    fgets(s,200,mlp);
- 
-    for(i=0; i < t;i++)
+    for(j=0;j<(sub_ele*I);j++)
     {
       fgets(s,200,mlp);
-      sscanf(s,"%lf\n",&w[spc][i]);
+      sscanf(s,"%lf %lf %lf\n",&X[indx][0],&X[indx][1],&X[indx][2]);
+      indx++;
+    }    
+    while(fgets(s,200,mlp))
+      if(strncmp(s,"|                        neural",31)==0)
+        break;
+    fgets(s,200,mlp);
+   
+    for(j=0;j<(sub_ele*W);j++)
+    {
+      fgets(s,200,mlp);
+      sscanf(s,"%lf\n",&M[indm++]);
     }
     fclose(mlp);
   }
 
-  for(spc=0; spc < R->NSPC;spc++)
-  {      
-    i=0;           
-    for(k=0; k < R->NL-1;k++)
-      for(m=0; m < R->NU[k+1];m++)
-	R->B[spc][k][m] = w[spc][i++];
-
-    k=0;
-    for(m=0; m < R->NU[k+1];m++)
-      for(n=0; n < R->NU[k];n++)
-	if( R->mask[spc][n] == 0 )
-	  R->W[spc][k][m][n] = w[spc][i++]; 
-
-    for(k=1; k <R->NL-1;k++)
-      for(m=0;m<R->NU[k+1];m++)
-	for(n=0;n<R->NU[k];n++)
-	  R->W[spc][k][m][n] = w[spc][i++];
+  // ========== map parameters from the subsystem into new 'model'
+  indm = 0;
+  indx = 0;
+  for(i=0;i<(sub_mdl*sub_ele);i++)
+  {
+    T = spc[i];
+    J = skp[i];
+    // biases first
+    for(j=0;j<R->NL-1;j++)
+      for(k=0;k<R->NU[j+1];k++)
+	R->B[T][j][k] = M[indm++];
+    // input layer weights; SKIP?
+    for(j=0;j<R->NU[1];j++)
+    {
+      indm += J*SKPR;
+      for(k=0 ; k < (I-J*SKPR) ; k++)
+	R->W[T][0][j][k+J*SKPW] = M[indm++];
+    }
+    // rest of the neurons
+    for(j=1;j<R->NL-1;j++)
+      for(k=0;k<R->NU[j+1];k++)
+	for(m=0;m<R->NU[j];m++)
+	  R->W[T][j][k][m] = M[indm++];
+    // ranges
+    indx += J*SKPR;
+    for(j=0;j<(I-J*SKPR);j++)
+    {
+      R->DR[T][j+J*SKPW]   = X[indx][2];
+      R->Rmax[T][j+J*SKPW] = X[indx][1];
+      R->Rmin[T][j+J*SKPW] = X[indx][0];
+      indx++;
+    }
   }
+  free_d1D(M);
+  free_d2D(X,I*sub_mdl*sub_ele);
 }
 //==============================================================================
 //                                            
 //==============================================================================
 void ANA_STR(ANN *R)
 {
-  char   s[400];
+  char   s[400],s1[400];
   FILE   *in;
   int    N,MAX,COMP,ns,spc[10],t[10];
-  int    i,n,k,tag=0;
+  int    i,n,k,tag=0,version=0;
 
   sprintf(s,"%s/stamp.dat",R->data);
   if( (in=fopen(s,"r")) == 0 )
@@ -304,19 +165,23 @@ void ANA_STR(ANN *R)
     fprintf(stderr,"%s not found. Please parse the data in %s first\n",s,R->data);
     exit(0);
   }
-
-  fgets(s,200,in);
-  fgets(s,200,in);
-  fgets(s,200,in);
-  fscanf(in,"%s %d\n",s,&N);//# of parsed structures
-  fscanf(in,"%s %d\n",s,&COMP);//# of components in stamp file
-  fgets(s,200,in);
-  fscanf(in,"%s %d\n",s,&ns);//# of species
-  fgets(s,200,in);
-  for(i=0,n=0,k=4; i < ns;i++,k+=n) sscanf(s+k,"%d%n",&t[i],&n);
-  for(i=0; i < ns;i++) spc[i]=t[i];
-  fscanf(in,"%s %d\n",s,&MAX);
+  while( fgets(s,200,in) ) 
+  {
+    if(strncmp(s,"PRSE",4) == 0) sscanf(s,"%s %d",s1,&N);    
+    if(strncmp(s,"COMP",4) == 0) sscanf(s,"%s %d",s1,&COMP);    
+    if(strncmp(s,"NSPC",4) == 0) sscanf(s,"%s %d",s1,&ns);    
+    if(strncmp(s,"TSPC",4) == 0)
+    { 
+      for(i=0,n=0,k=4; i < ns;i++,k+=n) sscanf(s+k,"%d%n",&t[i],&n);
+      for(i=0; i < ns;i++) spc[i]=t[i];
+    }
+    if(strncmp(s,"NMAX",4) == 0) sscanf(s,"%s %d",s1,&MAX);    
+    if(strncmp(s,"VERS",4) == 0) version = 1;
+  }
   fclose(in);
+
+  if(version == 0)
+  {printf("Error: the data is parsed with an old version of maise (before 2.4.xx)!\n");exit(1);}
 
   if( ns != R->NSPC )
   {fprintf(stderr,"Error: inconsistent number of species in stamp.dat and setup files!\n");exit(1);}
@@ -637,7 +502,7 @@ void SAVE_ANN(ANN *R, double E_TIME,double C_TIME)
 void READ_ANN(ANN *R)
 {
   char   s[400],s1[200];
-  int    i,n,spc,k;
+  int    i,n,spc,k,l,ver;
   FILE   *in;
   double *V;
 
@@ -645,6 +510,13 @@ void READ_ANN(ANN *R)
   if( R->JOBT/10 == 4 )
     sprintf(s,"%s/model",R->otpt);
 
+  ver=check_ver(s);
+  if( ver < 2400)
+  {
+    printf("Error: the model file is in old format; convert the model first!\n");
+    exit(1);
+  }
+    
   if( (in=fopen(s,"r")) == 0 )
   {
     fprintf(stderr,"ERROR opening %s\n",s);
@@ -745,6 +617,17 @@ void READ_ANN(ANN *R)
   fclose(in);
   V2W(R,V);
   free_d1D(V);
+
+  if ((R->JOBT/10)!=4)
+  {
+    for(spc=0;spc<R->NSPC;spc++)
+      for(n=0;n<R->NU[1];n++)
+        for(l=0;l<R->NU[0];l++)
+          R->W[spc][0][n][l] *= R->DR[spc][l];
+    for(spc=0;spc<R->NSPC;spc++)
+      for(l=0;l<R->NU[0];l++)
+	R->Rmin[spc][l] /= R->DR[spc][l];
+  }
 
   return;
 }

@@ -59,9 +59,8 @@ void W2X_GSL(gsl_vector *x)
   else
     for(spc=0,k=0;spc<RRR->NSPC;spc++)
       for(m=0;m<RRR->NU[k+1];m++)
-	for(n=0;n<RRR->NU[k];n++)
-	  if(RRR->mask[spc][n]==1)
-	    set(x,i++,RRR->W[spc][k][m][n]);
+	for(n=RRR->O;n<RRR->NU[k];n++)
+	  set(x,i++,RRR->W[spc][k][m][n]);
 }
 //================================================================
 //  copy weights from a 1D vector into the MLP's weights (W & B)
@@ -87,9 +86,8 @@ void X2W_GSL(const gsl_vector *x)
   else
     for(spc=0,k=0;spc<RRR->NSPC;spc++)
       for(m=0;m<RRR->NU[k+1];m++)
-	for(n=0;n<RRR->NU[k];n++)
-	  if(RRR->mask[spc][n]==1)
-	    RRR->W[spc][k][m][n] = x(i++);
+	for(n=RRR->O;n<RRR->NU[k];n++)
+	  RRR->W[spc][k][m][n] = x(i++);
 }
 //================================================================
 double tot_err_gsl()
@@ -149,9 +147,8 @@ double tot_err_gsl()
   else
     for(spc=0;spc<RRR->NSPC;spc++)
       for(m=0,k=0;m<RRR->NU[k+1];m++)
-        for(n=0;n<RRR->NU[k];n++)
-          if(RRR->mask[spc][n]==1)
-            RRR->RT += RRR->LREG*pow(RRR->W[spc][k][m][n],2.0);
+        for(n=RRR->O;n<RRR->NU[k];n++)
+	  RRR->RT += RRR->LREG*pow(RRR->W[spc][k][m][n],2.0);
 
   // by Samad: to update the "energy/force testing errors"
   E = RRR->EE = RRR->EF = 0.0;
@@ -300,9 +297,8 @@ void dfunc_gsl(const gsl_vector *x, void* params, gsl_vector *d)
   else
     for(spc=0;spc<RRR->NSPC;spc++)
       for(m=0,k=0;m<RRR->NU[k+1];m++)
-	for(n=0;n<RRR->NU[k];n++)
-	  if(RRR->mask[spc][n]==1)
-	    set(d,i++,RRR->Wp[spc][k][m][n]/(double)RRR->N + 2.0*RRR->LREG*RRR->W[spc][k][m][n]);
+	for(n=RRR->O;n<RRR->NU[k];n++)
+	  set(d,i++,RRR->Wp[spc][k][m][n]/(double)RRR->N + 2.0*RRR->LREG*RRR->W[spc][k][m][n]);
 
   return;
 }

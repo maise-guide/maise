@@ -23,37 +23,34 @@ double Lindemann(Cell *C, int J)
   int i,j,q;
   double x,r,LI;
 
-  if( C->ND >= 0 )
-  {
-    if (J == 0)
+  if (J == 0)
     {
       for(i=0,C->LI=0;i<C->N;i++)
 	for(j=i+1;j<C->N;j++)
 	  C->R1[i][j] = C->R2[i][j] = 0.0;
       return 0.0;
     }
-
-    if( J == 1 )
+  
+  if( J == 1 )
     {
       C->LI++;
       LI = 0.0;
       for(i=0;i<C->N;i++)
 	for(j=i+1;j<C->N;j++)
-	{
-	  for(q=0,r=0.0;q<D3;q++)
 	  {
-	    x  = C->X[i][q] - C->X[j][q];
-	    r += x*x;
+	    for(q=0,r=0.0;q<D3;q++)
+	      {
+		x  = C->X[i][q] - C->X[j][q];
+		r += x*x;
+	      }
+	    C->R2[i][j] += r;
+	    C->R1[i][j] += sqrt(r);
+	    if( (r=C->R2[i][j]*(double)C->LI - C->R1[i][j]*C->R1[i][j]) > 1e-12 )
+	      LI += sqrt( r ) / C->R1[i][j];
 	  }
-	  C->R2[i][j] += r;
-	  C->R1[i][j] += sqrt(r);
-	  if( (r=C->R2[i][j]*(double)C->LI - C->R1[i][j]*C->R1[i][j]) > 1e-12 )
-	    LI += sqrt( r ) / C->R1[i][j];
-	}
       return 2.0*LI/(double)(C->N*(C->N-1));
     }  
-  }
-  
+
   return -1.0;
 }
 //=========================================================================
@@ -141,7 +138,7 @@ void  MDOUT(Cell *C,double PE,double KE,double LV,double IP,double DE,double LI,
 
   // save the current snapsshot
   strcpy(s,C->TAG);
-  sprintf(C->TAG," MD steps: % d",NS*(sam-1));
+  sprintf(C->TAG," %s (MD) : temp % 10.3lf  steps % 8d",VERSION,C->K*kb/1.5/(double)C->N,NS*(sam-1));
   sprintf(file,"%s/CONTCAR",C->WDIR);
   SAVE_CELL(C,file,0);
   strcpy(C->TAG,s);
@@ -153,8 +150,13 @@ void Maxwell(Cell *C, double T, int therm)
   double x,v,f,Q,V[3];
   int move[C->N];
 
-  if(therm % 10 > 0)
-    return;
+  if( (therm % 10) > 0)
+  {
+    if(C->POS == 1)
+      return;
+    else
+    {printf("Error: the MD job needs velocities provided in POSCAR file!\n");exit(1);}
+  }
 
   for(i=0,fixed=0;i<C->N;i++)
   {
@@ -206,15 +208,17 @@ void Dynamics(ANN *R, PRS *P, PRS *W, Cell *C, LNK *L, double T0, int PIPE,char 
   int    i,k,q,n,NS,NI,spc1,spc2,sam,x,NRDF; 
   double dt,fi,xi,fs,tau,li,T,vi,ktt,E0,a; 
   FILE   *out; 
-  char   file[400]; 
+  char   file[400],s[200]; 
   int    move[C->N],fixed;
   double KE,PE,LI,LV,IP,DE;
   double ***H,**B,**D;
-  int    time1,time2,wall_time;
-  double cpus_time;
+  double wall_time,user_time,syst_time,cpus_time;
   struct timeval t1, t2;
   struct rusage t3;
   int    RUNT;
+
+  // to make sure velocities will be outputted
+  C->POS = 1;
 
   // type of the MD run
   RUNT = R->MDTP / 10;
@@ -243,7 +247,6 @@ void Dynamics(ANN *R, PRS *P, PRS *W, Cell *C, LNK *L, double T0, int PIPE,char 
 
   // initiate the timing
   gettimeofday(&t1, NULL);
-  time1=clock();
 
   // initiate the RDF
   H = make_d3D(C->NRDF,C->MNT,C->MNT);
@@ -388,9 +391,11 @@ void Dynamics(ANN *R, PRS *P, PRS *W, Cell *C, LNK *L, double T0, int PIPE,char 
       {
 	sprintf(file,"mkdir -p %s/movie%04d",C->WDIR,(int)T0);
 	system(file);
-	sprintf(C->TAG,"%lf",CELL_ENE(R,P,W,C,L));
+	strcpy(s,C->TAG);
+	sprintf(C->TAG," %s (MD) : temp % 10.3lf  steps % 8d",VERSION,C->K*kb/1.5/(double)C->N,NS*(sam-1));
 	sprintf(file,"%s/movie%04d/POSCAR-%d",C->WDIR,(int)T0,x);
 	SAVE_CELL(C,file,0);
+	strcpy(C->TAG,s);
       }
 
     } 
@@ -412,9 +417,10 @@ void Dynamics(ANN *R, PRS *P, PRS *W, Cell *C, LNK *L, double T0, int PIPE,char 
   // compute wall and cpu time
   getrusage(RUSAGE_SELF, &t3);
   gettimeofday(&t2, NULL);
-  time2=clock();
+  syst_time  = (double) t3.ru_stime.tv_sec + (double) t3.ru_stime.tv_usec / (double) 1e6; // = kernel time
+  user_time  = (double) t3.ru_utime.tv_sec + (double) t3.ru_utime.tv_usec / (double) 1e6; // = user time
   wall_time  = (t2.tv_sec - t1.tv_sec) + (t2.tv_usec - t1.tv_usec) / (double) 1e6;
-  cpus_time  = ((double) (time2 - time1)) / (double) CLOCKS_PER_SEC;
+  cpus_time  = syst_time + user_time;
 
   //output the averages of E, T, and Lindemann index for each temperature
   out=fopen(fname,"a");
@@ -427,8 +433,11 @@ void Dynamics(ANN *R, PRS *P, PRS *W, Cell *C, LNK *L, double T0, int PIPE,char 
   printf("\n === % lf   % lf   % lf   % lf   % lf   % lf   % lf   % 10d   % 14.2lf\n\n",T0,PE/(double)sam,KE/(double)sam,IP/(double)sam,LV/(double)sam,DE/(double)sam,li,(sam-1)*NS,cpus_time);
   
   // output the final structure
+  strcpy(s,C->TAG);
+  sprintf(C->TAG," %s (MD) : temp % 10.3lf  steps % 8d",VERSION,C->K*kb/1.5/(double)C->N,NS*(sam-1));
   sprintf(file,"%s/CONTCAR-%04d",C->WDIR,(int)T0);
   SAVE_CELL(C,file,0);
+  strcpy(C->TAG,s);
 
   // output the average position  of atoms
   for(i=0;i<C->N;i++)
@@ -516,13 +525,13 @@ void CELL_MD(ANN *R, PRS *P, PRS *W, Cell *C, LNK *L)
   system(s);
   N = (int)fabs((Tmax-Tmin)/dT);
   Maxwell(C,Tmin/kb,R->MDTP);
-  C->POS = 1;
   P->EFS = 1;
   for(n=0;n<=N;n++)
   {
     T = Tmin + (double)n*dT;
     Dynamics(R,P,W,C,L,T,1,fname);
   }
+  sprintf(C->TAG," %s (MD) : temp % 10.3lf  steps % 8d",VERSION,C->K*kb/1.5/(double)C->N,R->NSTP);
 }
 //======================================================
 void CELL_OUT(Cell *C)
@@ -612,6 +621,14 @@ void CELL_PHON(ANN *R, PRS *P, PRS *W, Cell *C, LNK *L)
   int    i,q,j,k,N,*I;
   double dx,*A,*B,*e,*b,*r,x[3],v[3];
   FILE   *out;
+  double wall_time,user_time,syst_time,cpus_time;
+  double thz=1e12;           // THz to Hz
+  double aum=1.66054e-27;    // Atomic Unit Mass to Kg
+  double ang=1e-10;          // Angstrom to Meter
+  double evj=1.60218e-19;    // eV to J
+  double thzcm=33.35641;     // THz to 1/Cm
+  struct timeval t1, t2;
+  struct rusage t3;
 
   printf("|                          Phonon calculation                         |\n");
   printf("=======================================================================\n\n");
@@ -624,6 +641,9 @@ void CELL_PHON(ANN *R, PRS *P, PRS *W, Cell *C, LNK *L)
   b  = make_d1D(N);
   r  = make_d1D(N);
   I  = make_i1D(N);
+
+  // initiate the timing
+  gettimeofday(&t1, NULL);
 
   if(C->EVOK==0)
   {
@@ -651,7 +671,7 @@ void CELL_PHON(ANN *R, PRS *P, PRS *W, Cell *C, LNK *L)
       CELL_FRC(R,P,W,C,L);
       for(j=0;j<C->N;j++)
         for(k=0;k<3;k++)
-          A[(i*3+q)*N+j*3+k] = 0.5*(C->F[j][k]-A[(i*3+q)*N+j*3+k])/dx;
+          A[(i*3+q)*N+j*3+k] = 0.5*(C->F[j][k]-A[(i*3+q)*N+j*3+k])/dx / sqrt(C->mass[C->ATMZ[i]]*C->mass[C->ATMZ[j]]);
       C->X[i][q] += dx;
     }
   for(i=0;i<C->N;i++)
@@ -675,7 +695,8 @@ void CELL_PHON(ANN *R, PRS *P, PRS *W, Cell *C, LNK *L)
   for(i=0;i<C->N;i++)
     for(q=0;q<3;q++)
     {
-      C->ev[i*3+q] = b[i*3+q];
+      C->ev[i*3+q] = b[i*3+q] * evj / (thz*thz*ang*ang*aum);
+      C->ev[i*3+q] = b[i*3+q] < 0.0 ? -sqrt(fabs(C->ev[i*3+q])) : sqrt(fabs(C->ev[i*3+q]));
       for(j=0;j<C->N;j++)
         for(k=0;k<3;k++)
           C->EV[i*3+q][j*3+k] = e[(i*3+q)*N+j*3+k];
@@ -712,12 +733,12 @@ void CELL_PHON(ANN *R, PRS *P, PRS *W, Cell *C, LNK *L)
         r[i] += dx*dx;
       }
 
-    printf(" Eigenvalues at the Gamma point (eV)\n\n");
+    printf(" Eigenvalues at the Gamma point (cm-1)\n\n");
     for(i=0;i<C->N*3;i++)
       if( b[I[N-i-1]]>C->DISP || (C->ND==0&&r[I[N-i-1]]>C->DISP) )
-	printf("\x1B[32m%3d % 24.16lf \x1B[0m \n",i,C->ev[I[N-i-1]]);
+	printf("\x1B[32m%3d % 24.16lf \x1B[0m \n",i,C->ev[I[N-i-1]]*thzcm/(2.0*Pi));   
       else
-	printf("%3d % 24.16lf\n",i,C->ev[I[N-i-1]]);
+	printf("%3d % 24.16lf\n",i,C->ev[I[N-i-1]]*thzcm/(2.0*Pi));
   }
 
   out = fopen("OUTCAR","a");
@@ -733,12 +754,27 @@ void CELL_PHON(ANN *R, PRS *P, PRS *W, Cell *C, LNK *L)
 
   for(i=0;i<C->N*3;i++)
   {
-    fprintf(out,"eigenvalue %3d % 24.16lf (eV)\n",i,C->ev[I[N-i-1]]);
+    fprintf(out,"eigenvalue %3d % 24.16lf (cm-1)\n",i,C->ev[I[N-i-1]]*thzcm/(2.0*Pi));
     for(j=0;j<C->N;j++,fprintf(out,"\n"))
       for(q=0,fprintf(out,"%3d ",j);q<3;q++)
 	fprintf(out,"% 24.16lf",C->EV[I[N-i-1]][j*3+q]);
   }
   fprintf(out,"----------------------------------------------------------------------------------------------------------\n");
+
+  // compute wall and cpu time
+  getrusage(RUSAGE_SELF, &t3);
+  gettimeofday(&t2, NULL);
+  syst_time  = (double) t3.ru_stime.tv_sec + (double) t3.ru_stime.tv_usec / (double) 1e6; // = kernel time
+  user_time  = (double) t3.ru_utime.tv_sec + (double) t3.ru_utime.tv_usec / (double) 1e6; // = user time
+  wall_time  = (t2.tv_sec - t1.tv_sec) + (t2.tv_usec - t1.tv_usec) / (double) 1e6;
+  cpus_time  = syst_time + user_time;
+
+  fprintf(out,"  \n Total CPU time used (sec):  % 14.8lf     wall time (sec): % 14.8lf",cpus_time,wall_time);
+  if(cpus_time/(double)R->NP < 0.5*wall_time)
+    fprintf(out,"-\n");
+  else
+    fprintf(out,"\n");
+
   fclose(out);
 
   free_d1D(A);
@@ -753,10 +789,9 @@ void CELL_RELX(ANN *R, PRS *P, PRS *W, Cell *C, LNK *L)
 {
   double H;
   FILE  *out;
-  double time1,time2;
   struct timeval t1, t2;
   struct rusage t3;
-  double wall_time,cpus_time;
+  double wall_time,user_time,syst_time,cpus_time;
 
   printf("|                            Cell relaxation                          |\n");
   printf("=======================================================================\n\n");
@@ -771,7 +806,6 @@ void CELL_RELX(ANN *R, PRS *P, PRS *W, Cell *C, LNK *L)
 
   // initiate the timing
   gettimeofday(&t1, NULL);
-  time1=clock();
 
   H = CELL_FRC(R,P,W,C,L);
   
@@ -804,15 +838,17 @@ void CELL_RELX(ANN *R, PRS *P, PRS *W, Cell *C, LNK *L)
   // compute wall and cpu time
   getrusage(RUSAGE_SELF, &t3);
   gettimeofday(&t2, NULL);
-  time2=clock();
-  wall_time  = (t2.tv_sec - t1.tv_sec) + (t2.tv_usec - t1.tv_usec) / (double) 1e6; // = real time
-  cpus_time  = ((double) (time2 - time1)) / (double) CLOCKS_PER_SEC; // = sys+user time
-  //double syst_time  = (double) t3.ru_stime.tv_sec + (double) t3.ru_stime.tv_usec / (double) 1e6; // = sys time
-  //double user_time  = cpus_time - syst_time; // = user time
+  syst_time  = (double) t3.ru_stime.tv_sec + (double) t3.ru_stime.tv_usec / (double) 1e6; // = kernel time
+  user_time  = (double) t3.ru_utime.tv_sec + (double) t3.ru_utime.tv_usec / (double) 1e6; // = user time
+  wall_time  = (t2.tv_sec - t1.tv_sec) + (t2.tv_usec - t1.tv_usec) / (double) 1e6;
+  cpus_time  = syst_time + user_time;
 
   out=fopen("OUTCAR","a");
-  
-  fprintf(out,"  \n Total CPU time used (sec):  % 14.8lf     wall time (sec): % 14.8lf\n",cpus_time,wall_time);
+  fprintf(out,"  \n Total CPU time used (sec):  % 14.8lf     wall time (sec): % 14.8lf",cpus_time,wall_time);
+  if(cpus_time/(double)R->NP < 0.5*wall_time)
+    fprintf(out,"-\n");
+  else
+    fprintf(out,"\n");
   fclose(out);
   
   C->it = 0;

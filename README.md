@@ -18,24 +18,50 @@ MAISE has been developed by
 ---
 ## General info
 
-Current version 2.2 works on Linux platforms and combines 3 modules for modeling, optimizing, and analyzing atomic structures.
+Current version 2.4 works on Linux platforms and combines 3 modules for modeling, optimizing, and analyzing atomic structures.
 
-1 The neural network (NN) module builds, tests, and uses NN models to describe interatomic interactions with near-ab initio accuracy at a low computational cost compared to density functional theory calculations.
+1 The neural network (NN) module builds, tests, and uses NN models to
+describe interatomic interactions with near-ab initio accuracy at a
+low computational cost compared to density functional theory
+calculations.
 
-With the primary goal of using NN models to accelerate structure search, the main function
-of the module is to relax given structures. To simplify the NN application and comparison,
-we closely matched the input and output file formats with those used in the VASP software.
-Previously parameterized NN models available in the ['models/'](https://github.com/maise-guide/maise/tree/master/models) directory have been generated and extensively tested for crystalline and/or nanostructured materials. 
-First practical applications of NNs include the prediction of new synthesizable Mg-Ca
-alloys [1] and identification of more stable Cu-Pd-Ag nanoparticles [2].
+With the primary goal of using NN models to accelerate structure
+search, the main function of the module is to relax given
+structures. To simplify the NN application and comparison, we closely
+matched the input and output file formats with those used in the VASP
+software. Previously parameterized NN models available in the
+['models/'](https://github.com/maise-guide/maise/tree/master/models)
+directory have been generated and extensively tested for crystalline
+and/or nanostructured materials. First practical applications of NNs
+include the prediction of new synthesizable Mg-Ca alloys [1] and
+identification of more stable Cu-Pd-Ag nanoparticles [2].
 
+Users can create their own NN models with MAISE which are typically
+trained on density functional theory (DFT) total energy and atomic
+force data for relatively small structures. The generation of relevant
+and diverse configurations is done separately with an 'evolutionary
+sampling' protocol detailed in our published work [3]. The code
+introduces a unique feature, 'stratified training', of how to build
+robust NNs for chemical systems with several elements [3]. NN models
+are developed in a hierarchical fashion, first for elements, then for
+binaries, and so on, which enables generation of reusable libraries
+for extended blocks in the periodic table.
 
-Users can create their own NN models with MAISE which are typically trained on density functional theory (DFT) total energy and atomic force data for relatively small structures. The generation of relevant and diverse configurations is done separately with an 'evolutionary sampling' protocol detailed in our published work [3]. The code introduces a unique feature, 'stratified training', of how to build robust NNs for chemical systems with several elements [3]. NN models are developed in a hierarchical fashion, first for elements, then for binaries, and so on, which enables generation of reusable libraries for extended blocks in the periodic table. 
+2 The implemented evolutionary algorithm (EA) enables an efficient
+identification of ground state configurations at a given chemical
+composition. Our studies have shown that the EA is particularly
+advantageous in dealing with large structures when no experimental
+structural input is available [3,4].
 
-2 The implemented evolutionary algorithm (EA) enables an efficient identification of ground state configurations at a given chemical composition. Our studies have shown that the EA is particularly advantageous in dealing with large structures when no experimental structural input is available [3,4]. 
-
-The searches can be performed for 3D bulk crystals, 2D films, and 0D nanoparticles. Population of structures can be generated either randomly or predefined based on prior information. Essential operations are 'crossover', when a new configuration is created based on two parent structures in the previous generation, and 'mutation', when a parent structure is randomly distorted. 
-For 0D nanoparticles we have introduced a multitribe evolutionary algorithm that allows an efficient simultaneous optimization of clusters in a specified size range [2].
+The searches can be performed for 3D bulk crystals, 2D films, and 0D
+nanoparticles. Population of structures can be generated either
+randomly or predefined based on prior information. Essential
+operations are 'crossover', when a new configuration is created based
+on two parent structures in the previous generation, and 'mutation',
+when a parent structure is randomly distorted. For 0D nanoparticles
+we have introduced a multitribe evolutionary algorithm that allows an
+efficient simultaneous optimization of clusters in a specified size
+range [2].
 
 3 The analysis functions include the comparison of structures based on
 the radial distribution function (RDF), the determination of the space
@@ -74,23 +100,42 @@ unzip master.zip
 
 ## Installation
 
-The code has been extensively tested on Linux platforms. We will appreciate users' feedback on the installation and performance of the package on different platforms.
+1 Use '**make --jobs**' for full compilation. For recompilation, use 'make clean' to remove
+object files or 'make clean-all' to remove object files and external libraries.
 
+2 During MAISE compilation, 'make --jobs' checks if two required
+external libraries, [GSL library](https://www.gnu.org/software/gsl/)
+and [SPGLIB v1.11.2.1, Feb 2019](https://atztogo.github.io/spglib),
+are present. If not, they will be automatically downloaded to
+./ext-dep and installed in ./lib on most systems.
 
-1 For full functionality, MAISE requires the [GSL library](https://www.gnu.org/software/gsl/) and the [Spglib package](https://atztogo.github.io/spglib) (Version 1.11.2.1, February 2019). 
+3 If the GSL or SPGLIB installation is not completed automatically
+please compile them manually and copy (i) libgsl.a, libgslcblas.a and
+libsymspg.a into the './lib' subdirectory; (ii ) the 'spglib.h' header
+into './lib/include' subdirectory; and (iii) all gsl headers into the
+'./lib/include/gsl' subdirectory.
 
-2 The MAISE installation automatically configures the dependencies by checking if these libraries are already present. If not, they will be downloaded to the local directory ./ext-dep and will be installed in the local ./lib directory. The downloaded and installed libraries can be deleted after the successful compilation of MAISE. 
+4 A 'check' script is available in the './examples/' directory which
+can be run after compiling the maise executable to ensure the proper
+functionality of the code. This script automatically checks for the
+performance of the code in parsing the data, training the neural
+network, and evaluating a crystal structure. If the compilation is
+fine the 'check' script will output so; otherwise error logs
+will be provided with further information about the issue.
 
-3 If the GSL or SPGLIB library installation is not completed automatically please install them manually and copy (i) libgsl.a, libgslcblas.a and libsymspg.a into the ./lib subdirectory; (ii) the spglib.h header into ./lib/include subdirectory; and (iii) all gsl headers into the ./lib/include/gsl subdirectory.
-
-4 Use 'make --jobs' for full compilation, 'make clean' for cleaning most relevant  objects, and 'make clean-all' for cleaning all objects.
-
-5 A “check” script is available in the examples/ directory which can be run after compiling the maise to ensure the proper functionality of the code. This script automatically checks for the performance of the code in parsing the data, training the neural network, relaxing a crystal structure, and performing an internal evolutionary search. If the compilation is fine the “check” script will output so; otherwise error logs will be provided with further information about the issue.
+The code has been extensively tested on Linux platforms. We will
+appreciate users' feedback on the installation and performance of the
+package on different platforms.
 
 ---
 ## Input
 
-Main input files that define a simulation are 'setup' with job settings, 'model' with NN parameters, and 'basis' with the symmetry functions converting a structure into the NN input. The atomic structure is read from the 'POSCAR' file that follows the VASP format. 
+Main input files that define a simulation are 'setup' with job
+settings, 'model' with NN parameters, and 'POSCAR' with atomic
+structure parameters in the VASP format. Conversion of atomic
+environments into NN inputs during the parsing stage of NN development
+requires a 'basis' file that specifies Behler-Parrinello symmetry
+functions.
 
 <table>
   <tr>

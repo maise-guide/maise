@@ -24,11 +24,11 @@ DISP  0.001             displacement in Ang in frozen phonon calculations
 =============================================================================================================
 NMAX  80                max number of atoms
 MMAX  250               max number of neighbors within cutoff radius
-NSPC  1                 number of species types
-TSPC  47                speceis types
+NSPC  3                 number of species types
+TSPC  47 79 30          speceis types
 ASPC  80                atom number of each species in evolutionary searches
 NSYM  51                number of Behler-Parrinello symmetry functions
-NCMP  51                total number of NN inputs
+NCMP  282               total number of NN inputs
 TEFS  0                 train NN for (0) E (1) EF
 FMRK  0.25              fraction of atoms used for EF training
 LREG  1e-6              regularization parameter
@@ -99,8 +99,8 @@ ICMP  0.01              isothermal compressibility (in 1/GPa)
 =============================================================================================================
                                    INPUT/OUTPUT directories
 =============================================================================================================
-DEPO  ./DATA            location of DFT data
-DATA  ./PARS            location of parsed data
-OTPT  ./NNET            directory for storing model parameters and outputs
-WDIR  .                 work directory (e.g., '.', MD, RUN)
+DEPO  .                location of DFT data
+DATA  .                location of parsed data
+OTPT  .                directory for storing model parameters and outputs
+WDIR  .                work directory (e.g., '.', MD, RUN)
 =============================================================================================================

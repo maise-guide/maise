@@ -744,23 +744,6 @@ void free_i4D(int ****data, int x, int y,int z)
   free(data);
 }
 //==============================================================================
-// Finding total number of lines in a text file
-//==============================================================================
-int nlines(char *s)
-{
-  int    c,n=0;
-  FILE*  in;
-
-  in=fopen(s,"r");
-  while( (c = fgetc(in)) != EOF )
-    if( c =='\n' )
-      n++;
-
-  fclose(in);
-
-  return n;
-}
-//==============================================================================
 int READ_CELL(Cell *C, char filename[])
 {
   int i,j,k,q,p,q1,TN[10];
@@ -861,20 +844,21 @@ int READ_CELL(Cell *C, char filename[])
       strcpy(FF[q],"T\0");
 
     sscanf(s,"%lf %lf %lf %s %s %s",&C->X[i][0],&C->X[i][1],&C->X[i][2],FF[0],FF[1],FF[2]); 
-    if( (strncmp(buf,"C",1) != 0) || (strncmp(buf,"c",1) != 0) )
+    if( (strncmp(buf,"C",1) == 0) || (strncmp(buf,"c",1) == 0) )
+    {
+      for(q=0; q < D3;q++)
+	C->X[i][q] *= C->R0;
+    }
+    else
     {
       for(q=0; q < D3;q++)
       {
 	for(q1=0,x[q]=0.0; q1 < D3;q1++)
 	  x[q] += C->X[i][q1]*C->L[q1][q];
       }
-
       for(q=0; q < D3;q++)
 	C->X[i][q] = x[q];
     }
-    else
-      for(q=0; q < D3;q++)
-	C->X[i][q] *= C->R0;
 
     for(q=0; q < D3;q++)
       if( !strcmp(FF[q],"T\0") )
@@ -885,20 +869,16 @@ int READ_CELL(Cell *C, char filename[])
     fscanf(in,"\n");
   }
 
-  if( C->POS==1 && C->JOBT == 21 ) //only for JOBT = MD read the velocities
+  // read in the velocities if they are listed in the POSCAR file
+  p = 0;
+  i = 0;
+  while ( fgets(s, 100, in) )
   {
-    p = 0;
-    for(i=0; i < C->N;i++)
-      if( fgets(s,100,in) )
-	p += sscanf(s,"%lf %lf %lf",&C->V[i][0],&C->V[i][1],&C->V[i][2]);
-
-    if( p != 3*C->N )
-    {
-      fflush(stdout);
-      fprintf(stderr,"ERROR: Please specify velocities in %s\n",filename);
-      exit(1);
-    }
+    p += sscanf(s,"%lf %lf %lf",&C->V[i][0],&C->V[i][1],&C->V[i][2]);
+    i++;
   }
+  if( p == 3*C->N )
+    C->POS = 1;
 
   fclose(in);
 
@@ -926,6 +906,14 @@ int READ_CELL(Cell *C, char filename[])
 
   if( C->ND == 0 )
     CENTER(C,0.0);
+
+  // load data corresponding to "table" file
+  for(i=0;i<96;i++)
+  {
+    C->mass[i] = atom_mass[i];
+    C->m[i]    = atom_mass[i]*103.6427;
+    C->Rm[i]   = mindist[i];
+  }
 
   return 1;  
 }
@@ -1121,23 +1109,20 @@ void Print_LOG(char buf[])
 //==============================================================================
 void READ_MAIN(Tribe *T, ANN *R, PRS *P, Cell *C, int J, int ARGC)
 {
-  int i,n,k;
+  int i,n,k,ver;
   FILE *in;
-  char buf[200],s[200];
+  char buf[200],s[225];
   double t;
 
   // load data corresponding to "table" file
   for(i=0;i<96;i++)
   {
-    C->mass[i]=atom_mass[i];
-    C->m[i]=atom_mass[i]*103.6427;
-  }
-  for(i=0;i<96;i++)
-    C->Rm[i] = mindist[i];  
-  for(i=0;i<96;i++)
+    C->mass[i]    = atom_mass[i];
+    C->m[i]       = atom_mass[i]*103.6427;
+    C->Rm[i]      = mindist[i];
     T->maxpres[i] = maxpres[i];
-  for(i=0;i<96;i++)
     T->minpres[i] = minpres[i];
+  }
 
   if( ARGC > 1 )
   {
@@ -1209,6 +1194,10 @@ void READ_MAIN(Tribe *T, ANN *R, PRS *P, Cell *C, int J, int ARGC)
   T->QT    = 0;            // default queue type is torque
   C->DISP  = 1e-3;         // displacement in Ang for frozen phonon calculation
   strcpy(C->WDIR,".");
+  strcpy(R->depo,".");
+  strcpy(R->data,".");
+  strcpy(R->eval,"~/EVL");
+  strcpy(R->otpt,".");
 
   while( fgets(buf,200,in) )
   {
@@ -1227,8 +1216,6 @@ void READ_MAIN(Tribe *T, ANN *R, PRS *P, Cell *C, int J, int ARGC)
     if( strncmp(buf,"CPLP",4) == 0 ) { sscanf(buf+4,"%lf" ,&R->CPLP);       }
     if( strncmp(buf,"ICMP",4) == 0 ) { sscanf(buf+4,"%lf" ,&R->ICMP);       }
     if( strncmp(buf,"MDTP",4) == 0 ) { sscanf(buf+4,"%d"  ,&R->MDTP);       }
-    if( R->MDTP%10 == 1 )
-      C->POS = 1;
     if( strncmp(buf,"MOVI",4) == 0 ) { sscanf(buf+4,"%d"  ,&R->MOVI);       }
     //====================  main structure parameters  ======================
     if( strncmp(buf,"NBLK",4) == 0 ) { sscanf(buf+4,"%d"  ,&C->NB  );       }
@@ -1437,9 +1424,17 @@ void READ_MAIN(Tribe *T, ANN *R, PRS *P, Cell *C, int J, int ARGC)
   
   if( R->JOBT/10==2 || R->JOBT/10==5 )
   {
-    if( (in=fopen("model","r")) == 0 )
+
+    if(R->JOBT/10 == 5)
+      sprintf(s,"%s/model",R->otpt);
+    else
+      sprintf(s,"model");
+
+    ver=check_ver(s);
+
+    if( (in=fopen(s,"r")) == 0 )
     {
-      fprintf(stderr,"ERROR opening %s\n",s);
+      fprintf(stderr,"ERROR opening model file!\n");
       exit(1);
     }
     R->MODT = 0;
@@ -1480,6 +1475,12 @@ void READ_MAIN(Tribe *T, ANN *R, PRS *P, Cell *C, int J, int ARGC)
     
     if( R->MODT==1 )
     {
+      if( ver < 2400 )
+      {
+	printf("Error: the model file is in old format; convert the model first!\n");
+	exit(1);
+      }
+
       while( fgets(s,200,in) )
 	if( strncmp(s,"|  number of layers     |",25) == 0 )
 	{
@@ -1511,16 +1512,24 @@ void READ_MAIN(Tribe *T, ANN *R, PRS *P, Cell *C, int J, int ARGC)
       R->D    = R->NU[0];
     }
     fclose(in);
+
     if( R->JOBT/10==2 )
-    {
-      C->A = 0;
-      READ_CELL(C,"POSCAR");
-      R->A = C->A;
-      P->NSPC = R->NSPC;
-      C->nspc = R->NSPC;
-      for(i=0;i<C->nspc;i++)
-	C->spcz[i] = P->SPCZ[i] = R->SPCZ[i];
-    }
+      {
+	C->A = 0;
+	READ_CELL(C,"POSCAR");
+	R->A = C->A;
+	P->NSPC = R->NSPC;
+	C->nspc = R->NSPC;
+	for(i=0;i<C->nspc;i++)
+	  C->spcz[i] = P->SPCZ[i] = R->SPCZ[i];    
+      }
+
+    if (R->JOBT/10==5 )
+      {
+	C->nspc = P->NSPC = R->NSPC;
+	for(i=0;i<R->NSPC;i++)
+	  C->spcz[i] = C->SPCZ[i] = P->SPCZ[i] = R->SPCZ[i];
+      }
   }
 }
 //==============================================================================
@@ -1687,3 +1696,52 @@ void TestRandom(void)
     printf("\n\a ERROR -- the implementation of rngs.c is not correct.\n\n");
 }
 //==============================================================================
+int check_ver(char *fname)
+{
+  FILE *in;
+  char s[200],t[200];
+  int n,k,d,i;
+
+
+  n = k = d = 0;
+
+  if( !(in=fopen(fname,"r")))
+    return -2;
+
+  fgets(s,200,in);
+  fgets(s,200,in);
+  sscanf(s+2,"%s",s);
+  if( strncmp(s,"neural",6) != 0 )
+  {
+    fclose(in);
+    return -1;
+  }
+
+  while( fgets(s,200,in) )
+    if( strncmp(s,"|  maise version",16) == 0 )
+      break;
+
+  sscanf(s,"|  maise version | %s |",t);
+  i = 6;
+  if(i < strlen(t))
+  {
+    sprintf(s,"%.*s", (int)strcspn(t+i, "."), t+i);
+    sscanf(s,"%d",&n);
+    i += strlen(s)+1;
+    if(i<strlen(t))
+    {
+      sprintf(s,"%.*s", (int)strcspn(t+i, "."), t+i);
+      sscanf(s,"%d",&k);
+      i += strlen(s)+1;
+      if(i<strlen(t))
+      {
+	  sprintf(s,"%.*s", (int)strcspn(t+i, "."), t+i);
+	  sscanf(s,"%d",&d);
+      }
+    } 
+  }
+  
+  fclose(in);
+  
+  return n*1000+k*100+d;
+}

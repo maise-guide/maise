@@ -76,12 +76,12 @@ int    ***make_i3D(int x, int y, int z);
 void   free_i3D(int ***data, int x, int y);
 int    ****make_i4D(int x, int y, int z,int w);
 void   free_i4D(int ****data, int x, int y,int z);
-int    nlines(char *s);
 double Random(void);
 void   PlantSeeds(long x);
 void   PutSeed(long x);
 void   GetSeed(long *x);
 void   SelectStream(int index);
 void   TestRandom(void);
+int    check_ver(char *fname);
 
 #endif

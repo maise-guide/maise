@@ -30,11 +30,9 @@ int main(int argc, char** argv)
   if(T.JOBT/10==1)
     EVOS_MAIN(&T,&R,&P,&C);
 
-
   //========  launch cell simulation module  =======
   if(T.JOBT/10==2)
     CELL_MAIN(&R,&P,&C);
-
 
   //========  launch neural network module  ========
   if(T.JOBT/10>2) 

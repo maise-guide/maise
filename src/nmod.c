@@ -28,12 +28,11 @@ void NNET_MAIN(ANN *R, PRS *P, Cell *C)
 //================================================================
 void TRAN_ANN(ANN *R, Cell *C)
 {
-  double time1,time2;
   char   t[500];
   LNK    *L;
   struct timeval t1, t2;
   struct rusage t3;
-  double wall_time,syst_time,cpus_time;
+  double wall_time,user_time,syst_time,cpus_time;
 
   if( R->JOBT==41 )  
     R->MIX=1; 
@@ -45,7 +44,6 @@ void TRAN_ANN(ANN *R, Cell *C)
 
   // initiate the timing
   gettimeofday(&t1, NULL);  
-  time1=clock();
 
   ANA_STR(R); 
 
@@ -56,6 +54,7 @@ void TRAN_ANN(ANN *R, Cell *C)
   LOAD_LNK(R,C,L);
 
   INIT_MLP(R);
+  ADJT_LNK(R,L);
   TRAN_MLP(R,C,L);
   
   CHCK_ERR(R,L);
@@ -63,11 +62,10 @@ void TRAN_ANN(ANN *R, Cell *C)
   // compute wall and cpu time
   getrusage(RUSAGE_SELF, &t3); 
   gettimeofday(&t2, NULL);
-  time2=clock();
-  syst_time  = (double) t3.ru_stime.tv_sec + (double) t3.ru_stime.tv_usec / (double) 1e6; // = sys time
-  wall_time  = (t2.tv_sec - t1.tv_sec) + (t2.tv_usec - t1.tv_usec) / (double) 1e6; // = real time
-  cpus_time  = ((double) (time2 - time1)) / (double) CLOCKS_PER_SEC; // = sys+user time
-  //double user_time  = cpus_time - syst_time; // = user time
+  syst_time  = (double) t3.ru_stime.tv_sec + (double) t3.ru_stime.tv_usec / (double) 1e6; // = kernel time
+  user_time  = (double) t3.ru_utime.tv_sec + (double) t3.ru_utime.tv_usec / (double) 1e6; // = user time
+  wall_time  = (t2.tv_sec - t1.tv_sec) + (t2.tv_usec - t1.tv_usec) / (double) 1e6;
+  cpus_time  = syst_time + user_time;
 
   OUT_ANN(R,L,wall_time,cpus_time,syst_time,"out","err-ene.dat","err-frc.dat");
 
@@ -176,7 +174,7 @@ double CPU_TIME(double ti, char buf[200])
 //==================================================================
 void LOAD_LNK(ANN *R, Cell *C, LNK *L)
 {
-  int n,l,i,spc;
+  int  n,l,i,spc;
   FILE *in;
   char s[400];
   
@@ -238,6 +236,24 @@ void LOAD_LNK(ANN *R, Cell *C, LNK *L)
 
   R->Eavg /= (double)R->STR;
   R->Edev  = sqrt( R->Edev/(double)R->STR - R->Eavg*R->Eavg );
+}
+//=========================================================
+// Rescale inputs once to avoid multiplications by R->DR
+//=========================================================
+void ADJT_LNK(ANN *R, LNK *L)
+{
+  int  q,n,l,i,j;
+
+  for(n=0;n<R->STR;n++)
+    for(i=0;i<L[n].N;i++)
+    {
+      for(l=0;l<R->D;l++)
+        L[n].Cn[i][l] *= R->DR[L[n].ATMN[i]][l];
+      for(j=0;j<=L[n].DNn[i];j++)
+        for(l=0;l<R->D;l++)
+          for(q=0;q<3;q++)
+            L[n].Fn[i][j][l][q] *= R->DR[L[n].DNs[i][j]][l];
+    }
 }
 //=========================================================
 // Creating output file after training and testing network
@@ -596,8 +612,7 @@ void EVAL_ANN(ANN *R, PRS *P, Cell *C, LNK *L)
 	counter++;
 	fclose(in);
       }
-      system("rm -f e000000");
-      system("rm tmp");
+      system("rm -f e000000 tmp");
       fclose(f1);
       PLOT(R,1,0,counter,21,"vac",CMP[q]);
     }
@@ -665,8 +680,7 @@ void EVAL_ANN(ANN *R, PRS *P, Cell *C, LNK *L)
 	}
 	fclose(in);
       }
-      system("rm -f e000000");
-      system("rm tmp");
+      system("rm -f e000000 tmp");
       fclose(f1);
       PLOT(R,4,0,counter,21,"srf",CMP[q]);
     }
@@ -744,7 +758,7 @@ void EVAL_ANN(ANN *R, PRS *P, Cell *C, LNK *L)
 	counter++;
 	fclose(in);
       }
-      system("rm -f e000000");
+      system("rm -f e000000 tmp");
       fclose(f1);
       PLOT(R,2,0,counter,21,"sub",CMP[q]);
     }
@@ -832,7 +846,7 @@ void EVAL_ANN(ANN *R, PRS *P, Cell *C, LNK *L)
     }
     
   }
-  system("rm -f e000000");
+  system("rm -f e000000 tmp");
 
 }
 //==================================================================

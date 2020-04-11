@@ -35,7 +35,7 @@ double FRC_ANN_PARA(ANN *R, LNK *L, double ***e, double ***d)
   {
     spc = L->ATMN[i];
     for(n=0;n<R->NU[0];n++)
-      e[i][0][n] = (L->Cn[i][n]-R->Rmin[spc][n])*R->DR[spc][n]-0.0;
+      e[i][0][n] = (L->Cn[i][n]-R->Rmin[spc][n]*R->DR[spc][n])-0.0;
     for(k=0;k<R->NL-1;k++)
       for(m=0;m<R->NU[k+1];m++)
       {
@@ -47,7 +47,7 @@ double FRC_ANN_PARA(ANN *R, LNK *L, double ***e, double ***d)
     L->EA[i] = e[i][R->NL-1][0];
     L->e += e[i][R->NL-1][0];
   }
-
+  
   for(q=0;q<6;q++)
     L->s[q] = 0.0;
   for(i=0;i<L->N;i++)    
@@ -66,13 +66,13 @@ double FRC_ANN_PARA(ANN *R, LNK *L, double ***e, double ***d)
         tn = tm*R->W[spc][1][m][n]*d[i][1][n];
         for(l=0;l<R->NU[0];l++)
         {
-	  tl = R->DR[spc][l]*tn*R->W[spc][0][n][l];
+	  tl = tn*R->W[spc][0][n][l];
 	  for(q=0;q<3;q++)
 	    L->f[i][q] -= L->Fn[i][L->DNn[i]][l][q]*tl;
 	  // ======= will not work if not all atoms are marked =======
 	  if(R->EFS>1)
 	    for(q=0;q<6;q++)
-	      L->s[q] -= L->Sn[i][l][q]*R->DR[spc][l]*tn*R->W[spc][0][n][l];
+	      L->s[q] -= L->Sn[i][l][q]*tn*R->W[spc][0][n][l];
         }
       }
     }
@@ -89,7 +89,7 @@ double FRC_ANN_PARA(ANN *R, LNK *L, double ***e, double ***d)
 	  tn = tm*R->W[sij][1][m][n]*d[nij][1][n];
 	  for(l=0;l<R->NU[0];l++)
 	  {
-	    tl = R->DR[sij][l]*tn*R->W[sij][0][n][l];
+	    tl = tn*R->W[sij][0][n][l];
 	    for(q=0;q<3;q++)
 	      L->f[i][q] -= L->Fn[i][j][l][q]*tl;
 	  }
@@ -110,7 +110,7 @@ double DF_ANN_PARA(ANN *R, LNK *L, double ***Bp, double ****Wp,  double ***e,  d
   {
     spc = L->ATMN[i];
     for(n=0;n<R->NU[0];n++)
-      e[i][0][n] = (L->Cn[i][n]-R->Rmin[spc][n])*R->DR[spc][n]-0.0;
+      e[i][0][n] = (L->Cn[i][n]-R->Rmin[spc][n]*R->DR[spc][n])-0.0;
     for(k=0;k<R->NL-1;k++)
       for(m=0;m<R->NU[k+1];m++)
       {
@@ -139,7 +139,7 @@ double DF_ANN_PARA(ANN *R, LNK *L, double ***Bp, double ****Wp,  double ***e,  d
 	tn = tm*R->W[spc][1][m][n]*d[i][1][n];
 	for(l=0;l<R->NU[0];l++)
 	{
-	  tl = R->DR[spc][l]*tn*R->W[spc][0][n][l];
+	  tl = tn*R->W[spc][0][n][l];
 	  for(q=0;q<3;q++)
 	    L->f[i][q] -= L->Fn[i][L->DNn[i]][l][q]*tl;
 	}
@@ -158,7 +158,7 @@ double DF_ANN_PARA(ANN *R, LNK *L, double ***Bp, double ****Wp,  double ***e,  d
 	  tn = tm*R->W[sij][1][m][n]*d[nij][1][n];
 	  for(l=0;l<R->NU[0];l++)
 	  {
-	    tl = R->DR[sij][l]*tn*R->W[sij][0][n][l];
+	    tl = tn*R->W[sij][0][n][l];
 	    for(q=0;q<3;q++)
 	      L->f[i][q] -= L->Fn[i][j][l][q]*tl;
 	  }
@@ -185,7 +185,7 @@ double DF_ANN_PARA(ANN *R, LNK *L, double ***Bp, double ****Wp,  double ***e,  d
 	  xn[n][j][q] = 0.0;
 	for(l=0;l<R->NU[k-2];l++)
 	  for(q=0;q<3;q++)
-	    xn[n][j][q] += R->W[sij][k-2][n][l]*L->Fn[i][j][l][q]*R->DR[sij][l]*dfq[q];
+	    xn[n][j][q] += R->W[sij][k-2][n][l]*L->Fn[i][j][l][q]*dfq[q];
       }      
     //===== calculate xm to store for backpropagation ===== 
     for(m=0;m<R->NU[k];m++)
@@ -261,17 +261,16 @@ double DF_ANN_PARA(ANN *R, LNK *L, double ***Bp, double ****Wp,  double ***e,  d
         }
     }
     for(j=0;j<=L->DNn[i];j++)
-      for(l=0;l<R->NU[0];l++)
+      for(l=R->O;l<R->NU[0];l++)
       {
 	sij = L->DNs[i][j];
-	if(R->MIX==0||R->mask[sij][l]==1)
 	for(n=0;n<R->NU[1];n++)
         {
 	  nij = L->DNi[i][j];
 	  tnl = d[nij][1][n]*e[nij][0][l];
 	  for(q=0;q<3;q++)
 	  {
-	    dnl[q] = L->Fn[i][j][l][q]*d[nij][1][n]*R->DR[sij][l]*dfq[q];
+	    dnl[q] = L->Fn[i][j][l][q]*d[nij][1][n]*dfq[q];
 	    rnl[q] = c[nij][1][n]*e[nij][0][l]*xn[n][j][q];
 	  }
 	  for(m=0;m<R->NU[2];m++)
@@ -299,7 +298,7 @@ double DE_ANN_PARA(ANN *R, LNK *L, double ***Bp, double ****Wp,  double ***e)
   {
     spc = L->ATMN[i];
     for(n=0;n<R->NU[0];n++)
-      e[i][0][n] = (L->Cn[i][n]-R->Rmin[spc][n])*R->DR[spc][n]-0.0;
+      e[i][0][n] = (L->Cn[i][n]-R->Rmin[spc][n]*R->DR[spc][n])-0.0;
 
     for(k=0;k<R->NL-1;k++)
       for(m=0;m<R->NU[k+1];m++)
@@ -345,7 +344,7 @@ double DE_ANN_PARA(ANN *R, LNK *L, double ***Bp, double ****Wp,  double ***e)
 	{
 	  tn = tm*R->W[spc][k+1][m][n]*GPp(R->GT[k+1],e[i][k+1][n]);
 	  Bp[spc][k][n] += tn;
-          for(l=0;l<R->NU[k];l++)
+          for(l=R->O;l<R->NU[k];l++)
 	    Wp[spc][k][n][l] += tn*e[i][k][l];
 	}
       }
@@ -378,7 +377,7 @@ double ENE_ANN(ANN *R, LNK *L)
     {
       spc = L->ATMN[i];
       for(n=0;n<R->NU[0];n++)
-        a[n] = (L->Cn[i][n]-R->Rmin[spc][n])*R->DR[spc][n]-0.0;
+        a[n] = (L->Cn[i][n]-R->Rmin[spc][n]*R->DR[spc][n])-0.0;
 
       for(k=0;k<R->NL-1;k++)
       {
@@ -417,7 +416,7 @@ double FRC_ANN(ANN *R, LNK *L)
     {
       spc = L->ATMN[i];
       for(n=0;n<R->NU[0];n++)
-        R->e[spc][i][0][n] = (L->Cn[i][n]-R->Rmin[spc][n])*R->DR[spc][n]-0.0;
+        R->e[spc][i][0][n] = (L->Cn[i][n]-R->Rmin[spc][n]*R->DR[spc][n])-0.0;
       for(k=0;k<R->NL-1;k++)
         for(m=0;m<R->NU[k+1];m++)
         {
@@ -452,9 +451,9 @@ double FRC_ANN(ANN *R, LNK *L)
 	      {
 	        if(L->MRK[i]==1)
 	          for(q=0;q<3;q++)
-	            L->f[i][q] -= L->Fn[i][L->DNn[i]][l][q]*R->DR[spc][l]*tn*R->W[spc][0][n][l];
+	            L->f[i][q] -= L->Fn[i][L->DNn[i]][l][q]*tn*R->W[spc][0][n][l];
 	        for(q=0;q<6;q++)
-	          s[nth][q] -= L->Sn[i][l][q]*R->DR[spc][l]*tn*R->W[spc][0][n][l];
+	          s[nth][q] -= L->Sn[i][l][q]*tn*R->W[spc][0][n][l];
 	      }
         }
       }      
@@ -473,7 +472,7 @@ double FRC_ANN(ANN *R, LNK *L)
 	          tn = tm*R->W[sij][1][m][n]*R->d[sij][nij][1][n];
 	          for(l=0;l<R->NU[0];l++)
 	          for(q=0;q<3;q++)
-		        L->f[i][q] -= L->Fn[i][j][l][q]*R->DR[sij][l]*tn*R->W[sij][0][n][l];;
+		        L->f[i][q] -= L->Fn[i][j][l][q]*tn*R->W[sij][0][n][l];;
 	        }      
 	      }
         }
@@ -521,17 +520,13 @@ void INIT_MLP(ANN *R)
 	  R->B[spc][k][m] = 2.0*(Random()-0.5)/(double)R->NU[k];
     }
   }
+  R->O = 0;
   //=====  for stratified training load sub-species NNs  =====
   if(R->MIX==1) 
   {
-    if(R->NSPC==2) 
+    if(R->NSPC > 1 && R->NSPC < 4) 
     {
-      READ_STRAT2(R);
-      return;
-    }
-    if(R->NSPC==3) 
-    {
-      READ_STRAT3(R);
+      READ_STRAT(R);
       return;
     }
     fprintf(stderr,"Stratified training is currently available only for binaries and ternaries!\n");

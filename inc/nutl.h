@@ -9,8 +9,7 @@
 #include "nmod.h"
 #include "util.h"
 
-void   READ_STRAT3(ANN *R);
-void   READ_STRAT2(ANN *R);
+void   READ_STRAT(ANN *R);
 void   ANA_STR(ANN *R);
 void   RNDNM2(int *NM, int N,int sd);
 double cpu_time( );

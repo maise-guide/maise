@@ -107,7 +107,7 @@ void READ_CIF(Cell *C, char file[], double tol, int NM)
   //===== for -cif function get the number of atoms to build Cell =====
   if( C->N==0 )
   {
-    while(fgets(buf,200,in)!=0)
+    while(fgets(buf,200,in))
     {
       s[0] = 0;
       sscanf(buf,"%s %s",t,s);
@@ -138,7 +138,7 @@ void READ_CIF(Cell *C, char file[], double tol, int NM)
    
   in = fopen(file,"r");
   n = 0; 
-  while(fgets(buf,200,in)!=0)  
+  while(fgets(buf,200,in))  
   {
     s[0] = 0;
     sscanf(buf,"%s %s",t,s);

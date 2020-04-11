@@ -92,6 +92,7 @@ void NANO_ROT(Cell *C, int J)
       printf("% 12.6lf ",II[j][q]);
 
   EV(II,e,b);
+
   if(0)
   for(j=0;j<D3;j++,printf("\n"))
     for(q=0,printf("% 12.6lf  ",b[j]);q<D3;q++)

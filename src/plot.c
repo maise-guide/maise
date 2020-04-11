@@ -14,7 +14,7 @@ void PLOT(ANN *R, int type, int N1, int N2, int M, char *test, char *CMP)
 
   FILE   *in[101],*ot[101];
   FILE   *out;
-  int    i,j,k,t0;
+  int    i,j,t0;
   char   s[101][200],u[101][200],buf[101][200],nntp[100][2];
   double tmp,data[101][101],t1,t2;
   char   name[400];
@@ -193,7 +193,6 @@ void PLOT(ANN *R, int type, int N1, int N2, int M, char *test, char *CMP)
   if( type == 2 )
   {  
     sprintf(compound,"%s/sub-%s.dat",R->otpt,CMP);
-    k=nlines(compound);
     in[0]=fopen(compound,"r");
     fgets(name,200,in[0]);
     sscanf(name,"%d %lf %lf %lf %lf %s %lf %lf\n",&j,&data[0][0],&data[0][1],&data[0][2],&data[0][3],ctmp,&tmp,&tmp);
@@ -204,9 +203,8 @@ void PLOT(ANN *R, int type, int N1, int N2, int M, char *test, char *CMP)
     if( data[0][2] < data[0][3] ) {t1=data[0][2];t2=data[0][3];}
     else {t1=data[0][3];t2=data[0][2];}
     printf("XY %lf %lf\n",xmin,xmax);
-    for(i=1; i < k;i++)
+    while( fgets(name,200,in[0]) )
     {
-      fgets(name,200,in[0]);
       sscanf(name,"%d %lf %lf %lf %lf %s %lf %lf\n",&j,&data[0][0],&data[0][1],&data[0][2],&data[0][3],ctmp,&tmp,&tmp);
       if( data[0][0] < ymin ) ymin=data[0][0];
       if( data[0][1] < ymin ) ymin=data[0][1];
@@ -225,7 +223,7 @@ void PLOT(ANN *R, int type, int N1, int N2, int M, char *test, char *CMP)
     {
       out=popen("gnuplot","w");
       fprintf(out,"set terminal pngcairo size 800, 600\n");
-      fprintf(out,"set title \"%s (%s-%d)\"\n",CMP,test,i);
+      fprintf(out,"set title \"%s (%s-%d in %d)\"\n",CMP,test,((i+2)%2)+1,i);
       fprintf(out,"set xrange [%lf:%lf]\n",xmin-abs(xmin*0.05),xmax+abs(xmax*0.05));
       fprintf(out,"set yrange [%lf:%lf]\n",ymin-abs(ymin*0.05),ymax+abs(ymax*0.05));
       fprintf(out,"set autoscale fix\n");
@@ -252,7 +250,6 @@ void PLOT(ANN *R, int type, int N1, int N2, int M, char *test, char *CMP)
   if( type == 3 )
   {  
     sprintf(compound,"%s/phd-%s00.dat",R->otpt,CMP);
-    k=nlines(compound);
     in[0]=fopen(compound,"r");
     fgets(name,200,in[0]);
     sscanf(name,"%lf %lf %lf %d\n",&data[0][0],&data[0][1],&data[0][2],&j);
@@ -260,9 +257,8 @@ void PLOT(ANN *R, int type, int N1, int N2, int M, char *test, char *CMP)
     if( data[0][1] < data[0][2] ) {ymin=data[0][1];ymax=data[0][2];}
     else {ymin=data[0][2];ymax=data[0][1];}
 
-    for(i=1; i < k;i++)
+    while( fgets(name,200,in[0]) )
     {
-      fgets(name,200,in[0]);
       sscanf(name,"%lf %lf %lf %d\n",&data[0][0],&data[0][1],&data[0][2],&j);
       if( data[0][1] < ymin ) ymin=data[0][1];
       if( data[0][2] < ymin ) ymin=data[0][2];

@@ -51,11 +51,12 @@ void GNcheck(char *s, int coor)
     fprintf(stderr,"Error: incorrect number of symmetry functions in 'basis' file!\n"); 
     exit(1);
   }
+
   fgets(buf,200,in);
   if( strlen(buf) != 1 ) 
   {
     fclose(in);
-    fprintf(stderr,"Error in 'basis' file format(3)!\n"); 
+    fprintf(stderr,"Error in 'basis' file format(3) %s!\n",buf); 
     exit(1);
   }
   fgets(buf,200,in);
@@ -77,15 +78,24 @@ void Build_PRS(PRS *P, PRS *W, int J)
   int    i,p,l,n,m,w0,w1,w00,w01,w11;
   char   buf[400],s[400],basis[400];
   double a,r;
-  int    c=0,d;
+  int    c=0,d,ver;
   
   P->Pl   = make_d2D(P->LM+1,P->LM+1);
   P->GW   = make_d2D(P->GM,P->GM);
   
   P->GF   = make_i2D(P->D,9);
-  P->GP   = make_d2D(7,10);               // 6 PB types of parameters x 10                                                                                                                                                             
+  P->GP   = make_d2D(7,10);               // 6 PB types of parameters x 10 
+                                                     
   if(J==0)
+  {
     sprintf(basis,"model");
+    ver=check_ver(basis);
+    if( ver < 2400 )
+    {
+      printf("Error: the model file is in old format; convert the model first!\n");
+      exit(1);
+    }
+  }
   else
     sprintf(basis,"basis");
 
@@ -436,92 +446,106 @@ void PRS_BP(PRS *P, PRS *W, Cell *C, LNK *L, int o, char *path)
 {
   int    i,j,k,n,q,*I,ii,jj;
   double t,A0,A1,A2,A3,A4,A5,A6,A7,B1,B2,B3,T0,F0,F1,F2,R01,R02,R12,n01,n02,n12;
-  double fcijk,lzijk[10][10],a2ijk[10][10],a3ijk[10][10],n2ijk[10],a52,a53,a62,a63,ndxjk,fcij,dfcij;
+  double fcijk,lzijk[10][10],a2ijk[10][10],a3ijk[10][10],n2ijk[10],a52,a53,a62,a63,ndxjk,fcij,dfcij,powz[10];
   double dxij[3],dxik[3],dxji[3],dxjk[3],dqij[3],dqik[3];
   int    l,z,n2,n4,n6,n7; 
 
-  int    spc0,spc1,spc2;
-  int    index[P->NSPC][P->NSPC];
-  int    ng2,ng4=0,g2=0,g4=0;
-  int    m=0;
-  int    w0,w1,w2,w01,w02,w12;
+  int    ind2[10],ind4[10];
+  int    m,s0,s1,s2,s01,s02,s12,ds1,ds2,ds,g2,g4;
 
   L->N   = C->N;
   C->Rc  = C->rc = P->RC;
 
-  for(w0=0;w0<P->NSPC;w0++)
+  for(s0=0;s0<P->NSPC;s0++)
     for(n=0;n<P->NSYM;n++)
-      if(C->rc > W[2*w0*w0].GP[0][W[2*w0*w0].GF[n][1]])
-	C->Rc = C->rc = W[2*w0*w0].GP[0][W[0].GF[n][1]];
-  
+      if(C->rc > W[2*s0*s0].GP[0][W[2*s0*s0].GF[n][1]])
+	C->Rc = C->rc = W[2*s0*s0].GP[0][W[0].GF[n][1]];
+  for(z=0;z<W[0].GT[5];z++)
+    powz[z] = pow(2.0,1.0-P->GP[5][z]);
   LIST(C,0);  
 
-  ng2=P->NSPC;                     //total number of components for G2 symmetry functions
-  for(n=P->NSPC;n>0;n--) ng4+=n;   //number of components for each G4 symmetry function
-  
-  for(i=0,m=0;i<P->NSPC;i++)       //matrix to hold component numbers for G4 functions
-    for(j=i;j<P->NSPC;j++,m++)
-      index[i][j] = index[j][i] = m;
+  //===== symmetry functions by species  =====
+  //-----ij-ijk-------------------------------
+  //    |AA|AAA|
+  //------------------------------------------
+  //    |AA|AAA|AB|AAB|ABB|
+  //    |BB|BBB|BA|BBA|BAA|
+  //------------------------------------------
+  //    |AA|AAA|AB|AAB|ABB|AC|AAC|ACC|ABC|
+  //    |BB|BBB|BC|BBC|BCC|BA|BBA|BAA|BCA|
+  //    |CC|CCC|CA|CCA|CAA|CB|CCB|CBB|CAB|
+  //==========================================
+
+  ind2[0] = 0;
+  ind2[1] = 1*P->NG2 + 1*P->NG4;
+  ind2[2] = 2*P->NG2 + 3*P->NG4;
+
+  ind4[0] = 1*P->NG2;
+  ind4[1] = 2*P->NG2 + 1*P->NG4;
+  ind4[2] = 2*P->NG2 + 2*P->NG4;
+  ind4[4] = 3*P->NG2 + 3*P->NG4;
+  ind4[8] = 3*P->NG2 + 4*P->NG4;
+  ind4[5] = 3*P->NG2 + 5*P->NG4;
 
   for(i=0;i<C->N;i++) 
     for(n=0;n<P->D;n++)   
       L->Cn[i][n] = 0.0;
-
   // For EFS
-  #pragma omp parallel private(spc0,spc1,spc2,jj,k,n,m,g2,g4,w0,w1,w01,R01,w2,w02,w12,R02,R12,fcijk,n2,n01,n02,n12,n2ijk,lzijk,z,l) num_threads(C->NP)
+  #pragma omp parallel private(ds1,ds2,ds,jj,k,n,m,g2,g4,s0,s1,s01,R01,s2,s02,s12,R02,R12,fcijk,n2,n01,n02,n12,n2ijk,lzijk,z,l) num_threads(C->NP)
   {
     #pragma omp for schedule(dynamic,C->NB)
     for(i=0;i<C->N;i++)
     {
-      w0 = C->ATMN[i];
+      s0 = C->ATMN[i];
       for(jj=0;jj<C->Nn[i];jj++)
       {
         n   = 0;
-        w1  = C->ATMN[C->Ni[i][jj]];
-        w01 = w0*w0+w1*w1;
-        R01 = W[w01].GP[0][P->GF[n][1]];
+        s1  = C->ATMN[C->Ni[i][jj]];
+        s01 = s0*s0+s1*s1;
+        R01 = W[s01].GP[0][P->GF[n][1]];
+	ds1 = (s1-s0+P->NSPC)%P->NSPC;
         
         if(C->NDX[i][jj]<R01)
         {
 	  for(n=0,g2=0;n<P->NSYM;n++)
 	    if(P->GF[n][0]==2)
 	    {
-	      m=(g2*P->NSPC)+w1;
-	      L->Cn[i][m] += GNR(&W[w01],n,R01,C->NDX[i][jj]);
+	      m   = g2 + ind2[ds1];
+	      L->Cn[i][m] += GNR(&W[s01],n,R01,C->NDX[i][jj]);
 	      g2++;
 	    }
 	  // for reduced radius for triplets	
-	  if( g2<P->D && C->NDX[i][jj]<W[w01].GP[0][P->GF[g2][1]] )
+	  if( g2<P->D && C->NDX[i][jj]<W[s01].GP[0][P->GF[g2][1]] )
 	  for(k=jj+1;k<C->Nn[i];k++)
           {
-	    w2  = C->ATMN[C->Ni[i][k]];
-	    w02 = w0*w0+w2*w2;
-	    w12 = w1*w1+w2*w2;
-	    R02 = W[w02].GP[0][P->GF[g2][1]];
-	    R12 = W[w12].GP[0][P->GF[g2][1]];
+	    s2  = C->ATMN[C->Ni[i][k]];
+	    s02 = s0*s0+s2*s2;
+	    s12 = s1*s1+s2*s2;
+	    R02 = W[s02].GP[0][P->GF[g2][1]];
+	    R12 = W[s12].GP[0][P->GF[g2][1]];
+	    ds2 = (s2-s0+P->NSPC)%P->NSPC;
 	    if( C->NDX[i][k]<R02 && C->ndx[i][jj][k]<R12 )
 	    {
 	      // assuming that all G4 Rc are the same
 	      fcijk = 2.0*fc(R01,C->NDX[i][jj])*fc(R02,C->NDX[i][k])*fc(R12,C->ndx[i][jj][k]);
-	      m=(P->NG2*ng2)+(g4 * ng4)+index[w1][w2];
 	      for(n2=0;n2<W[0].GT[3];n2++)
 	      {
-	        n01 = W[w01].GP[3][n2];
-	        n02 = W[w02].GP[3][n2];
-	        n12 = W[w12].GP[3][n2];
+	        n01 = W[s01].GP[3][n2];
+	        n02 = W[s02].GP[3][n2];
+	        n12 = W[s12].GP[3][n2];
 	        n2ijk[n2] = fcijk*exp( -C->NDX[i][jj]*C->NDX[i][jj]*n01 - C->NDX[i][ k]*C->NDX[i][ k]*n02 - C->ndx[i][jj][k]*C->ndx[i][jj][k]*n12 );
 	      }
 
 	      for(z=0;z<W[0].GT[5];z++)
 	      for(l=0;l<W[0].GT[6];l++)
-	        lzijk[z][l] =  pow(1.0+P->GP[6][l]*C->cos[i][jj][k],P->GP[5][z]);
+	        lzijk[z][l] =  powz[z]*pow(1.0+P->GP[6][l]*C->cos[i][jj][k],P->GP[5][z]);
 	      
+	      ds = ds1*ds1 + ds2*ds2;
 	      for(n=0,g4=0;n<P->NSYM;n++)
 	        if(P->GF[n][0]==4)
 	        {
-		  m=(P->NG2*ng2)+(g4 * ng4)+index[w1][w2];
+		  m = g4 + ind4[ds];
 		  L->Cn[i][m] += lzijk[W[0].GF[n][6]][W[0].GF[n][7]] * n2ijk[W[0].GF[n][4]];
-//		  printf("%3d % lf % lf % lf\n",m,P->GP[3][W[0].GF[n][4]],P->GP[6][W[0].GF[n][7]],P->GP[5][W[0].GF[n][6]]);
 		  g4++;
 	        }
 	    }
@@ -533,12 +557,13 @@ void PRS_BP(PRS *P, PRS *W, Cell *C, LNK *L, int o, char *path)
   // For FS
   if(P->EFS>0) 
   {
-    #pragma omp parallel private(j,n,q,I,jj,ii,fcij,dfcij,dxji,g2,t,spc0,m,k,A0,dxjk,n2,n2ijk,z,l,a2ijk,a3ijk,spc1,spc2,a52,a53,a63,ndxjk,g4,n4,n6,n7,A2,A3,A4,A5,A6,A7,dxij,dqij,dxik,dqik,T0,F0,F1,F2,a62,B1,A1,B2,B3) num_threads(C->NP)
+  #pragma omp parallel private(j,n,q,I,jj,ii,fcij,dfcij,dxji,g2,t,s0,m,k,A0,dxjk,n2,n2ijk,z,l,a2ijk,a3ijk,s1,s2,ds1,ds2,ds,a52,a53,a63,ndxjk,g4,n4,n6,n7,A2,A3,A4,A5,A6,A7,dxij,dqij,dxik,dqik,T0,F0,F1,F2,a62,B1,A1,B2,B3) num_threads(C->NP)
     {
       I = make_i1D(C->N);
       #pragma omp for schedule(dynamic,C->NB)
       for(i=0;i<C->N;i++)
       {      
+  	s0 = C->ATMN[i];
         for(j=0;j<=L->DNn[i];j++)
 	  for(n=0;n<P->D;n++)
 	    for(q=0;q<3;q++)
@@ -551,7 +576,8 @@ void PRS_BP(PRS *P, PRS *W, Cell *C, LNK *L, int o, char *path)
 	    I[j] = 0;
 	  for(jj=0;jj<C->Nn[i];jj++)
 	  {
-	    j = C->Ni[i][jj];
+	    j  = C->Ni[i][jj];
+  	    s1 = C->ATMN[j];
 	    if(I[j]==0)
 	    {
 	      I[j] = 1;
@@ -567,8 +593,8 @@ void PRS_BP(PRS *P, PRS *W, Cell *C, LNK *L, int o, char *path)
 		    {
 		      t = dGNR(P,n,P->GP[0][P->GF[n][1]],C->NDX[j][ii],fcij,dfcij)/C->NDX[j][ii];
                       L->DNs[i][L->DNn[i]] = C->ATMN[j];
-		      spc0=C->ATMN[i];
-		      m=(g2*P->NSPC)+spc0;
+		      ds1 = (s0-s1+P->NSPC)%P->NSPC;
+		      m  = g2 + ind2[ds1];
 		      for(q=0;q<3;q++)
 		        L->Fn[i][L->DNn[i]][m][q] += t*dxji[q]; // the sign is correct!
 		      // for the pair function in stress calculation only the part on atom i is needed
@@ -587,19 +613,23 @@ void PRS_BP(PRS *P, PRS *W, Cell *C, LNK *L, int o, char *path)
 		      for(z=0;z<W[0].GT[5];z++)
 		      for(l=0;l<W[0].GT[6];l++)
 		      {
-		        a2ijk[z][l] =  A0*P->GP[6][l]*P->GP[5][z]*pow(1.0+P->GP[6][l]*C->cos[j][ii][k],P->GP[5][z]-1.0)/C->NDX[j][ii];
-		        a3ijk[z][l] = pow(1.0+P->GP[6][l]*C->cos[j][ii][k],P->GP[5][z]);
+		        a2ijk[z][l] = powz[z]* A0*P->GP[6][l]*P->GP[5][z]*pow(1.0+P->GP[6][l]*C->cos[j][ii][k],P->GP[5][z]-1.0)/C->NDX[j][ii];
+		        a3ijk[z][l] = powz[z]*pow(1.0+P->GP[6][l]*C->cos[j][ii][k],P->GP[5][z]);
 		      }
-		      spc1  = C->ATMN[C->Ni[j][ii]];
-		      spc2  = C->ATMN[C->Ni[j][k]];
+		      s2    = C->ATMN[C->Ni[j][k]];
+                      ds1   = (s0-s1+P->NSPC)%P->NSPC;
+                      ds2   = (s2-s1+P->NSPC)%P->NSPC;
+                      ds    = ds1*ds1 + ds2*ds2;
+
 		      a52   = -C->cos[j][ii][k]/C->NDX[j][ii];
 		      a53   = fc(P->GP[0][P->GF[g2][1]],C->ndx[j][ii][k])*dfc(P->GP[0][P->GF[g2][1]],C->NDX[j][ii])   /C->NDX[j][ii];
 		      a63   = fc(P->GP[0][P->GF[g2][1]],C->NDX[j][ii])   *dfc(P->GP[0][P->GF[g2][1]],C->ndx[j][ii][k])/C->ndx[j][ii][k];
 		      ndxjk = 1.0/C->NDX[j][k];
+
 		      for(n=0,g4=0;n<P->NSYM;n++)
 		        if(P->GF[n][0]==4)
 		        {
-			  m=(P->NG2*ng2)+(g4 * ng4)+index[spc1][spc2];
+                          m  = g4 + ind4[ds];
 			  n4 = W[0].GF[n][4];
 			  n6 = W[0].GF[n][6];
 			  n7 = W[0].GF[n][7];
@@ -610,7 +640,7 @@ void PRS_BP(PRS *P, PRS *W, Cell *C, LNK *L, int o, char *path)
 			  A6 =           A3*(a63+A4);
 			  A7 =  A2*ndxjk;
 			  for(q=0;q<3;q++)
-			    L->Fn[i][L->DNn[i]][m][q] += n2ijk[n4]*((A5+A6)*dxji[q] + (A7-A6)*dxjk[q]); // not sure why the sign is +A7 but it works
+			    L->Fn[i][L->DNn[i]][m][q] += n2ijk[n4]*((A5+A6)*dxji[q] + (A7-A6)*dxjk[q]);
 			  g4++;
 		        }
 		    }
@@ -626,17 +656,18 @@ void PRS_BP(PRS *P, PRS *W, Cell *C, LNK *L, int o, char *path)
         {
           for(q=0;q<3;q++)
             dxij[q] = DX(C,i,j,q);
-          for(q=0;q<3;q++)                                                                                                                                                                                
+          for(q=0;q<3;q++)              
             dqij[q] = DX(C,i,j,(q+1)%3);
 	  fcij  =  fc(P->GP[0][P->GF[0][1]],C->NDX[i][j]);
-	  dfcij = dfc(P->GP[0][P->GF[0][1]],C->NDX[i][j]); 	//	t = dGNR(P,n,P->GP[0][P->GF[0][1]],C->NDX[i][j])/C->NDX[i][j];
+	  dfcij = dfc(P->GP[0][P->GF[0][1]],C->NDX[i][j]);
+	  s1 = C->ATMN[C->Ni[i][j]];
+	  
 	  for(n=g2=0;n<P->NSYM;n++)
 	    if(P->GF[n][0]==2)
 	    {
-	      
-	      t = dGNR(P,n,P->GP[0][P->GF[n][1]],C->NDX[i][j],fcij,dfcij)/C->NDX[i][j];
-	      spc0=C->ATMN[C->Ni[i][j]];
-	      m=(g2*P->NSPC)+spc0;
+	      t  = dGNR(P,n,P->GP[0][P->GF[n][1]],C->NDX[i][j],fcij,dfcij)/C->NDX[i][j];
+	      ds1 = (s1-s0+P->NSPC)%P->NSPC;
+	      m  = g2 + ind2[ds1];
 
 	      if(P->EFS!=2 && L->MRK[i]==1)
 	        for(q=0;q<3;q++)
@@ -659,8 +690,12 @@ void PRS_BP(PRS *P, PRS *W, Cell *C, LNK *L, int o, char *path)
 	        dxik[q] = DX(C,i,k,q);
               for(q=0;q<3;q++)
                 dqik[q] = DX(C,i,k,(q+1)%3);
-	      spc1 = C->ATMN[C->Ni[i][j]];
-	      spc2 = C->ATMN[C->Ni[i][k]];
+
+	      s2    = C->ATMN[C->Ni[i][k]];
+	      ds1   = (s1-s0+P->NSPC)%P->NSPC;
+	      ds2   = (s2-s0+P->NSPC)%P->NSPC;
+	      ds    = ds1*ds1 + ds2*ds2;
+
 	      A0   = fc(P->GP[0][P->GF[g2][1]],C->NDX[i][j])*fc(P->GP[0][P->GF[g2][1]],C->NDX[i][k]);
 	      T0   = fc(P->GP[0][P->GF[g2][1]],C->ndx[i][j][k]);
 	      F0   = dfc(P->GP[0][P->GF[g2][1]],C->NDX[i][j])* fc(P->GP[0][P->GF[g2][1]],C->NDX[i][k])* fc(P->GP[0][P->GF[g2][1]],C->ndx[i][j][k]);
@@ -671,17 +706,18 @@ void PRS_BP(PRS *P, PRS *W, Cell *C, LNK *L, int o, char *path)
 	      for(z=0;z<W[0].GT[5];z++)
 	      for(l=0;l<W[0].GT[6];l++)
 	      {
-	        a2ijk[z][l] = P->GP[6][l]*P->GP[5][z]*pow(1.0+P->GP[6][l]*C->cos[i][j][k],P->GP[5][z]-1.0)*A0;
-	        a3ijk[z][l] = pow(1.0+P->GP[6][l]*C->cos[i][j][k],P->GP[5][z]);
+	        a2ijk[z][l] = powz[z]*P->GP[6][l]*P->GP[5][z]*pow(1.0+P->GP[6][l]*C->cos[i][j][k],P->GP[5][z]-1.0)*A0;
+	        a3ijk[z][l] = powz[z]*pow(1.0+P->GP[6][l]*C->cos[i][j][k],P->GP[5][z]);
 	      }
 	      a52 = (1.0/C->NDX[i][k]-C->cos[i][j][k]/C->NDX[i][j])/C->NDX[i][j];
 	      a62 = (1.0/C->NDX[i][j]-C->cos[i][j][k]/C->NDX[i][k])/C->NDX[i][k];
 	      a53 = fc(P->GP[0][P->GF[g2][1]],C->NDX[i][k])*dfc(P->GP[0][P->GF[g2][1]],C->NDX[i][j])/C->NDX[i][j];
 	      a63 = fc(P->GP[0][P->GF[g2][1]],C->NDX[i][j])*dfc(P->GP[0][P->GF[g2][1]],C->NDX[i][k])/C->NDX[i][k];
+
               for(n=g4=0;n<P->NSYM;n++)
                 if(P->GF[n][0]==4)
 	        {
-		  m=(P->NG2*ng2)+(g4 * ng4)+index[spc1][spc2];
+                  m  = g4 + ind4[ds];
 		  B1 = n2ijk[W[0].GF[n][4]];
 		  A1 = B1*T0;
 		  n4 = W[0].GF[n][4];
@@ -1194,10 +1230,14 @@ void PARS_DAT(ANN *R, PRS *P, Cell *C, LNK *L)
   timeinfo = localtime ( &rawtime );
   sprintf(s,"%s/stamp.dat",R->data);
   stamp=fopen(s,"w");
+  fprintf(stamp,"VERS   %s\n" ,VERSION);
   fprintf(stamp,"TIME   %s",asctime (timeinfo));
   fprintf(stamp,"DEPO   %s\n",R->depo);
   fprintf(stamp,"STRC   %d\n",N);
   fprintf(stamp,"PRSE   %d\n",rindex);
+  fprintf(stamp,"PEFS   %d\n" ,P->EFS);
+  fprintf(stamp,"FMRK   %lf\n",P->FMRK);
+  fprintf(stamp,"PRSF   %d\n" ,totf);
   fprintf(stamp,"COMP   %d\n",R->D);
   fprintf(stamp,"NSYM   %d\n",R->NSYM);
   fprintf(stamp,"NSPC   %d\n",R->NSPC);
@@ -1209,14 +1249,11 @@ void PARS_DAT(ANN *R, PRS *P, Cell *C, LNK *L)
   }
   fprintf(stamp,"TSPC   %s\n" ,s);
   fprintf(stamp,"NMAX   %d\n" ,Nmax);
+  fprintf(stamp,"RAND   %ld\n",R->seed2);
   fprintf(stamp,"EMAX   %lf\n",R->EMAX);
   fprintf(stamp,"FMAX   %lf\n",R->FMAX);
   fprintf(stamp,"VMIN   %lf\n",R->VMIN);
   fprintf(stamp,"VMAX   %lf\n",R->VMAX);
-  fprintf(stamp,"SEED   %ld\n",R->seed2);
-  fprintf(stamp,"PEFS   %d\n" ,P->EFS);
-  fprintf(stamp,"FMRK   %lf\n",P->FMRK);
-  fprintf(stamp,"PRSF   %d\n" ,totf);
   fclose(stamp);
   
   for(k=0;k<C->NRDF;k++)
