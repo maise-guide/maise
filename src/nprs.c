@@ -860,13 +860,13 @@ void PARS_STR(PRS *P, PRS *W, Cell *C, LNK *L, int o, char *path)
 //==================================================================
 //  TO BE WRITTEN: ANALYZE WHAT DATA TO INCLUDE
 //==================================================================
-int CHCK_DAT(ANN *R, Cell *C, LNK *L)
+int CHCK_DAT(ANN *R, LNK *L)
 {
   int    i,q;
   
-  for(i=0;i<C->N;i++)
-    for(q=0;q<0;q++)
-      if( fabs(C->F[i][q]) > R->FMAX )
+  for(i=0;i<L->N;i++)
+    for(q=0;q<3;q++)
+      if( fabs(L->F[i][q]) > R->FMAX )
 	return 0;
   return 1;
 }
@@ -881,7 +881,7 @@ void SORT_FIT(int *NFIT, double *EFIT, int n, int N, int M, double EMAX, int TAG
     Emin = Emax = Em = 0.0;
     for(i=n;i<N+n;i++)
       NFIT[i] = TAG;
-    printf("%6d %6d %6d % 18.12lf % 18.12lf % 18.12lf\n\n",N,N,M,Emin,Emax,Em);
+    printf("%6d %6d %6d % 18.12lf % 18.12lf % 18.12lf\n",N,N,M,Emin,Emax,Em);
     return;
   }
   for(i=n,Emin = 10^6,Emax =-10^6;i<N+n;i++)
@@ -908,7 +908,7 @@ void SORT_FIT(int *NFIT, double *EFIT, int n, int N, int M, double EMAX, int TAG
     if(k>M)
       Eh = Em;
   }
-  printf("%6d %6d %6d % 18.12lf % 18.12lf % 18.12lf\n\n",N,k,M,Emin,Emax,Em);  
+  printf("%6d %6d %6d % 18.12lf % 18.12lf % 18.12lf\n",N,k,M,Emin,Emax,Em);  
   for(i=n;i<N+n;i++)
     if(EFIT[i]<Em)
       NFIT[i] = TAG;
@@ -922,7 +922,7 @@ void PARS_DAT(ANN *R, PRS *P, Cell *C, LNK *L)
 {
   int    i,j,n,m,nn,k,Nmax,x,ND,*NFIT,NRDF,spc1,spc2,TAG,N,totf;
   double *EFIT,***H,EMAX,t;
-  char    buf[500],buf2[400],s[700],d[600],dn[400][400],kw[400];
+  char    buf[500],buf2[400],s[700],d[600],dn[2000][400],kw[400];
   FILE    *stamp,*in,*dir,*rtable,*nd,*ve;
   PRS     W[9];   // 2*NSPC+1, so for maximum 3 species one needs 9
 
@@ -956,7 +956,6 @@ void PARS_DAT(ANN *R, PRS *P, Cell *C, LNK *L)
 
   ve = fopen("ve.dat","w");
   //===== TRAINING POSCARS PARSING =====
-
   // Creates a list of all POSCAR.0 in ANN/data/*
   sprintf(s,"ls %s/*/ -d | sort",R->depo);
   nd = popen(s,"r");
@@ -970,7 +969,7 @@ void PARS_DAT(ANN *R, PRS *P, Cell *C, LNK *L)
   }
   
   pclose(nd);
-  
+
   struct Node *tmpnd;
   struct Node *tmp[ND];
   struct Node *tindex;
@@ -1148,6 +1147,7 @@ void PARS_DAT(ANN *R, PRS *P, Cell *C, LNK *L)
 	}
 	fgets(buf,200,in);
 	fgets(buf,200,in);
+	L->N = C->N;
       }
       sscanf(buf,"%s",kw);
       if(strncmp(kw,"PS",2)==0)  // PSTRESS in kB
@@ -1157,7 +1157,7 @@ void PARS_DAT(ANN *R, PRS *P, Cell *C, LNK *L)
       }
       fclose(in);
       
-      if(NFIT[nn]>0&&CHCK_DAT(R,C,L)!=0)
+      if(NFIT[nn]>0&&CHCK_DAT(R,L)!=0)
       {
 	P->IO = 1;
 	if(R->EFS==1||R->EFS==3)

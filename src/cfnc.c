@@ -605,6 +605,7 @@ void CELL_EXAM(Cell *C, Cell *D, int argc, char **argv)
     if(argc>2)
       NM = (int)atoi(argv[2]);
     INIT_CELL(C,"POSCAR",1,NM,1);
+    C->POS = 0;
     PLOT_RDF(C,argc,argv);
     exit(0);
   }
@@ -618,6 +619,7 @@ void CELL_EXAM(Cell *C, Cell *D, int argc, char **argv)
       NM  = (int)atoi(argv[3]);
     INIT_CELL(C,"POSCAR",4,NM,1);
     INIT_CELL(D,"POSCAR",4,NM,1);
+    C->POS = D->POS = 0;
     FIND_SPG(C,D,tol,NM);
     exit(0);
   }
@@ -630,6 +632,7 @@ void CELL_EXAM(Cell *C, Cell *D, int argc, char **argv)
     if(argc>3)
       NM  = (int)atoi(argv[3]);
     C->N = 0;
+    C->POS = 0;
     READ_CIF(C,"str.cif",tol,NM);    
     exit(0);
   }
@@ -640,6 +643,7 @@ void CELL_EXAM(Cell *C, Cell *D, int argc, char **argv)
       NM = (int)atoi(argv[2]);
     INIT_CELL(C,"POSCAR0",1,NM,1);
     INIT_CELL(D,"POSCAR1",1,NM,1);
+    C->POS = D->POS = 0;
     FIND_CXC(C,D,argc,argv);
     exit(0);
   }
@@ -650,6 +654,7 @@ void CELL_EXAM(Cell *C, Cell *D, int argc, char **argv)
       NM = (int)atoi(argv[2]);
     INIT_CELL(C,"POSCAR0",1,NM,1);
     INIT_CELL(D,"POSCAR1",1,NM,1);
+    C->POS = D->POS = 0;
     COMP_STR(C,D,argc,argv);
     exit(0);
   }

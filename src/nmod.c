@@ -249,10 +249,11 @@ void ADJT_LNK(ANN *R, LNK *L)
     {
       for(l=0;l<R->D;l++)
         L[n].Cn[i][l] *= R->DR[L[n].ATMN[i]][l];
-      for(j=0;j<=L[n].DNn[i];j++)
-        for(l=0;l<R->D;l++)
-          for(q=0;q<3;q++)
-            L[n].Fn[i][j][l][q] *= R->DR[L[n].DNs[i][j]][l];
+      if(R->EFS==1)
+	for(j=0;j<=L[n].DNn[i];j++)
+	  for(l=0;l<R->D;l++)
+	    for(q=0;q<3;q++)
+	      L[n].Fn[i][j][l][q] *= R->DR[L[n].DNs[i][j]][l];
     }
 }
 //=========================================================
