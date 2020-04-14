@@ -860,15 +860,20 @@ void PARS_STR(PRS *P, PRS *W, Cell *C, LNK *L, int o, char *path)
 //==================================================================
 //  TO BE WRITTEN: ANALYZE WHAT DATA TO INCLUDE
 //==================================================================
-int CHCK_DAT(ANN *R, LNK *L)
+double CHCK_FRCS(ANN *R, LNK *L)
 {
+  // returns: (-1) at least one component exceeds the R->FMAX limit; 
+  // or abs(max atomic force component) in the structure
   int    i,q;
-  
+  double max = -1.0;
+
   for(i=0;i<L->N;i++)
     for(q=0;q<3;q++)
       if( fabs(L->F[i][q]) > R->FMAX )
-	return 0;
-  return 1;
+	return -1.0;
+      else if(fabs(L->F[i][q]) > max) 
+	max = fabs(L->F[i][q]);
+  return max;
 }
 //==================================================================
 void SORT_FIT(int *NFIT, double *EFIT, int n, int N, int M, double EMAX, int TAG)
@@ -921,7 +926,7 @@ void SORT_FIT(int *NFIT, double *EFIT, int n, int N, int M, double EMAX, int TAG
 void PARS_DAT(ANN *R, PRS *P, Cell *C, LNK *L)
 {
   int    i,j,n,m,nn,k,Nmax,x,ND,*NFIT,NRDF,spc1,spc2,TAG,N,totf;
-  double *EFIT,***H,EMAX,t;
+  double *EFIT,***H,EMAX,t,fmax;
   char    buf[500],buf2[400],s[700],d[600],dn[2000][400],kw[400];
   FILE    *stamp,*in,*dir,*rtable,*nd,*ve;
   PRS     W[9];   // 2*NSPC+1, so for maximum 3 species one needs 9
@@ -1156,8 +1161,9 @@ void PARS_DAT(ANN *R, PRS *P, Cell *C, LNK *L)
 	L->p *= 0.1;                         
       }
       fclose(in);
-      
-      if(NFIT[nn]>0&&CHCK_DAT(R,L)!=0)
+
+      fmax = CHCK_FRCS(R,L);
+      if( NFIT[nn]>0 && fmax>-1.0 )
       {
 	P->IO = 1;
 	if(R->EFS==1||R->EFS==3)
@@ -1174,7 +1180,7 @@ void PARS_DAT(ANN *R, PRS *P, Cell *C, LNK *L)
 	      L->MRK[i] = C->FRC[i];
 	}
 	PARS_STR(P,W,C,L,tag[nn],R->data);
-	fprintf(ve,"% 12.6lf   % 12.6lf   % 3d   %s\n",CELL_VOL(C)/(double)C->N,L->E/(double)C->N,C->N,L->path);
+	fprintf(ve,"% 12.6lf   % 12.6lf   % 12.6lf   % 3d   %s\n",CELL_VOL(C)/(double)C->N,L->E/(double)C->N,fmax,C->N,L->path);
 	for(i=0;i<C->N;i++)
 	  if(NDX(C,i,0)>C->Rmax)
 	    break;

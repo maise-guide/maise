@@ -844,12 +844,7 @@ int READ_CELL(Cell *C, char filename[])
       strcpy(FF[q],"T\0");
 
     sscanf(s,"%lf %lf %lf %s %s %s",&C->X[i][0],&C->X[i][1],&C->X[i][2],FF[0],FF[1],FF[2]); 
-    if( (strncmp(buf,"C",1) == 0) || (strncmp(buf,"c",1) == 0) )
-    {
-      for(q=0; q < D3;q++)
-	C->X[i][q] *= C->R0;
-    }
-    else
+    if( (strncmp(buf,"d",1) == 0) || (strncmp(buf,"D",1) == 0) )
     {
       for(q=0; q < D3;q++)
       {
@@ -861,9 +856,9 @@ int READ_CELL(Cell *C, char filename[])
     }
 
     for(q=0; q < D3;q++)
-      if( !strcmp(FF[q],"T\0") )
+      if( strcmp(FF[q],"T\0")==0 )
 	C->FF[i][q] = 1;
-      else
+      else if (strcmp(FF[q],"F\0")==0 )
         C->FF[i][q] = 0;
 
     fscanf(in,"\n");
