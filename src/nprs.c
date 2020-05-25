@@ -860,7 +860,7 @@ void PARS_STR(PRS *P, PRS *W, Cell *C, LNK *L, int o, char *path)
 //==================================================================
 //  TO BE WRITTEN: ANALYZE WHAT DATA TO INCLUDE
 //==================================================================
-double CHCK_FRCS(ANN *R, LNK *L)
+double CHCK_FRCS(LNK *L, double FMAX)
 {
   // returns: (-1) at least one component exceeds the R->FMAX limit; 
   // or abs(max atomic force component) in the structure
@@ -869,34 +869,70 @@ double CHCK_FRCS(ANN *R, LNK *L)
 
   for(i=0;i<L->N;i++)
     for(q=0;q<3;q++)
-      if( fabs(L->F[i][q]) > R->FMAX )
+      if( fabs(L->F[i][q]) > FMAX )
 	return -1.0;
       else if(fabs(L->F[i][q]) > max) 
 	max = fabs(L->F[i][q]);
   return max;
 }
 //==================================================================
-void SORT_FIT(int *NFIT, double *EFIT, int n, int N, int M, double EMAX, int TAG)
+void SORT_FIT(int *NFIT, double *EFIT, int *RFIT, double *FFIT, int n, int N, int TAG, double ECUT, double EMAX, double FMAX, char *add)
 {
   int i,k,m;
   double Emin,Emax,El,Em,Eh;
+  int M;
 
-  if( fabs(EMAX-1.0)<1e-14 )
-  {
-    Emin = Emax = Em = 0.0;
-    for(i=n;i<N+n;i++)
-      NFIT[i] = TAG;
-    printf("%6d %6d %6d % 18.12lf % 18.12lf % 18.12lf\n",N,N,M,Emin,Emax,Em);
-    return;
-  }
+  M = (int)((double)N*ECUT);
+
   for(i=n,Emin = 10^6,Emax =-10^6;i<N+n;i++)
   {
-    NFIT[i] = 1;
+    NFIT[i] = TAG; // first: directory's default TAG assigned to all!
     if(EFIT[i]<Emin)
       Emin = EFIT[i];
     if(EFIT[i]>Emax)
       Emax = EFIT[i];
   }
+
+  if (TAG <  0) // tag will be used; but all other conditions are relaxed!
+  {
+    Em = 1.0 * Emax;
+    for(i=n;i<N+n;i++)
+    {
+      NFIT[i] = abs(TAG);
+      FFIT[i] = 1000000.0;
+      RFIT[i] = 1;
+    }
+    printf("%6d %6d %6d % 18.12lf % 18.12lf % 18.12lf   %s\n",N,N,M,Emin,Emax,Em,add);
+    return;    
+  }
+
+  if (TAG == 4) // if directory is marked for discarding!
+  {
+    Em = ECUT * Emax;
+    for(i=n;i<N+n;i++)
+      NFIT[i] = 4;
+    printf("%6d %6d %6d % 18.12lf % 18.12lf % 18.12lf   %s\n",N,0,M,Emin,Emax,Em,add);
+    return;
+  }
+
+  if( fabs(ECUT-1.0)<1e-14 ) // if ECUT = 1.0
+  {
+    Em = ECUT * Emax;
+    for(i=n;i<N+n;i++)
+    {
+      NFIT[i] = TAG;
+      FFIT[i] = FMAX;
+      if(EMAX == 0.0)
+	RFIT[i] = 1;
+      else if((EFIT[i]-Emin-EMAX)<=0.0)
+	RFIT[i] = 1;
+      else
+	RFIT[i] = 0;
+    }
+    printf("%6d %6d %6d % 18.12lf % 18.12lf % 18.12lf   %s\n",N,N,M,Emin,Emax,Em,add);
+    return;
+  }
+
   El = Emin;
   Eh = Emax;
   
@@ -913,20 +949,28 @@ void SORT_FIT(int *NFIT, double *EFIT, int n, int N, int M, double EMAX, int TAG
     if(k>M)
       Eh = Em;
   }
-  printf("%6d %6d %6d % 18.12lf % 18.12lf % 18.12lf\n",N,k,M,Emin,Emax,Em);  
+  printf("%6d %6d %6d % 18.12lf % 18.12lf % 18.12lf   %s\n",N,k,M,Emin,Emax,Em,add);  
+
   for(i=n;i<N+n;i++)
-    if(EFIT[i]<Em)
-      NFIT[i] = TAG;
+  {
+    FFIT[i] = FMAX;
+    if(EMAX == 0.0)
+      RFIT[i] = 1;
+    else if((EFIT[i]-Emin-EMAX)<=0.0)
+      RFIT[i] = 1;
     else
-      NFIT[i] = 0;
+      RFIT[i] = 0;
+    if(EFIT[i]>=Em)
+      NFIT[i] = 4; // means discarding!
+  }
 }
 //==================================================================
 // Parse all structures in directory specified as DEPO in setup
 //==================================================================
 void PARS_DAT(ANN *R, PRS *P, Cell *C, LNK *L)
 {
-  int    i,j,n,m,nn,k,Nmax,x,ND,*NFIT,NRDF,spc1,spc2,TAG,N,totf;
-  double *EFIT,***H,EMAX,t,fmax;
+  int    i,j,n,m,nn,k,Nmax,x,ND,*RFIT,*NFIT,NRDF,spc1,spc2,TAG,N,totf;
+  double *EFIT,***H,EMAX,t,FMAX,ECUT,*FFIT,fmax,d0,d1;
   char    buf[500],buf2[400],s[700],d[600],dn[2000][400],kw[400];
   FILE    *stamp,*in,*dir,*rtable,*nd,*ve;
   PRS     W[9];   // 2*NSPC+1, so for maximum 3 species one needs 9
@@ -941,7 +985,8 @@ void PARS_DAT(ANN *R, PRS *P, Cell *C, LNK *L)
   int     MAX=100;  //number of columns in progress bar
   double  prog;
   int     y;
-  int     NP[]={0,0,0,0},*tag_2,*corr;
+  int     NP[]={0,0,0,0,0}; //defaults for TAG: (1) train+test;(2) train;(3) test; (4) discard
+  int     *tag_2,*corr;
 
   printf("|                           Dataset parsing                           |\n");
   printf("=======================================================================\n\n");
@@ -1009,10 +1054,12 @@ void PARS_DAT(ANN *R, PRS *P, Cell *C, LNK *L)
     pclose(in);
   }
   
+  RFIT = make_i1D(N);
   NFIT = make_i1D(N);
   EFIT = make_d1D(N);
+  FFIT = make_d1D(N);
 
-  printf(" dir         poscars           Emin               Emax               Ecut  \n");
+  printf(" dir         poscars           Emin               Emax               Ecut                  path\n");
   for(n=m=0;n<ND;n++)
   {
     k = 0;      
@@ -1026,35 +1073,67 @@ void PARS_DAT(ANN *R, PRS *P, Cell *C, LNK *L)
       sprintf(s,"%s/POSCAR.0",d);
       READ_CELL(C,s);
       sprintf(s,"%s/dat.dat",d);
-      
+      EFIT[m+k] = -99999.9;
       if( (in=fopen(s,"r")) != 0 )
       {
-	if(fgets(s,200,in)==NULL)
+	while(fgets(d,200,in))
 	{
-	  fprintf(stderr,"ERROR reading %s\n",d);
+	  sscanf(d,"%s %lf %lf\n",buf,&d0,&d1);
+	  if(strncmp(buf,"vol",3)==0 && R->PENE == 0)
+	    EFIT[m+k] = d1;
+	  if(strncmp(buf,"ent",3)==0 && R->PENE == 1)
+	    EFIT[m+k] = d0;
+	}
+	fclose(in);
+	if(EFIT[m+k] == -99999.9)
+        {
+	  in=fopen(s,"r");
+	  fgets(d,200,in);
+	  sscanf(d,"%lf\n",&EFIT[m+k]);
+	  EFIT[m+k] /= (double)C->N;
+	  fclose(in);
+	}
+	if(EFIT[m+k] == -99999.9)
+	{
+	  fprintf(stderr,"ERROR reading %s\n",s);
 	  exit(1);
 	}
-	sscanf(s,"%lf\n",&EFIT[m+k++]);
-	EFIT[m+k-1] /= (double)C->N;
-	fclose(in);
+	k++;
       }
       else
       {
-	fprintf(stderr,"ERROR opening %s\n",d);
+	fprintf(stderr,"ERROR opening %s\n",s);
 	exit(1);
       }
     }
-    
     printf("%3d  ",n);
     sprintf(buf,"%s/tag",dn[n]);
-    EMAX = R->EMAX;
-    TAG = 1;
+    ECUT = 0.0;
+    EMAX = 0.0;
+    FMAX = 0.0;
+    TAG  = 0;
     if( (in=fopen(buf,"r")) != 0 )
     {
-      fscanf(in,"%lf\n%d\n",&EMAX,&TAG);
+      for(i=0;i<4;i++)
+	if(fgets(s,200,in))
+	{
+	  if(i==0)
+	    sscanf(s,"%d\n",&TAG);
+	  else if(i==1)
+	    sscanf(s,"%lf\n",&ECUT);
+	  else if(i==2)
+	    sscanf(s,"%lf\n",&EMAX);
+	  else if(i==3)
+	    sscanf(s,"%lf\n",&FMAX);
+	}
       fclose(in);
     }
-    SORT_FIT(NFIT,EFIT,m,p[n],(int)((double)p[n]*EMAX),EMAX,TAG);
+    if (TAG  == 0  ) TAG  = 1;
+    if (ECUT == 0.0) ECUT = R->ECUT;
+    if (EMAX == 0.0) EMAX = R->EMAX;
+    if (FMAX == 0.0) FMAX = R->FMAX;
+    
+    SORT_FIT(NFIT,EFIT,RFIT,FFIT,m,p[n],TAG,ECUT,EMAX,FMAX,dn[n]);
     m += p[n];      
   }
   printf("Total %6d POSCAR.0 files are found in %s/*\n\n",N,R->depo);
@@ -1063,7 +1142,7 @@ void PARS_DAT(ANN *R, PRS *P, Cell *C, LNK *L)
   C->Rmax = P->RC;
   C->Rmin = 0.99*C->Rmax;
   
-  tag=make_i1D(N);    
+  tag = make_i1D(N);    
   
   if(R->seed2<0)             //sequential tags
   {
@@ -1076,7 +1155,7 @@ void PARS_DAT(ANN *R, PRS *P, Cell *C, LNK *L)
     if(R->seed2==0) R->seed2=time(NULL);
     PlantSeeds(R->seed2); 
     for(nn=0;nn<N;nn++) NP[NFIT[nn]]++;
-    printf("Structures marked for:    TRAIN=% d    TEST=% d    TRAIN+TEST=% d    DISCARD=% d\n",NP[2],NP[3],NP[1],NP[0]); 
+    printf("Structures marked for:    TRAIN=% d    TEST=% d    TRAIN+TEST=% d    DISCARD=% d\n",NP[2],NP[3],NP[1],NP[4]); 
     corr=make_i1D(5);
     corr[1]=NP[2];
     corr[2]=0;
@@ -1162,8 +1241,8 @@ void PARS_DAT(ANN *R, PRS *P, Cell *C, LNK *L)
       }
       fclose(in);
 
-      fmax = CHCK_FRCS(R,L);
-      if( NFIT[nn]>0 && fmax>-1.0 )
+      fmax = CHCK_FRCS(L,FFIT[nn]);
+      if( NFIT[nn]<4 && fmax>-1.0 && RFIT[nn]>0 ) // NFIT = 4 means discarding!
       {
 	P->IO = 1;
 	if(R->EFS==1||R->EFS==3)
@@ -1256,6 +1335,7 @@ void PARS_DAT(ANN *R, PRS *P, Cell *C, LNK *L)
   fprintf(stamp,"TSPC   %s\n" ,s);
   fprintf(stamp,"NMAX   %d\n" ,Nmax);
   fprintf(stamp,"RAND   %ld\n",R->seed2);
+  fprintf(stamp,"ECUT   %lf\n",R->ECUT);
   fprintf(stamp,"EMAX   %lf\n",R->EMAX);
   fprintf(stamp,"FMAX   %lf\n",R->FMAX);
   fprintf(stamp,"VMIN   %lf\n",R->VMIN);
@@ -1270,6 +1350,8 @@ void PARS_DAT(ANN *R, PRS *P, Cell *C, LNK *L)
 
   free_i1D(NFIT);
   free_d1D(EFIT);
+  free_i1D(RFIT);
+  free_d1D(FFIT);
   free_i1D(tag);
   
   fclose(ve);  

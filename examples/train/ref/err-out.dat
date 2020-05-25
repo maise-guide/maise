@@ -1,6 +1,6 @@
 =======================================================================
 |               Module for Ab Initio Structure Evolution              |
-|                        version     maise.2.4.00                     |
+|                        version     maise.2.5.00                     |
 |                 https://github.com/maise-guide/maise                |
 =======================================================================
 |                            Model training                           |
@@ -25,7 +25,7 @@ ERROR FCNT CALLS =     32
 TOT. RESI. ERROR =  0.083964  0.779776 -0.695812 (final,initial,difference)
 
 
- job times: real= 0.14   user= 0.02   sys= 0.11   total CPU= 0.13 (sec)
+ job times: real= 0.14   user= 0.19   sys= 0.09   total CPU= 0.28 (sec)
 
 Stand. dev. ENE           0.727275                    26
 Train error ENE FRC TOT   0.284946  0.774684  0.236905     13      6

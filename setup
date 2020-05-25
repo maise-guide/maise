@@ -37,10 +37,12 @@ NTST -10                number of structures for testing  (negative means percen
 NNNN  2                 number of hidden layers in MLP
 NNNU  10 10             number of neurons in hidden layers in MLP
 NNGT  1  1              activation function type for hidden layers
-EMAX  0.90              parse only this fraction of lowest-energy structures
+ECUT  0.90              parse only this fraction of lowest-energy structures
+EMAX  100.0             parse within this energy difference from the lowest-energy of each category
 FMAX  100.0             do not parse data with larger force
 VMIN  0.0               do not parse data with lower  volume
 VMAX  45.0              do not parse data with larger volume
+PENE  0                 energy windows in parsing: (0) Energy-based; (1) Enthalpy-based
 =============================================================================================================
                                EVOLUTIONARY SEARCH settings
 =============================================================================================================

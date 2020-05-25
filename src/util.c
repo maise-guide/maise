@@ -1162,8 +1162,12 @@ void READ_MAIN(Tribe *T, ANN *R, PRS *P, Cell *C, int J, int ARGC)
   R->WF    = 0.01;         // 1 eV/A => 0.010meV/atom
   R->WS    = 0.001;        // 1 kB => ...
   T->te    = 0.0;
-  R->FMAX  = 20.0;
+  R->ECUT  = 0.9;
+  R->EMAX  = 5.0;
+  R->FMAX  = 50.0;
   R->FMIN  = 1e-5;
+  R->VMIN  = 0.0;
+  R->VMAX  = 45.0;
   T->p     = 0.0;          // pressure in GPa
   C->p     = 0.0;          // pressure in eV
   C->Rmax  = 6.0;
@@ -1181,6 +1185,7 @@ void READ_MAIN(Tribe *T, ANN *R, PRS *P, Cell *C, int J, int ARGC)
   T->CUT   = 0.95;         // discard similar structures if CxC is above this
   P->LM    = 1;            // max number of pl for PS descriptor in INI/pl.dat
   P->GM    = 1;            // max number of gn for PS descritpro in INI/w.dat
+  R->PENE  = 0;            // parse based on energy; for enthalpy should be 1
   C->RLXT  = 0;
   R->MODT  = 1;
   C->MODT  = 1;
@@ -1306,6 +1311,7 @@ void READ_MAIN(Tribe *T, ANN *R, PRS *P, Cell *C, int J, int ARGC)
     if( strncmp(buf,"LREG",4) == 0 ) { sscanf(buf+4,"%lf",&R->LREG );       }
     if( strncmp(buf,"WFRC",4) == 0 ) { sscanf(buf+4,"%lf",&R->WF   );       }
     //==================== data parameters  =================================
+    if( strncmp(buf,"PENE",4) == 0 ) { sscanf(buf+4,"%d", &R->PENE );       }
     if( strncmp(buf,"EMAX",4) == 0 ) { sscanf(buf+4,"%lf",&R->EMAX );       }
     if( strncmp(buf,"FMAX",4) == 0 ) { sscanf(buf+4,"%lf",&R->FMAX );       }
     if( strncmp(buf,"FMIN",4) == 0 ) { sscanf(buf+4,"%lf",&R->FMIN );       }
@@ -1333,7 +1339,7 @@ void READ_MAIN(Tribe *T, ANN *R, PRS *P, Cell *C, int J, int ARGC)
     if( strncmp(buf,"MUCP",4) == 0 ) { sscanf(buf+4,"%d", &T->Nu   );       }
     if( strncmp(buf,"BEST",4) == 0 ) { sscanf(buf+4,"%d", &T->NB   );       }
     if( strncmp(buf,"RHRD",4) == 0 ) { sscanf(buf+4,"%lf",&T->Rhc  );       }
-    if( strncmp(buf,"ECUT",4) == 0 ) { sscanf(buf+4,"%lf",&T->HE   );       }
+    if( strncmp(buf,"ECUT",4) == 0 ) { sscanf(buf+4,"%lf",&T->HE   );R->ECUT = T->HE;}
     if( strncmp(buf,"SCUT",4) == 0 ) { sscanf(buf+4,"%lf",&T->CUT  );       }
     //==================== misc PARS parameters  ============================
     if( strncmp(buf,"PSLM",4) == 0 ) { sscanf(buf+4,"%d", &P->LM   );       }
@@ -1367,7 +1373,7 @@ void READ_MAIN(Tribe *T, ANN *R, PRS *P, Cell *C, int J, int ARGC)
     fprintf(stderr,"Number of hidden layers %3d should not exceed 2. Please change NNNN\n",R->NL);
     exit(1);
   }
-
+  
   R->NU[0]        = R->D;
   R->NU[R->NL+1]  = 1;
   R->GT[0]        = 1;

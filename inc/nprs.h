@@ -27,8 +27,8 @@ double gn(PRS *P, int n, double r);
 void   PRS_PS(PRS *P, Cell *C, LNK *L, int o, char *path);
 void   PRS_IJ(PRS *P, Cell *C, LNK *L, int o, char *path);
 void   PARS_STR(PRS *P, PRS *W, Cell *C, LNK *L, int o, char *path);
-double CHCK_FRCS(ANN *R, LNK *L);
-void   SORT_FIT(int *NFIT, double *EFIT, int n, int N, int M, double EMAX, int TAG);
+double CHCK_FRCS(LNK *L, double FMAX);
+void   SORT_FIT(int *NFIT, double *EFIT, int *RFIT, double *FFIT, int n, int N, int TAG, double ECUT, double EMAX, double FMAX, char *add);
 void   PARS_DAT(ANN *R, PRS *P, Cell *C, LNK *L);
 
 #endif

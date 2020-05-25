@@ -22,8 +22,12 @@ double ENE_POT(Cell *C)
   double r,e,t,y,E,u;
 
   LIST(C,0);
+  E = 0.0;
 
-  for(i=0,E=0.0;i<C->N;i++)
+#pragma omp parallel private(p,r,u,e,y,t,j) num_threads(C->NP)
+  {
+#pragma omp for reduction (+:E) schedule(dynamic,C->NB)
+  for(i=0;i<C->N;i++)
   {
     for(j=0,e=t=0.0;j<C->Nn[i];j++)
     {
@@ -55,19 +59,34 @@ double ENE_POT(Cell *C)
     C->EA[i] = e - sqrt(t);
     E += C->EA[i];
   }
+  }
   return E;
 }
 //==================================================        
 double FRC_POT(Cell *C)
 {
-  int i,j,q,p;
-  double r,y,t,e,*h,u,z,E;
+  int i,j,q,p,nth;
+  double r,y,t,e,*h,u,z,E,**us,**hs;
 
-  h = make_d1D(C->N);
+  h  = make_d1D(C->N);
+  hs = make_d2D(C->NP,C->N);
+  us = make_d2D(C->NP,6);
+
+  for(j=0;j<C->N;j++)
+    h[j] = 0.0;
+  
+  for(i=0;i<C->NP;i++)
+    for(j=0;j<C->N;j++)
+      hs[i][j] = 0.0;
 
   LIST(C,0);
+  E = 0.0;
 
-  for(i=0,E=0.0;i<C->N;i++)
+#pragma omp parallel private(p,r,u,e,y,t,j) num_threads(C->NP)
+  {
+    nth = omp_get_thread_num();
+#pragma omp for reduction (+:E) schedule(dynamic,C->NB)
+  for(i=0;i<C->N;i++)
   {
     for(j=0,e=t=0.0;j<C->Nn[i];j++)
     {
@@ -96,17 +115,33 @@ double FRC_POT(Cell *C)
       }
       //===========================
     }
-    h[i] = sqrt(t);
-    C->EA[i] = e - h[i];
+    hs[nth][i] = sqrt(t);
+    C->EA[i] = e - sqrt(t);
     E += C->EA[i];
   }
+  }
+
+  for(i=0;i<C->NP;i++)
+    for(j=0;j<C->N;j++)
+      h[j] += hs[i][j];
+  
+  for(i=0;i<C->NP;i++)
+    for(q=0;q<6;q++)
+      us[i][q] = 0.0;
 
   for(q=0;q<6;q++)
     C->U[q] = 0.0;
+
   for(i=0;i<C->N;i++)
-  {
     for(q=0;q<3;q++)
       C->F[i][q] = 0.0;
+
+#pragma omp parallel private(nth,p,r,u,z,y,t,j,q) num_threads(C->NP)
+  {
+    nth = omp_get_thread_num();
+#pragma omp for schedule(dynamic,C->NB)
+  for(i=0;i<C->N;i++)
+  {
     for(j=0,t=0.0;j<C->Nn[i];j++)
     {
       p = C->ATMN[i] + C->ATMN[C->Ni[i][j]];
@@ -140,12 +175,19 @@ double FRC_POT(Cell *C)
       for(q=0;q<3;q++)
 	C->F[i][q] -= t*DX(C,i,j,q);
       for(q=0;q<3;q++)
-	C->U[q]   += 0.5*t*DX(C,i,j,q)*DX(C,i,j,q);
+	us[nth][q]   += 0.5*t*DX(C,i,j,q)*DX(C,i,j,q);
       for(q=0;q<3;q++)
-	C->U[q+3] += 0.5*t*DX(C,i,j,q)*DX(C,i,j,(q+1)%3);
+	us[nth][q+3] += 0.5*t*DX(C,i,j,q)*DX(C,i,j,(q+1)%3);
     }
   }
+  }
 
+  for(i=0;i<C->NP;i++)
+    for(q=0;q<6;q++)
+      C->U[q] += us[i][q];
+
+  free_d2D(hs,C->NP);
+  free_d2D(us,C->NP);
   free_d1D(h);
   return E;
 }

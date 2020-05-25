@@ -17,7 +17,8 @@ fi
 cp ../maise parse
 cp ../maise train
 cp ../maise relax
-cp ../maise esint
+
+C=1
 
 cd parse
 printf " PARSE test ... "
@@ -29,6 +30,7 @@ then
 rm -r PARS out.dat res.dat
 printf " OK!\n"
 else
+((C=$C-1))
 more out.dat >> res.dat
 mv res.dat ../issue_parse
 printf " ERROR!\n"
@@ -46,6 +48,7 @@ e0=$(sed -n "3 p" ref/err-ene.dat|awk '{print $4}')
 e1=$(sed -n "3 p" NNET/err-ene.dat|awk '{print $4}')
 if [ $e0 != $e1 ]
 then
+((C=$C-1))
 more out.dat >> res.dat
 mv res.dat ../issue_train
 printf " ERROR!\n"
@@ -65,29 +68,16 @@ then
 rm CO* O* out.dat res.dat
 printf " OK!\n"
 else
+((C=$C-1))
 more out.dat >> res.dat
 mv res.dat ../issue_relax
 printf " ERROR!\n"
 fi
 cd ..
 
-cd esint
-printf " ESINT test ... "
-mkdir EVOS
-maise >> out.dat
-e0=$(sed -n "3 p" ref/ebest.dat|awk '{print $2}')
-e1=$(sed -n "3 p" ebest.dat|awk '{print $2}')
-if [ $e0 != $e1 ]
+if [ $C -eq 1 ]
 then
-more out.dat >> res.dat
-mv res.dat ../issue_esint
-printf " ERROR!\n"
-echo "Fail"
-else
-rm -r EVOS e*dat pos* log* out.dat
-printf " OK!\n"
-fi
-cd ..
-
 rm -rf */maise
+fi
+
 echo ""

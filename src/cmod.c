@@ -247,6 +247,10 @@ void Dynamics(ANN *R, PRS *P, PRS *W, Cell *C, LNK *L, double T0, int PIPE,char 
 
   // initiate the timing
   gettimeofday(&t1, NULL);
+  getrusage(RUSAGE_SELF, &t3);
+  syst_time  = (double) t3.ru_stime.tv_sec + (double) t3.ru_stime.tv_usec / (double) 1e6; // = kernel time
+  user_time  = (double) t3.ru_utime.tv_sec + (double) t3.ru_utime.tv_usec / (double) 1e6; // = user time
+  cpus_time  = (syst_time + user_time);
 
   // initiate the RDF
   H = make_d3D(C->NRDF,C->MNT,C->MNT);
@@ -420,7 +424,7 @@ void Dynamics(ANN *R, PRS *P, PRS *W, Cell *C, LNK *L, double T0, int PIPE,char 
   syst_time  = (double) t3.ru_stime.tv_sec + (double) t3.ru_stime.tv_usec / (double) 1e6; // = kernel time
   user_time  = (double) t3.ru_utime.tv_sec + (double) t3.ru_utime.tv_usec / (double) 1e6; // = user time
   wall_time  = (t2.tv_sec - t1.tv_sec) + (t2.tv_usec - t1.tv_usec) / (double) 1e6;
-  cpus_time  = syst_time + user_time;
+  cpus_time  = (syst_time + user_time) - cpus_time;
 
   //output the averages of E, T, and Lindemann index for each temperature
   out=fopen(fname,"a");

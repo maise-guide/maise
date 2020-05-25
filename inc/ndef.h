@@ -51,6 +51,7 @@ typedef struct
   double time;
   int    EFS;     // E (0) EF (1) ES (2) EFS (3)
   //===== for data analysis =====
+  double ECUT;
   double EMAX;
   double FMAX;
   double FMIN;
@@ -112,6 +113,7 @@ typedef struct
   int    MOVI;
   char   VER[200]; // version
   double Rc;
+  int    PENE;    // 0 for parse based on energy; 1 for enthalpy
 }ANN;
 
 typedef struct

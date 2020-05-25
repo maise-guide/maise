@@ -19,10 +19,6 @@ NSYM  30                number of Behler-Parrinello symmetry functions
 NCMP  82                total number of NN inputs
 TEFS  1                 train NN for (0) E (1) EF
 FMRK  0.25              fraction of atoms used for EF training
-EMAX  0.90              parse only this fraction of lowest-energy structures
-FMAX  100.0             do not parse data with larger force
-VMIN  0.0               do not parse data with lower  volume
-VMAX  45.0              do not parse data with larger volume
 =============================================================================================================
                                EVOLUTIONARY SEARCH settings
 =============================================================================================================
