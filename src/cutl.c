@@ -423,7 +423,7 @@ void KMESH(Cell *C, double KM, char name[], int ND)
 //-------------------------------------------------------------------------
 int Check_OUTCAR(Cell *C, char file[200])
 {
-  int J;
+  int  J,E;
   char buf[200];
   FILE *in;
 
@@ -435,7 +435,11 @@ int Check_OUTCAR(Cell *C, char file[200])
   in = popen(buf,"r");
   fscanf(in,"%d",&J);
   pclose(in);
-  return J;
+  sprintf(buf,"grep ERROR %s | grep -c ERROR",file);
+  in = popen(buf,"r");
+  fscanf(in,"%d",&E);
+  pclose(in);
+  return J*(1-E);
 }
 //-------------------------------------------------------------------------
 int Check_GULP_OUT(Cell *C, char file[200])
