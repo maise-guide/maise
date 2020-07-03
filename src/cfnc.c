@@ -426,6 +426,7 @@ void PLOT_RDF(Cell *C, int argc, char **argv)
   LIST(C,1);
   PRNT_LIST(C);
   printf("\nNeighbor   list      written to     list.dat\n");
+  printf("\nBond       list      written to     bond.dat\n");
   RDF(C,1);
   Print_RDF_FULL(C,"RDF.dat");
   printf(  "Normalized RDF       written to     RDF.dat\n");
@@ -456,9 +457,11 @@ void COMP_STR(Cell *C, Cell *D, int argc, char **argv)
   LIST(C,1);
   PRNT_LIST(C);
   system("mv list.dat list0.dat");
+  system("mv bond.dat bond0.dat");
   LIST(D,1);
   PRNT_LIST(D);
   system("mv list.dat list1.dat");
+  system("mv bond.dat bond1.dat");
 
   RDF(C,1);
   RDF(D,1);

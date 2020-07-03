@@ -837,6 +837,8 @@ int READ_CELL(Cell *C, char filename[])
   if( (strncmp(buf,"S",1) == 0) || (strncmp(buf,"s",1) == 0) )
     fgets(buf,100,in);
 
+  sscanf(buf,"%s",buf);
+
   for(i=0; i < C->N;i++)
   {
     fgets(s,100,in);  
@@ -1088,6 +1090,13 @@ void PRNT_LIST(Cell *C)
     }
     fprintf(out,"\n");
   }
+
+  fclose(out);
+  out = fopen("bond.dat","w");
+
+  for(i=0; i < C->N;i++)
+    for(j=0; j < C->Nn[i];j++)
+      fprintf(out,"%5d %3d % 2.12lf\n",i,C->Ni[i][j],NDX(C,i,j));
 
   fclose(out);
 }
