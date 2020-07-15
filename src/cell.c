@@ -34,7 +34,7 @@ void Build_Cell(Cell *C, int J)
   C->max  = make_d1D(D3);
   C->Ni   = make_i2D(C->N,C->NM);
   C->Nj   = make_i2D(C->N,C->NM);            // to avoid considering i-j-i triplets
-  C->MNT  = 5;
+  C->MNT  = 9;
   C->NRDF = 3000;
   C->RDF  = make_d3D(C->NRDF,C->MNT,C->MNT); // max number of species
   C->S    = make_d3D(C->N,C->NM,D3);

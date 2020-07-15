@@ -1338,8 +1338,6 @@ void PARS_DAT(ANN *R, PRS *P, Cell *C, LNK *L)
   fprintf(stamp,"ECUT   %lf\n",R->ECUT);
   fprintf(stamp,"EMAX   %lf\n",R->EMAX);
   fprintf(stamp,"FMAX   %lf\n",R->FMAX);
-  fprintf(stamp,"VMIN   %lf\n",R->VMIN);
-  fprintf(stamp,"VMAX   %lf\n",R->VMAX);
   fclose(stamp);
   
   for(k=0;k<C->NRDF;k++)
