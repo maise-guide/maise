@@ -1,0 +1,16 @@
+JOBT  30                data parsing         (30) prepare inputs for NN training
+NPAR  8                 number of cores for parallel NN training or cell simulation
+NSPC  2                 number of species types
+TSPC  29 47             speceis types
+NSYM  30                number of Behler-Parrinello symmetry functions
+NCMP  82                total number of NN inputs
+TEFS  1                 train NN for (0) E (1) EF
+FMRK  0.5               fraction of atoms used for EF training
+EMAX  0.90              parse only this fraction of lowest-energy structures
+FMAX  100.0             do not parse data with larger force
+VMIN  0.0               do not parse data with lower  volume
+VMAX  45.0              do not parse data with larger volume
+NDIM  3                 (3) crystal (2) film (0) particle
+RAND  5                 optional for fixed parsing
+DEPO  ./DATA            location of DFT data
+DATA  ./PARS            location of parsed data

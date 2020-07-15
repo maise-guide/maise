@@ -1,0 +1,35 @@
+01 - SPG Example
+
+Calculates the space group of a structure at a specified tolerance and
+outputs symmetrized conventional and primitive unit cells. If no tolerance is specified, 
+it will check all orders of magnitude until a symmetry is found. If a negative tolerance is specified,
+it will output the symmetry at all orders of magnitude up to the specified tolerance.
+
+===== REQUIRED =====
+-> maise
+-> POSCAR
+
+===== INPUT COMMAND =====
+maise -spg
+
+===== EXPECTED OUTPUT =====
+139    tI2      I4/mmm   1.0E-02
+
+===== INPUT COMMAND =====
+maise -spg 0.00001
+
+===== EXPECTED OUTPUT =====
+12     mS2      C2/m     1.0E-05
+
+===== INPUT COMMAND =====
+maise -spg -0.1
+
+===== EXPECTED OUTPUT =====
+229    cI2      Im-3m    1.0E-01
+139    tI2      I4/mmm   3.0E-02
+12     mS2      C2/m     1.0E-03
+
+===== OUTPUT FILES =====
+CONV -> conventional unit cell symmetrized to closest space group
+PRIM -> primitive unit cell symmetrized
+str.cif -> CIF file of symmetrized structure

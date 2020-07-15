@@ -1,0 +1,19 @@
+JOBT  40                training (41) stratified (40) full
+NPAR  16                number of cores for parallel NN training or cell simulation
+MINT  0                 gsl minimier type (0) BFGS2 (1) CG-FR (2) CG-PR (3) steepest descent 
+MITR  100               maximum N for NN training or cell opimization steps
+NSPC  2                 number of species types
+TSPC  29 47             speceis types
+NSYM  30                number of Behler-Parrinello symmetry functions
+NCMP  82                total number of NN inputs
+TEFS  1                 train NN for (0) E (1) EF
+LREG  1e-8              regularization parameter
+NTRN -90                number of structures for training (negative means percentage)
+NTST -10                number of structures for testing  (negative means percentage)
+NNNN  2                 number of hidden layers in MLP
+NNNU  10 10             number of neurons in hidden layers in MLP
+NNGT  1  1              activation function type for hidden layers
+NDIM  3                 (3) crystal (2) film (0) particle
+SEED  5                 starting seed for the random number generator - 0 uses time as seed
+DATA  ./PARS            location of parsed data
+OTPT  ./NNET            directory for storing model parameters and outputs

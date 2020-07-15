@@ -1,0 +1,91 @@
+07 - MD Example
+
+Molecular dynamics simulation which loops between a minimum and maximum temperature.
+
+===== REQUIRED =====
+-> maise
+-> setup
+-> model
+-> POSCAR
+
+===== REQUIRED SETUP CONFIG =====
+
+JOBT  21                cell simulation      (20) relaxation (21) molecular dynamics
+NPAR  32                number of cores for parallel NN training or cell simulation
+MINT  0                 gsl minimier type (0) BFGS2 (1) CG-FR (2) CG-PR (3) steepest descent 
+MITR  200               maximum N for NN training or cell opimization steps
+RLXT  3                 cell optimization type (2) force only (3) full cell (7) volume (ISIF in VASP)
+STOP  0                 stop as soon as distances are shorter than the table file
+ETOL  1e-8              error tolerance for NN training or cell optimization convergence
+COUT  12                output options (00) E  final step (01) E  first/final steps (02) E  all steps
+                                       (10) EF final step (11) EF first/final steps (12) EF all steps
+TMIN  1100.0            min temperature in MD runs
+TMAX  1500.0            max temperature in MD runs
+TSTP  200.0             temperature step in MD runs
+DELT  1.0               time step in femtoseconds
+NSTP  100               number of steps
+COPL  25.0              coupling constant
+THRM  1                 thermostat (0) molecular dynamics (1) Nose-Hoover thermostat
+NDIM  3                 (3) crystal (2) film (0) particle
+
+===== INPUT COMMAND =====
+maise 
+
+===== EXPECTED OUTPUT =====
+
+=======================================================================
+|               Module for Ab Initio Structure Evolution              |
+|                        version     maise.2.3.00                     |
+|                 https://github.com/maise-guide/maise                |
+=======================================================================
+|                          Molecular dynamics                         |
+=======================================================================
+
+10 10 100 0.094795
+       0:  P =        -3.27038134266084       K =      1086.61656196762283        dE =         0.00000000000000     LI =      -1.0000000000000000
+      10:  P =        -3.25594447045125       K =       989.41586106720740        dE =         0.00187214872194     LI =      -1.0000000000000000
+      20:  P =        -3.21904999234994       K =       741.72091297880513        dE =         0.00674814852848     LI =      -1.0000000000000000
+      30:  P =        -3.17785558047534       K =       506.55195266044944        dE =         0.01754326356771     LI =      -1.0000000000000000
+      40:  P =        -3.15374040375983       K =       456.20309678976179        dE =         0.03515005663913     LI =      -1.0000000000000000
+      50:  P =        -3.15710923078865       K =       756.72748053455859        dE =         0.07062874560628     LI =      -1.0000000000000000
+      60:  P =        -3.17525527221458       K =      1538.16349090585732        dE =         0.15349563209805     LI =      -1.0000000000000000
+      70:  P =        -3.17373917400215       K =      2478.03689167303855        dE =         0.27650518956166     LI =      -1.0000000000000000
+      80:  P =        -3.12479360577046       K =      2420.54638880653101        dE =         0.31801920364825     LI =      -1.0000000000000000
+      90:  P =        -3.05418907118006       K =      1405.82923963839607        dE =         0.25745554418899     LI =      -1.0000000000000000
+     100:  P =        -3.02269194619001       K =       766.15281459960067        dE =         0.20626440327434     LI =      -1.0000000000000000
+ 1100.000000 -3.151437  1205.934813 -1.000000
+10 10 100 0.112030
+       0:  P =        -3.02269194619001       K =       766.15281459960067        dE =         0.00000000000000     LI =      -1.0000000000000000
+      10:  P =        -3.04186484989247       K =       976.09938435752019        dE =         0.00796600138517     LI =      -1.0000000000000000
+      20:  P =        -3.07163976121235       K =      1394.07542342248053        dE =         0.03222108477379     LI =      -1.0000000000000000
+      30:  P =        -3.07780305357017       K =      1665.66333789076066        dE =         0.06116481341756     LI =      -1.0000000000000000
+      40:  P =        -3.06400469092860       K =      1662.06412164790981        dE =         0.07449792059857     LI =      -1.0000000000000000
+      50:  P =        -3.05818326404511       K =      1569.00727343607855        dE =         0.06829028230473     LI =      -1.0000000000000000
+      60:  P =        -3.07075943106434       K =      1514.82939143194722        dE =         0.04871076962830     LI =      -1.0000000000000000
+      70:  P =        -3.09209178764093       K =      1453.94057476627154        dE =         0.01950757325522     LI =      -1.0000000000000000
+      80:  P =        -3.11628465995370       K =      1370.12311475053116        dE =        -0.01552002760147     LI =      -1.0000000000000000
+      90:  P =        -3.13717964627369       K =      1255.26983902543338        dE =        -0.05126161109378     LI =      -1.0000000000000000
+     100:  P =        -3.15026931552110       K =      1117.06678904508908        dE =        -0.08221620407185     LI =      -1.0000000000000000
+ 1300.000000 -3.088008  1397.813925 -1.000000
+10 10 100 0.129266
+       0:  P =        -3.15026931552110       K =      1117.06678904508908        dE =         0.00000000000000     LI =      -1.0000000000000000
+      10:  P =        -3.16080015497963       K =      1251.51556499753588        dE =         0.00684878514753     LI =      -1.0000000000000000
+      20:  P =        -3.17242532574841       K =      1475.31153591546536        dE =         0.02415277297724     LI =      -1.0000000000000000
+      30:  P =        -3.17957238602338       K =      1703.21867470486086        dE =         0.04646630458301     LI =      -1.0000000000000000
+      40:  P =        -3.17442004707484       K =      1788.61228982204284        dE =         0.06265711497896     LI =      -1.0000000000000000
+      50:  P =        -3.16015749808801       K =      1699.93371883909367        dE =         0.06545656016758     LI =      -1.0000000000000000
+      60:  P =        -3.14747726917467       K =      1549.10490757612774        dE =         0.05863978659088     LI =      -1.0000000000000000
+      70:  P =        -3.14251642462233       K =      1441.97630880866177        dE =         0.04975257028910     LI =      -1.0000000000000000
+      80:  P =        -3.14341630174520       K =      1399.09538416204191        dE =         0.04330965740529     LI =      -1.0000000000000000
+      90:  P =        -3.14353721375213       K =      1381.72831211629568        dE =         0.04094377745036     LI =      -1.0000000000000000
+     100:  P =        -3.13494246440823       K =      1333.36252567241058        dE =         0.04328648614742     LI =      -1.0000000000000000
+ 1500.000000 -3.155927  1502.385922 -1.000000
+
+===== OUTPUT FILES =====
+
+ave-out.dat: final averages for potential energy, kinetic energy, internal pressure, lattice parameter, change in energy, and Lindemann Index
+AVERAGE-TTT: "Average" structure for the given temperature TTT (created by averaging atomic positions)
+CONTCAR: final structure at the end of the run.
+CONTCAR-TTT: structure at the end of the temperature TTT
+RDF-TTT.dat: radial distribution function at temperature TTT.
+TEMP-TTT.dat: intermediate values (at every 10 integration steps) of the parameters that are being provided in ave-out.dat

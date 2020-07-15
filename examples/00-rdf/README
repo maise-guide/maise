@@ -1,0 +1,45 @@
+00 - RDF Example
+
+Calculates gaussian-smeared bond distance distributions (RDF) of particles in 
+a structure and outputs raw and normalized RDF and 
+nearest neighbor lists. Optional arguments are:
+
+NMAX: max number of neareast neighbors
+RSFT: soft cutoff radius
+RHRD: hard cutoff radius
+SPRD: amount of gaussian spreading
+
+If arguments are not specified, then defaults will be used.
+
+===== REQUIRED =====
+-> maise
+-> POSCAR
+
+===== INPUT COMMAND =====
+maise -rdf [NMAX] [RSFT] [RHRD] [SPRD]
+
+===== EXPECTED OUTPUT =====
+=======================================================================
+|               Module for Ab Initio Structure Evolution              |
+|                        version     maise.2.5.02                     |
+|                 https://github.com/maise-guide/maise                |
+=======================================================================
+|                          Unit cell analysis                         |
+=======================================================================
+
+Max number of nearest neighbors      500
+Soft cutoff for finding neighbors    5.940000
+Hard cutoff for finding neighbors    6.000000
+Gaussian spread for smearing bonds   0.008000
+
+Neighbor   list      written to     list.dat
+
+Bond       list      written to     bond.dat
+Normalized RDF       written to     RDF.dat
+Original   RDF       written to     rdf.dat
+
+===== OUTPUT FILES =====
+list.dat -> list of nearest neighbors
+bond.dat -> list of bond lengths and atom indexes of bonds
+rdf.dat -> normalized RDF
+RDF.dat -> raw/original RDF

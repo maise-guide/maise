@@ -1,0 +1,55 @@
+03 - Relaxation Example
+
+Using a NN/Gupta Potential/Sutton-Chen model, relaxes a structure
+until stopping criteria are met. Stopping criteria are either 
+a maximum tolerance for convergence is met (ETOL) of the max
+iterations steps is met (MITR).
+
+===== REQUIRED =====
+-> maise
+-> POSCAR
+-> model (the potential used)
+-> setup
+
+===== REQUIRED SETUP CONFIG =====
+
+JOBT  20    specifies this job will be a cell relaxation
+NPAR  8     number of cores for parallel run
+NDIM  3     dimensionality of unit cell (3) crystal (2) film (0) particle
+MITR  100   maximum number of cell optimization steps
+RLXT  3     cell optimization type (2) force only (3) full cell (7) volume (ISIF in VASP)
+PGPA  0.0   external  pressure in GPa
+STOP  0     stop as soon as distances are shorter than the table file
+ETOL  1e-8  error tolerance for cell optimization convergence 
+COUT  12    output options: E (00) final (01) first/final (02) all steps; EF (10) final (11) first/final (12) all steps
+MINT  0     minimizer type (0) BFGS2 (1) CG-FR (2) CG-PR (3) steepest descent
+
+===== INPUT COMMAND =====
+maise
+
+===== EXPECTED OUTPUT =====
+
+  BFGS2 relaxation: 21 adjustable parameters
+
+    0     -12.9467487748680767
+    1     -13.6675479227466941      -0.7207991478786173
+    2     -15.9581788995085745      -2.2906309767618804
+    3     -16.2185636637068633      -0.2603847641982888
+    4     -16.3862139007344680      -0.1676502370276047
+    5     -16.3965404665522456      -0.0103265658177776
+    6     -16.3965600245502614      -0.0000195579980158
+    7     -16.3965601100171483      -0.0000000854668869
+    8     -16.3965601100172194      -0.0000000000000711
+
+  ENERGY CALLS =    44
+  FORCE  CALLS =    25
+
+  INI     -12.94674877 
+  DIF      -3.44981134 
+  FIN     -16.39656011 
+
+===== OUTPUT FILES =====
+
+OUTCAR -> contains positions/lattice vectors/energy at each relaxation step
+OSZICAR -> contains only enthalpy at each step
+CONTCAR -> structure after relaxation

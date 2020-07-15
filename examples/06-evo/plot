@@ -1,0 +1,39 @@
+#!/bin/bash
+dir=.
+file=eplot
+
+gnuplot -persist <<-EOF
+
+set terminal pngcairo size 1600, 1200
+set output 'collection.png'
+set title 'Enthalpy in eV/atom versus Volume in Ang^3/atom'
+set tics  font ", 16"
+set key   font ", 20"
+set title font ", 20"
+set autoscale
+plot  "$dir/$file.dat" with points ls 3
+
+EOF
+
+dir=.
+file1=elink
+file2=erank
+file3=ebest
+
+gnuplot -persist <<-EOF
+
+set terminal pngcairo size 1600, 1200
+set output 'evolution.png'
+set title 'Enthalpy in eV/atom versus Generation number'
+set tics  font ", 16"
+set key   font ", 20"
+set title font ", 20"
+set autoscale
+plot  "$dir/$file1.dat" with line   ls 2, \
+      "$dir/$file2.dat" with points ls 3, \
+      "$dir/$file3.dat" with line   ls 1, \
+      "$dir/$file3.dat" with points ls 1
+
+EOF
+
+cp *g ~

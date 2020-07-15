@@ -1,0 +1,27 @@
+#!/bin/bash
+#SBATCH -p long
+#SBATCH -n 1
+
+cd $SLURM_SUBMIT_DIR
+
+
+#============================ DO NOT CHANGE FROM HERE
+
+
+cd EVOS/GGGG/MMMM/
+
+date -d now +%s > stamp
+
+cp -r ../../../INI/NNET/* .
+
+maise-nnet > out
+
+mv POSCAR    POSCAR.1
+mv CONTCAR   CONTCAR.1
+mv OUTCAR    OUTCAR.1
+mv OSZICAR   OSZICAR.1
+mv PRIM      PRIM.1
+mv CONV      CONV.1
+
+rm -rf setup tmp* wyck* mod* maise-nnet
+cd ../../..
