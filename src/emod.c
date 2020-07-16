@@ -18,6 +18,8 @@ void INIT_TR(Tribe *T)
   double dista,scale;
   char buf[200];
 
+  system("mkdir -p EVOS\n");
+
   for(n=0;n<4;n++)
   {
     SES[n] = T->SES[n];
@@ -180,9 +182,9 @@ void INIT_TR(Tribe *T)
 
   if(T->CODE!=0)
   {
-    sprintf(buf,"cp INI/g0 INI/g");
+    sprintf(buf,"cp INI/sub0 INI/sub");
     system(buf);
-    sprintf(buf,"sed -i 's/XX:XX:XX/%02d:%02d:%02d/' INI/g",T->time/3600,(T->time/60)%60,T->time%60);
+    sprintf(buf,"sed -i 's/XX:XX:XX/%02d:%02d:%02d/' INI/sub",T->time/3600,(T->time/60)%60,T->time%60);
     system(buf);
   }
   if(T->CODE==1) //===== for VASP =====
@@ -196,13 +198,13 @@ void INIT_TR(Tribe *T)
   if(T->n>0)  //If this is not the first step in the EVOS then read in from last step
     for(p=0;p<2*T->N;p++)
     {
-      sprintf(buf,"EVOS/G%03d/M%03d/CONTCAR.1",T->n-1,p);
+      sprintf(buf,"EVOS/G%03d/M%03d/CONTCAR.0",T->n-1,p);
       if(READ_CELL(&T->C[p],buf)==0)
       {
 	printf("ERROR: specified generation to restart from does not exist\n");
 	exit(0);
       }
-      sprintf(buf,"EVOS/G%03d/M%03d/OSZICAR.1",T->n-1,p);
+      sprintf(buf,"EVOS/G%03d/M%03d/OSZICAR.0",T->n-1,p);
       T->C[p].P = Read_OSZI(buf);
       if( fabs(T->C[p].P-1.0)<1e-15 )
       {
@@ -465,7 +467,7 @@ void QSUB_TR(Tribe *T, int p)
   SAVE_CELL(&T->C[p],buf,0);
   if( DEBUG==1 )
     return;
-  sprintf(buf,"cp INI/g g%03d",p);
+  sprintf(buf,"cp INI/sub g%03d",p);
   system(buf);
   sprintf(buf,"sed -i 's/GGGG/G%03d/' g%03d",T->n,p);
   system(buf);
@@ -493,7 +495,7 @@ void RELX_INT(Tribe *T)
   {
     sprintf(buf,"mkdir EVOS/G%03d/M%03d",T->n,p);
     system(buf);
-    sprintf(buf,"EVOS/G%03d/M%03d/POSCAR.1",T->n,p);
+    sprintf(buf,"EVOS/G%03d/M%03d/POSCAR.0",T->n,p);
     SAVE_CELL(&T->C[p],buf,0);
 
     Copy_C(&T->C[p],&T->C[2*T->N+1]);    
@@ -503,11 +505,11 @@ void RELX_INT(Tribe *T)
 
     Copy_C(&T->C[2*T->N+1],&T->C[p]);
 
-    sprintf(buf,"EVOS/G%03d/M%03d/CONTCAR.1",T->n,p);
+    sprintf(buf,"EVOS/G%03d/M%03d/CONTCAR.0",T->n,p);
     SAVE_CELL(&T->C[2*T->N+1],buf,0);
-    sprintf(buf,"mv OUTCAR EVOS/G%03d/M%03d/OUTCAR.1",T->n,p);
+    sprintf(buf,"mv OUTCAR EVOS/G%03d/M%03d/OUTCAR.0",T->n,p);
     system(buf);
-    sprintf(buf,"mv OSZICAR EVOS/G%03d/M%03d/OSZICAR.1",T->n,p);
+    sprintf(buf,"mv OSZICAR EVOS/G%03d/M%03d/OSZICAR.0",T->n,p);
     system(buf);
   }
 }
@@ -541,11 +543,11 @@ void RELX_TR(Tribe *T)
     {
       sprintf(buf,"mkdir EVOS/G%03d/M%03d",T->n,p);
       system(buf);
-      sprintf(buf,"EVOS/G%03d/M%03d/CONTCAR.1",T->n,p);
+      sprintf(buf,"EVOS/G%03d/M%03d/CONTCAR.0",T->n,p);
       SAVE_CELL(&T->C[p],buf,0);
-      sprintf(buf,"cp EVOS/G%03d/M%03d/OSZICAR.1 EVOS/G%03d/M%03d",T->n-1,T->S[p],T->n,p);
+      sprintf(buf,"cp EVOS/G%03d/M%03d/OSZICAR.0 EVOS/G%03d/M%03d",T->n-1,T->S[p],T->n,p);
       system(buf);
-      sprintf(buf,"cp EVOS/G%03d/M%03d/OUTCAR.1 EVOS/G%03d/M%03d",T->n-1,T->S[p],T->n,p);
+      sprintf(buf,"cp EVOS/G%03d/M%03d/OUTCAR.0 EVOS/G%03d/M%03d",T->n-1,T->S[p],T->n,p);
       system(buf);
     }
   }
@@ -573,14 +575,14 @@ void RELX_TR(Tribe *T)
       for(p=T->N;p<2*T->N;p++)
 	if(I[p]==0)
 	{
-	  sprintf(buf,"EVOS/G%03d/M%03d/OUTCAR.1",T->n,p);
+	  sprintf(buf,"EVOS/G%03d/M%03d/OUTCAR.0",T->n,p);
 	  Q=Check_OUTCAR(&T->C[p],buf);
 	  sprintf(buf,"EVOS/G%03d/M%03d/stamp",T->n,p);
 	  t2 = TIME(buf);
 	  if( Q==1 )
 	  {
 	    I[p] = 1;
-	    sprintf(buf,"EVOS/G%03d/M%03d/CONTCAR.1",T->n,p);
+	    sprintf(buf,"EVOS/G%03d/M%03d/CONTCAR.0",T->n,p);
 	    READ_CELL(&T->C[p],buf);
 	  }
 	  if( Q==0 || (Q<0 && t1>=0 && t2>=0 && ( (int)(t1-t2) >T->time ) ) || (Q==1 && CHCK_Rm(&T->C[p],T->Rm,0.7)==0) )
@@ -657,9 +659,9 @@ void RELX_TR(Tribe *T)
 
   for(p=T->N;p<2*T->N;p++)
   {
-    sprintf(buf,"EVOS/G%03d/M%03d/CONTCAR.1",T->n,p);
+    sprintf(buf,"EVOS/G%03d/M%03d/CONTCAR.0",T->n,p);
     READ_CELL(&T->C[p],buf);
-    sprintf(buf,"EVOS/G%03d/M%03d/OSZICAR.1",T->n,p);
+    sprintf(buf,"EVOS/G%03d/M%03d/OSZICAR.0",T->n,p);
     T->C[p].P = Read_OSZI(buf);
     if(T->ND==0)
       NANO_ROT(&T->C[p],0);
@@ -673,11 +675,11 @@ void RELX_TR(Tribe *T)
     {
       sprintf(buf,"mkdir EVOS/G%03d/M%03d",T->n,p);
       system(buf);
-      sprintf(buf,"cp EVOS/G%03d/M%03d/CONTCAR.1 EVOS/G%03d/M%03d",T->n,T->N+p,T->n,p);
+      sprintf(buf,"cp EVOS/G%03d/M%03d/CONTCAR.0 EVOS/G%03d/M%03d",T->n,T->N+p,T->n,p);
       system(buf);
-      sprintf(buf,"cp EVOS/G%03d/M%03d/OSZICAR.1 EVOS/G%03d/M%03d",T->n,T->N+p,T->n,p);
+      sprintf(buf,"cp EVOS/G%03d/M%03d/OSZICAR.0 EVOS/G%03d/M%03d",T->n,T->N+p,T->n,p);
       system(buf);
-      sprintf(buf,"cp EVOS/G%03d/M%03d/OUTCAR.1  EVOS/G%03d/M%03d",T->n,T->N+p,T->n,p);
+      sprintf(buf,"cp EVOS/G%03d/M%03d/OUTCAR.0  EVOS/G%03d/M%03d",T->n,T->N+p,T->n,p);
       system(buf);
       Copy_C(&T->C[T->N+p],&T->C[p]);
     }
@@ -693,7 +695,7 @@ void RELX_TR(Tribe *T)
     if(T->CODE==1)
       system(buf);
   }
-  sprintf(buf,"cp EVOS/G%03d/M000/CONTCAR.1 poscar",T->n);
+  sprintf(buf,"cp EVOS/G%03d/M000/CONTCAR.0 poscar",T->n);
 
   free_i1D(I);
 
@@ -761,7 +763,7 @@ void ANA_EVOS(Tribe *T, Cell *C, Cell *D)
   fscanf(in,"%d %lf\n",&i,&E0);
   pclose(in);
 
-  sprintf(s,"find %s -name CONTCAR.1 | sort",C->WDIR);
+  sprintf(s,"find %s -name CONTCAR.0 | sort",C->WDIR);
   in = popen(s,"r");
   M = 0;
   while(fgets(buf,200,in))
@@ -776,15 +778,15 @@ void ANA_EVOS(Tribe *T, Cell *C, Cell *D)
   sprintf(s,"mkdir -p %s/POOL/",C->WDIR); 
   system(s);                               
 
-  sprintf(s,"find %s -name CONTCAR.1 | sort",C->WDIR);
+  sprintf(s,"find %s -name CONTCAR.0 | sort",C->WDIR);
   in = popen(s,"r");
   for(m=G=0;m<M;m++)
   {
     fscanf(in,"%s\n",dir);
-    dir[strlen(dir)-strlen("CONTCAR.1")-1] = 0;
-    sprintf(s,"%s/OSZICAR.1",dir);
+    dir[strlen(dir)-strlen("CONTCAR.0")-1] = 0;
+    sprintf(s,"%s/OSZICAR.0",dir);
     E[G] = Read_OSZI(s);
-    sprintf(s,"%s/CONTCAR.1",dir);
+    sprintf(s,"%s/CONTCAR.0",dir);
     READ_CELL(C,s);
     V[G] = CELL_VOL(C)/(double)C->N;
     if( fabs(E[G]-1.0)>1e-14 && E[G]<((E0+T->DE)*(double)C->N) )
@@ -795,7 +797,7 @@ void ANA_EVOS(Tribe *T, Cell *C, Cell *D)
 
   for(N=0,g=G-1;g>=0;g--)
   {
-    sprintf(s,"%s/CONTCAR.1",DIR[I[G-g-1]]);
+    sprintf(s,"%s/CONTCAR.0",DIR[I[G-g-1]]);
     READ_CELL(C,s);
     LIST(C,0);
     RDF(C,1);

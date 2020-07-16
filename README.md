@@ -18,7 +18,7 @@ MAISE has been developed by
 ---
 ## General info
 
-Current version 2.5 works on Linux platforms and combines 3 modules for modeling, optimizing, and analyzing atomic structures.
+Current version 2.6 works on Linux platforms and combines 3 modules for modeling, optimizing, and analyzing atomic structures.
 
 1 The neural network (NN) module builds, tests, and uses NN models to
 describe interatomic interactions with near-ab initio accuracy at a
