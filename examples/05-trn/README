@@ -8,6 +8,8 @@ be uncompressed before use.
 
 An example trained output directory is available in ref/
 
+You need to copy the maise executable to the working directory of this example before use.
+
 ===== REQUIRED =====
 -> maise
 -> setup
@@ -39,6 +41,13 @@ OTPT  ./NNET            directory for storing model parameters and outputs
 maise 
 
 ===== EXPECTED OUTPUT =====
+=======================================================================
+|               Module for Ab Initio Structure Evolution              |
+|                        version     maise.2.6.00                     |
+|                 https://github.com/maise-guide/maise                |
+=======================================================================
+|                          Unit cell analysis                         |
+=======================================================================
 
 Loading list of parsed data from ./PARS/index.dat
 

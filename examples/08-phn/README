@@ -3,6 +3,8 @@
 A phonon calculation using a given model, highlighting eigevalues acoustic modes.
 The eigenvectors of each eigenvalue can be viewed in the output OUTCAR file.
 
+You need to copy the maise executable to the working directory of this example before use.
+
 ===== REQUIRED =====
 -> maise
 -> setup
@@ -27,6 +29,13 @@ NDIM  3
 maise 
 
 ===== EXPECTED OUTPUT =====
+=======================================================================
+|               Module for Ab Initio Structure Evolution              |
+|                        version     maise.2.6.00                     |
+|                 https://github.com/maise-guide/maise                |
+=======================================================================
+|                        NVT Molecular dynamics                       |
+=======================================================================
 
  Eigenvalues at the Gamma point (cm-1)
 
@@ -58,5 +67,5 @@ maise
 ===== OUTPUT FILES =====
 
 CONTCAR
-OUTCAR
+OUTCAR - contains the eigenvalues and eigenvectors of the structure
 OSZICAR
