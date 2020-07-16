@@ -4,9 +4,9 @@ Computes the RDF of two structures and finds the similarity via dot product of
 gaussian smeared RDF values. Also tests the symmetry at various toleramces
 using SPGLib and finds volume per atom of each structure. Optional
 arguments are the same as those used in the RDF example. If arguments
-are not specified then defaults will be used. More than two structures can
-be specified for comparison, eg POSCAR2, POSCAR3, etc. For simplicity's sake
-only two are shown here.
+are not specified then defaults will be used.
+
+You need to copy the maise executable to the working directory of this example before use.
 
 ===== REQUIRED =====
 -> maise
@@ -17,6 +17,14 @@ only two are shown here.
 maise -cmp [NMAX] [RSFT] [RHRD] [SPRD]
 
 ===== EXPECTED OUTPUT =====
+
+=======================================================================
+|               Module for Ab Initio Structure Evolution              |
+|                        version     maise.2.6.00                     |
+|                 https://github.com/maise-guide/maise                |
+=======================================================================
+|                          Unit cell analysis                         |
+=======================================================================
 
   STR     vol/atom           space group number           RDF scalar product
  number   A^3/atom     10^-1   10^-2   10^-4   10^-8         0          1  
