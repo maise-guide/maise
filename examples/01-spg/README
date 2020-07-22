@@ -22,13 +22,13 @@ maise -spg
 ===== EXPECTED OUTPUT =====
 =======================================================================
 |               Module for Ab Initio Structure Evolution              |
-|                        version     maise.2.6.00                     |
+|                        version     maise.2.7.00                     |
 |                 https://github.com/maise-guide/maise                |
 =======================================================================
 |                          Unit cell analysis                         |
 =======================================================================
 
-139    tI2      I4/mmm   1.0E-02
+139    tI2      I4/mmm   1.0E-02    1.0000
 
 ===== INPUT COMMAND =====
 maise -spg 0.00001
@@ -36,13 +36,13 @@ maise -spg 0.00001
 ===== EXPECTED OUTPUT =====
 =======================================================================
 |               Module for Ab Initio Structure Evolution              |
-|                        version     maise.2.6.00                     |
+|                        version     maise.2.7.00                     |
 |                 https://github.com/maise-guide/maise                |
 =======================================================================
 |                          Unit cell analysis                         |
 =======================================================================
 
-12     mS2      C2/m     1.0E-05
+12     mS2      C2/m     1.0E-05    1.0000
 
 ===== INPUT COMMAND =====
 maise -spg -0.1
@@ -50,15 +50,15 @@ maise -spg -0.1
 ===== EXPECTED OUTPUT =====
 =======================================================================
 |               Module for Ab Initio Structure Evolution              |
-|                        version     maise.2.6.00                     |
+|                        version     maise.2.7.00                     |
 |                 https://github.com/maise-guide/maise                |
 =======================================================================
 |                          Unit cell analysis                         |
 =======================================================================
 
-229    cI2      Im-3m    1.0E-01
-139    tI2      I4/mmm   3.0E-02
-12     mS2      C2/m     1.0E-03
+229    cI2      Im-3m    1.0E-01    0.6891
+139    tI2      I4/mmm   3.0E-02    1.0000
+12     mS2      C2/m     1.0E-03    1.0000
 
 ===== OUTPUT FILES =====
 CONV -> conventional unit cell symmetrized to closest space group

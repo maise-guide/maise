@@ -1,5 +1,5 @@
 #!/bin/bash
-#SBATCH -p long
+#SBATCH -p best
 #SBATCH -n 1
 
 cd $SLURM_SUBMIT_DIR
@@ -16,12 +16,12 @@ cp -r ../../../INI/NNET/* .
 
 maise-nnet > out
 
-mv POSCAR    POSCAR.1
-mv CONTCAR   CONTCAR.1
-mv OUTCAR    OUTCAR.1
-mv OSZICAR   OSZICAR.1
-mv PRIM      PRIM.1
-mv CONV      CONV.1
+mv POSCAR    POSCAR.0
+mv CONTCAR   CONTCAR.0
+mv OUTCAR    OUTCAR.0
+mv OSZICAR   OSZICAR.0
+mv PRIM      PRIM.0
+mv CONV      CONV.0
 
 rm -rf setup tmp* wyck* mod* maise-nnet
 cd ../../..

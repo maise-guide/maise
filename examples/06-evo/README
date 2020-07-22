@@ -25,7 +25,7 @@ $ nohup maise &
 
 The code will start submitting 32 single-core jobs to the queue. In case 
 something  goes wrong, one can delete the MAISE job and all submitted jobs 
-by changing JOBT flag to 13. 
+by changing JOBT flag to 12. 
 
 ===============================================================================
                                EXPECTED RESULTS
