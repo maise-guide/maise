@@ -620,10 +620,28 @@ int CELL_OK(Cell *C)
   return 1;
 }
 //======================================================
+double TOPK(double *x, int N, int K)
+{
+  int    n,k;
+  double X[K];
+
+  for(k=0;k<K;k++)
+    X[k] = 0.0;
+  for(n=0;n<N;n++)
+    if( x[n]>X[0] )
+    {
+      X[0] = x[n];
+      for(k=1;k<K;k++)
+	if( X[k-1]>X[k] )
+	  dSwap(&X[k-1],&X[k]);
+    }
+  return X[0];
+}
+//======================================================
 void CELL_PHON(ANN *R, PRS *P, PRS *W, Cell *C, LNK *L)
 {
   int    i,q,j,k,N,*I;
-  double dx,*A,*B,*e,*b,*r,x[3],v[3];
+  double dx,*A,*B,*e,*b,*r,x[3],v[3],bm,rm;
   FILE   *out;
   double wall_time,user_time,syst_time,cpus_time;
   double thz=1e12;           // THz to Hz
@@ -722,7 +740,7 @@ void CELL_PHON(ANN *R, PRS *P, PRS *W, Cell *C, LNK *L)
           dx += C->EV[i][j*3+q];
 	b[i] += dx*dx;
       }      
-
+    bm = TOPK(b,C->N*3,3);
     //===== find rotational modes for nanoparticles =====
     for(i=0;i<C->N*3;i++)
       for(q=0,r[i]=0.0;q<3;q++)
@@ -736,11 +754,11 @@ void CELL_PHON(ANN *R, PRS *P, PRS *W, Cell *C, LNK *L)
 	}
         r[i] += dx*dx;
       }
-
+    rm = TOPK(r,C->N*3,3);
     printf(" Eigenvalues at the Gamma point (cm-1)\n\n");
     for(i=0;i<C->N*3;i++)
-      if( b[I[N-i-1]]>C->DISP || (C->ND==0&&r[I[N-i-1]]>C->DISP) )
-	printf("\x1B[32m%3d % 24.16lf \x1B[0m \n",i,C->ev[I[N-i-1]]*thzcm/(2.0*Pi));   
+      if( b[I[N-i-1]]>(bm-1e-14) || (C->ND==0&&r[I[N-i-1]]>(rm-1e-14)) )
+	printf("\x1B[32m%3d % 24.16lf \x1B[0m\n",i,C->ev[I[N-i-1]]*thzcm/(2.0*Pi));
       else
 	printf("%3d % 24.16lf\n",i,C->ev[I[N-i-1]]*thzcm/(2.0*Pi));
   }
