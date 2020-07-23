@@ -13,7 +13,6 @@ NPAR  1                 number of cores for parallel NN training or cell simulat
 MINT  0                 gsl minimier type (0) BFGS2 (1) CG-FR (2) CG-PR (3) steepest descent 
 MITR  100               maximum N for NN training or cell opimization steps
 RLXT  3                 cell optimization type (2) force only (3) full cell (7) volume (ISIF in VASP)
-STOP  0                 stop as soon as distances are shorter than the table file
 ETOL  1e-8              error tolerance for NN training or cell optimization convergence
 COUT  12                output options (00) E  final step (01) E  first/final steps (02) E  all steps
                                        (10) EF final step (11) EF first/final steps (12) EF all steps

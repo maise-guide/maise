@@ -32,12 +32,12 @@ if [ "$test_gsl" == "command not found" ]; then
   cp -r ./usr/include/gsl/gsl*.h  ../lib/include/gsl
   #clean up
   mkdir gsl
-  mv control.tar.gz  gsl &>> gsl.log
-  mv debian-binary   gsl &>> gsl.log
-  mv data.tar.xz     gsl &>> gsl.log
-  mv libgsl0-dev_1.16+dfsg-1ubuntu1_amd64.deb  gsl &>> gsl.log
-  mv usr             gsl &>> gsl.log
-  cd ../ &>> gsl.log
+  mv control.tar.gz  gsl >> gsl.log 2>&1
+  mv debian-binary   gsl >> gsl.log 2>&1
+  mv data.tar.xz     gsl >> gsl.log 2>&1
+  mv libgsl0-dev_1.16+dfsg-1ubuntu1_amd64.deb  gsl >> gsl.log 2>&1
+  mv usr             gsl >> gsl.log 2>&1
+  cd ../ >> gsl.log 2>&1
   #adjust unpacked gsl-config to point to current location in ./lib
   sed -i "s/\/usr\/include/.\/lib\/include/"   ./lib/gsl-config
   sed -i "s/\/usr\//.\//"      ./lib/gsl-config

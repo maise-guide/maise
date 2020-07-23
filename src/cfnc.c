@@ -513,7 +513,8 @@ void FIND_SPG(Cell *C, Cell *D, double tol, int NM)
     FIND_WYC(C,D,tol,1);
     READ_CIF(C,"str.cif",tol,NM);
     FIND_PRS(C,D,tol);
-    printf("%-6d %s%-6d %-6s   %6.1E\n",C->SGN,C->PRS,C->N,C->SGS,tol);
+    READ_CELL(D,"POSCAR");
+    printf("%-6d %s%-6d %-6s   %6.1E  % 8.4lf\n",C->SGN,C->PRS,C->N,C->SGS,tol,CxC(C,D));
     return;
   }
 
@@ -531,8 +532,9 @@ void FIND_SPG(Cell *C, Cell *D, double tol, int NM)
 	FIND_WYC(C,D,o,1);
 	READ_CIF(C,"str.cif",o,NM);
 	FIND_PRS(C,D,o);
+	READ_CELL(D,"POSCAR"); 
 	if( N!= C->SGN )
-	  printf("%-6d %s%-6d %-6s   %6.1E\n",C->SGN,C->PRS,C->N,C->SGS,o);
+	  printf("%-6d %s%-6d %-6s   %6.1E  % 8.4lf\n",C->SGN,C->PRS,C->N,C->SGS,o,CxC(C,D));
 	N = C->SGN;
       }
     }
@@ -655,8 +657,8 @@ void CELL_EXAM(Cell *C, Cell *D, int argc, char **argv)
   {
     if(argc>2)
       NM = (int)atoi(argv[2]);
-    INIT_CELL(C,"POSCAR0",1,NM,1);
-    INIT_CELL(D,"POSCAR1",1,NM,1);
+    INIT_CELL(C,"POSCAR0",4,NM,1);
+    INIT_CELL(D,"POSCAR1",4,NM,1);
     C->POS = D->POS = 0;
     COMP_STR(C,D,argc,argv);
     exit(0);
@@ -753,7 +755,7 @@ void CELL_EXAM(Cell *C, Cell *D, int argc, char **argv)
     printf("-sup    make    a supercell specified by na x nb x nc                   \n");
     printf("-vol    compute volume per atom for crystal or nano structures          \n");
     printf("-usr    run user-defined functions                                      \n");
-    exit(0);
+    exit(0);    
   }
 
   //================   list available options  ===============

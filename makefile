@@ -1,7 +1,7 @@
 #=============================================================================#
 EXE        = maise
 CC         = gcc
-VER        = maise.2.6.00
+VER        = maise.2.7.00
 CFLAGS     = -O3 -Wall -fno-strict-overflow
 GSL_H      = $(shell ./lib/gsl-config --cflags 2> /dev/null)
 GSL_LIB    = $(shell ./lib/gsl-config --libs   2> /dev/null)
@@ -54,7 +54,7 @@ clean-all: clean clean-lib
 
 clean:
 	@printf "Cleaning object files, dependencies, and maise executables...";
-	@rm -rf examples/parse/maise examples/relax/maise examples/train/maise examples/esint/maise;
+	@rm -rf test/parse/maise test/relax/maise test/train/maise;
 	@rm -rf $(ODIR)/* ./maise ./bin/maise; printf "Done!\n";
 	@rm -rf obj;
 

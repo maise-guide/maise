@@ -1,7 +1,7 @@
 #!/bin/bash
 #setup
 ver="1.11.2.1"
-url="https://github.com/atztogo/spglib/archive/v$ver.tar.gz"
+url="https://github.com/spglib/spglib/archive/v$ver.tar.gz"
 dir="spglib.tar.gz"
 test_OS=$(uname) 
 test_cmake=$(cmake --version 2>&1 | grep -o "command not found")
@@ -27,23 +27,26 @@ cd       dep-ext
 #download
 if [ ! -e spglib.tar.gz ] ; then
   echo "downloading...spglib-1.11.2.1 to $PWD"
-  $GET &> spglib.log
+  echo "downloading...spglib-1.11.2.1 to $PWD" &> spglib.log
+  $GET >> spglib.log 2>&1
 fi
 #unpack
 if [ ! -e spglib-$ver ] ; then
   echo "unpacking.....in $PWD"
-  tar -xf spglib.tar.gz &>> spglib.log
+  echo "unpacking.....in $PWD" >> spglib.log 2>&1 
+  tar -xf spglib.tar.gz >> spglib.log 2>&1
 fi
 #compiling
 echo "compiling.....in $PWD/spglib-$ver"
+echo "compiling.....in $PWD/spglib-$ver" >> spglib.log 2>&1
 cd spglib-$ver
 #compile with cmake or autotools
 if [ "$test_cmake" != "command not found" ]; then
   mkdir -p _build
   cd    _build
-  cmake .. &>> ../spglib.log
-  make     &>> ../spglib.log
-  make  &>> spglib.log &>> ../spglib.log && make install DESTDIR=$PWD/../ &>> ../spglib.log
+  cmake .. >> ../spglib.log 2>&1
+  make     >> ../spglib.log 2>&1
+  make  >> spglib.log >> ../spglib.log 2>&1 && make install DESTDIR=$PWD/../ >> ../spglib.log 2>&1
   cd ../
 else 
 #compile with autotools
@@ -63,9 +66,9 @@ else
       fi
       mkdir -p lib-tool 2>&1  
       cd  lib-tool 2>&1
-      $GET &>> ../../spglib.log
-      ar  -x $dir &>> ../../spglib.log
-      tar -xf data.tar.xz &>> ../../spglib.log
+      $GET >> ../../spglib.log 2>&1
+      ar  -x $dir >> ../../spglib.log 2>&1
+      tar -xf data.tar.xz >> ../../spglib.log 2>&1
       old="=/usr"
       new="=$PWD/usr"
       sed -i "s@$old@$new@" ./usr/bin/libtoolize 
@@ -76,36 +79,42 @@ else
     fi
   fi
 
-  aclocal       &>> ../spglib.log
-  autoheader    &>> ../spglib.log
-  $LIBTOOL      &>> ../spglib.log
+  aclocal       >> ../spglib.log 2>&1
+  autoheader    >> ../spglib.log 2>&1
+  $LIBTOOL      >> ../spglib.log 2>&1
   touch INSTALL NEWS README AUTHORS
-  automake -acf &>> ../spglib.log
-  autoconf      &>> ../spglib.log
-  ./configure   &>> ../spglib.log
+  automake -acf >> ../spglib.log 2>&1
+  autoconf      >> ../spglib.log 2>&1
+  ./configure   >> ../spglib.log 2>&1
 
   if [ "$test_libtool" == "command not found" ]; then
     cp ./config.guess ./lib-tool/usr/share/libtool/config
     cp ./config.sub ./lib-tool/usr/share/libtool/config
-    aclocal       &>> ../spglib.log
-    autoheader    &>> ../spglib.log
-    $LIBTOOL      &>> ../spglib.log
-    automake -acf &>> ../spglib.log
-    autoconf      &>> ../spglib.log
-    ./configure   &>> ../spglib.log
+    aclocal       >> ../spglib.log 2>&1
+    autoheader    >> ../spglib.log 2>&1
+    $LIBTOOL      >> ../spglib.log 2>&1
+    automake -acf >> ../spglib.log 2>&1
+    autoconf      >> ../spglib.log 2>&1
+    ./configure   >> ../spglib.log 2>&1
   fi
 
-  make &>> ../spglib.log && make install DESTDIR=$PWD &>> ../spglib.log
+  make >> ../spglib.log 2>&1 && make install DESTDIR=$PWD >> ../spglib.log 2>&1
 fi
 #installation to ./lib
 echo "installing....to $PWD/../../lib"
-cp ./usr/local/lib/libsymspg.a ../../lib &>> ../spglib.log
-cp ./src/spglib.h ../../lib/include      &>> ../spglib.log  
-cd ../../ &>> ../spglib.log
+echo "installing....to $PWD/../../lib" >> ../spglib.log 2>&1
+cp ./usr/local/lib/libsymspg.a ../../lib >> ../spglib.log 2>&1
+cp ./src/spglib.h ../../lib/include      >> ../spglib.log 2>&1
+cd ../../ >> ../spglib.log 2>&1
 #installation check
 if [ ! -e ./lib/libsymspg.a ]; then
+  echo "spglib installation failed!"
   echo "spglib installation failed!"
 else 
   echo "Done"
 fi
 exit
+Usage: grep [OPTION]... PATTERN [FILE]...
+Try 'grep --help' for more information.
+Usage: grep [OPTION]... PATTERN [FILE]...
+Try 'grep --help' for more information.
