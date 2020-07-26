@@ -1,23 +1,23 @@
 =============================================================================================================
                                         JOB/MODEL types
 =============================================================================================================
-JOBT  21                cell simulation      (20) relaxation (21) molecular dynamics
+JOBT  21                cell simulation:      (20) relaxation; (21) molecular dynamics;
 =============================================================================================================
                                     OPTIMIZATION parameters
 =============================================================================================================
 NPAR  16                number of cores for parallel NN training or cell simulation
-MINT  0                 gsl minimier type (0) BFGS2 (1) CG-FR (2) CG-PR (3) steepest descent 
+MINT  0                 gsl minimier type: (0) BFGS2; (1) CG-FR; (2) CG-PR; (3) steepest descent 
 MITR  200               maximum N for NN training or cell opimization steps
-RLXT  3                 cell optimization type (2) force only (3) full cell (7) volume (ISIF in VASP)
+RLXT  3                 cell optimization type: (2) force only; (3) full cell; (7) volume (ISIF in VASP)
 STOP  0                 stop as soon as distances are shorter than the table file
 ETOL  1e-8              error tolerance for NN training or cell optimization convergence
-COUT  12                output options (00) E  final step (01) E  first/final steps (02) E  all steps
-                                       (10) EF final step (11) EF first/final steps (12) EF all steps
+COUT  12                output options (00) E  final step; (01) E  first/final steps; (02) E  all steps
+                                       (10) EF final step; (11) EF first/final steps; (12) EF all steps
 =============================================================================================================
                                     THERMOSTAT parameters
 =============================================================================================================
-MDTP  20                 MD type (10) NVE (20) NVT Nose-Hoover (30) NPT Nose-Hoover + Brendsen
-                                 (11) NVE + velocities (21) NVT + velocities (31) NPT + velocities
+MDTP  20                MD type: (10) NVE; (20) NVT Nose-Hoover; (30) NPT Nose-Hoover + Brendsen
+                                 (11) NVE + velocities; (21) NVT + velocities; (31) NPT + velocities
 TMIN  1300.0            min temperature in MD runs
 TMAX  1500.0            max temperature in MD runs
 TSTP  100.0             tempterature step in MD runs
