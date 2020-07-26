@@ -1,6 +1,6 @@
 JOBT  20       cell relaxation
-NPAR  8        number of cores for parallel run
-NDIM  3        (3) crystal (2) film (0) particle
+NPAR  4        number of cores for parallel run
+NDIM  3        (3) crystal (0) particle
 MITR  100       number of cell optimization steps
 RLXT  3        cell optimization type (2) force only (3) full cell (7) volume (ISIF in VASP)
 PGPA  0.0      pressure in GPa
