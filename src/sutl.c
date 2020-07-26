@@ -268,21 +268,14 @@ void READ_SG(Cell *C)
 //========================================================
 //Interface function for spglib
 //========================================================
-int sym_dataset(Cell *C, const double origin_shift[3], char w[], int equivalent_atoms[], double tol,int J) 
+int sym_dataset(Cell *C, const double origin_shift[3], char w[], int equivalent_atoms[], double tol, int J) 
 {
   SpglibDataset *dataset;
   const char    *wl = "abcdefghijklmnopqrstuvwxyz";
   char          symbol[11];
-  int           i, q, N, max_size;
+  int           i, q, N;
   int           types[C->A];
-  double        lattice[3][3], position[C->A][3], translation[192][3], spins[C->A];
-  int           rotation[192][3][3];
-
-  for(i=0;i<C->A;i++)
-    spins[i]=0.0;
-
-  N        =   1;
-  max_size = 192;
+  double        lattice[3][3], position[C->A][3];
 
   for(i=0;i<C->N;i++)
     types[i] = C->ATMN[i]+1;
@@ -299,28 +292,35 @@ int sym_dataset(Cell *C, const double origin_shift[3], char w[], int equivalent_
     for(q=0;q<D3;q++) 
       position[i][q] += origin_shift[q];
 
-  if(J==1)
-  {
-    N = spg_standardize_cell(lattice, position, types, C->N, 0, 0, tol);
 
-    C->N = N;
+  if(J==0)
+  {
+    N       = spg_standardize_cell(lattice, position, types, C->N, 1, 0, tol);
+    dataset = spg_get_dataset(lattice, position, types, N, tol); 
+  }
+  else
+  {
+    N       = spg_standardize_cell(lattice, position, types, C->N, 0, 0, tol);
+    dataset = spg_get_dataset(lattice, position, types, N, tol); 
+
+    C->N = dataset->n_std_atoms;
 
     for(i=0;i<C->NSPC;i++)
       C->SPCN[i] = 0;
 
     for(i=0;i<C->N;i++)
     {
-      C->ATMN[i] = types[i]-1;
-      C->ATMZ[i] = C->SPCZ[types[i]-1];
+      C->ATMN[i] = dataset->std_types[i]-1;
+      C->ATMZ[i] = C->SPCZ[dataset->std_types[i]-1];
       C->SPCN[C->ATMN[i]]++;
 
       for(q=0;q<D3;q++)
-        C->X[i][q] = position[i][q];
+        C->X[i][q] = dataset->std_positions[i][q];
     }
 
     for(i=0;i<D3;i++)
       for(q=0;q<D3;q++)
-        C->L[q][i] = lattice[i][q];
+        C->L[q][i] = dataset->std_lattice[i][q];
 
     ORDER(C);
 
@@ -334,16 +334,20 @@ int sym_dataset(Cell *C, const double origin_shift[3], char w[], int equivalent_
 
     for(i=0;i<C->N;i++)
       types[i] = C->ATMN[i]+1;
+
+    //===== call again to make Wyckoff positions properly ordered by species =====
+    dataset = spg_get_dataset(lattice, position, types, C->N, tol);
+
+    for(i=0;i<C->N;i++)
+    {
+      w[i]                = wl[dataset->wyckoffs[i]];
+      equivalent_atoms[i] = dataset->equivalent_atoms[i];
+    }
+
   }
 
-  dataset = spg_get_dataset(lattice, position, types, C->N, tol);
-  if(J==1)
-    spg_get_symmetry_with_collinear_spin(rotation, translation, equivalent_atoms, max_size, lattice, position, types, spins, C->N, tol);
-  spg_get_international(symbol,lattice, position, types, C->N, tol);
+  spg_get_international(symbol, dataset->std_lattice, dataset->std_positions, dataset->std_types, dataset->n_std_atoms, tol);
   strncpy(C->SGS,symbol,9);
-
-  for(i=0;i<C->N;i++) 
-    w[i] = wl[dataset->wyckoffs[i]];
 
   C->SGN = dataset->spacegroup_number;
 
@@ -439,8 +443,7 @@ int FIND_WYC(Cell *C, Cell *D, double tol, int J)
     if(C->SPCZ[0]>0)
       atom_symb(C->ATMZ[i],s);
 
-    for(q=0;q<D3;q++)
-    {
+    for(q=0;q<D3;q++) {
       if(C->X[i][q] <0.0)
         C->X[i][q] += 1.0;
 

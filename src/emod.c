@@ -867,6 +867,10 @@ void INIT_EVOS(Tribe *T, Cell *C)
   C->NSPC = T->NSPC;
   C->N = C->A = C->A/2;
 
+  //===== conventional cells in EVOS analysis could be 4 times larger =====
+  if(T->JOBT==13)
+    C->N = C->A = C->A*4;
+
   for(n=0;n<2*T->N+2;n++)
   {
     T->C[n].A    = C->A;  // for NANO_ROT we need +2 atoms
@@ -891,13 +895,14 @@ void INIT_EVOS(Tribe *T, Cell *C)
       T->C[n].SPCN[k] = T->SPCN[k];
     }
     sprintf(T->C[n].WDIR,"%s",C->WDIR);
+    Build_Cell(&T->C[n],0);
   }
 
-  for(n=0;n<2*T->N+2;n++)
-  {
-    Build_Cell(&T->C[n],0);
-    Copy_C(C,&T->C[n]);
-  }
+  if(T->JOBT==13)
+    C->N = C->A = C->A/4;
+  else
+    for(n=0;n<2*T->N+2;n++)
+      Copy_C(C,&T->C[n]);
 
   if(T->JOBT>10)
     return;

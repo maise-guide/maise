@@ -18,7 +18,7 @@ MAISE has been developed by
 ---
 ## General info
 
-Current version 2.6 works on Linux platforms and combines 3 modules for modeling, optimizing, and analyzing atomic structures.
+Current version 2.7 works on Linux platforms and combines 3 modules for modeling, optimizing, and analyzing atomic structures.
 
 1 The neural network (NN) module builds, tests, and uses NN models to
 describe interatomic interactions with near-ab initio accuracy at a
@@ -115,7 +115,7 @@ libsymspg.a into the './lib' subdirectory; (ii ) the 'spglib.h' header
 into './lib/include' subdirectory; and (iii) all gsl headers into the
 './lib/include/gsl' subdirectory.
 
-4 A 'check' script is available in the './examples/' directory which
+4 A 'check' script is available in the './test/' directory which
 can be run after compiling the maise executable to ensure the proper
 functionality of the code. This script automatically checks for the
 performance of the code in parsing the data, training the neural
@@ -196,7 +196,13 @@ maise -flag
 
 ## Examples
 
-Directory 'examples/' has samples of maise jobs for parsing data, training neural networks, and simulating structures with neural network models. Eash example has a README file, a setup file with only relevant tags for the particular job, and reference output files for comparison. 
+Directory 'examples/' has samples of maise jobs for unit cell analysis
+and manipulation, parsing data, training neural networks, simulating
+structures with neural network models, evolutionary search for ground
+state wit neural network model, molecular dynamics run, and phonon
+calculation. Eash example has a README file, a setup file with only
+relevant tags for the particular job, and reference output files for
+comparison.
 
 ## Input tags by type
 ---
