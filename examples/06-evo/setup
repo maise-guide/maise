@@ -12,7 +12,7 @@ QUET  1                queue type: torque (0); slurm (1)
 NDIM  3                structure type: crystal (3); film (2); cluster (0)
 NPOP  32               population size
 SITR  0                starting iteration
-NITR  100               number of iterations
+NITR  100              number of iterations
 TINI  0                starting options if SITR=0
 TIME  1200             max time per relaxation
 PGPA  0.0              pressure in GPa

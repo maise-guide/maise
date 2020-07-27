@@ -1,30 +1,30 @@
-08 - Phonon Example
+=======================================================================
+    08 - Phonon Example
+=======================================================================
 
-A phonon calculation using a given model, highlighting eigevalues acoustic modes.
-The eigenvectors of each eigenvalue can be viewed in the output OUTCAR file.
+Calculates Gamma-point phonon frequencies and eigenmodes and writes
+them to the OUTCAR file.
 
-You need to copy the maise executable to the working directory of this example before use.
+If there are any problems/questions, please feel free to post 
+on the MAISE forum: https://harvey0.binghamton.edu/~akolmogo/forum/
 
-===== REQUIRED =====
--> maise
--> setup
--> model
--> POSCAR
+=======================================================================
+    REQUIRED FILES
+=======================================================================
+maise
+setup
+model
+POSCAR
 
-===== REQUIRED SETUP CONFIG =====
-
-JOBT  22                cell simulation      (20) relaxation; (21) molecular dynamics; (22) phonon
-NPAR  8                number of cores for parallel NN training or cell simulation
-RLXT  3                 cell optimization type (2) force only (3) full cell (7) volume (ISIF in VASP)
-ETOL  1e-8              error tolerance for NN training or cell optimization convergence
-COUT  12                output options (00) E  final step (01) E  first/final steps (02) E  all steps
-                                       (10) EF final step (11) EF first/final steps (12) EF all steps
-NDIM  3                 (3) crystal; (0) cluster
-
-===== EXECUTION COMMAND =====
+=======================================================================
+    EXECUTION COMMAND
+=======================================================================
 maise 
 
-===== EXPECTED OUTPUT =====
+=======================================================================
+    EXPECTED OUTPUT
+=======================================================================
+
 =======================================================================
 |               Module for Ab Initio Structure Evolution              |
 |                        version     maise.2.7.00                     |
@@ -35,33 +35,38 @@ maise
 
  Eigenvalues at the Gamma point (cm-1)
 
-  0     185.6464962829276146
-  1     185.6464962829189176
-  2     177.6237232858303514
-  3     177.6237232857748438
-  4     177.6237229225373824
-  5     147.9029623478674296
-  6     145.8995084263971478
-  7     145.8995084263937088
-  8     145.8995069907836353
-  9     145.8995069907651896
- 10     138.9802179715101715
- 11     138.9802179714457679
- 12     136.061959772.7.0230
- 13     136.0619597729577777
- 14     108.9705624108742654
- 15     108.9705624108634652
- 16     108.9705621285722259
- 17     108.9705621284997932
- 18     107.4343050733396865
- 19       0.0218308057444839
- 20       0.0218302259751087
- 21       0.0166040150876827
- 22     -33.3481199588703419
- 23     -33.3481199589392077
+  0     190.1189703392989543
+  1     190.1189703392320780
+  2     179.0697927772321236
+  3     179.0697927772046967
+  4     179.0697916398272014
+  5     148.9589198226848339
+  6     147.2041327277512721
+  7     147.2041327277389939
+  8     147.2041314956150586
+  9     147.2041314956086353
+ 10     141.2417901193579155
+ 11     141.2417901192900445
+ 12     136.6290152004455649
+ 13     136.6290152004243623
+ 14     108.8997952619890128
+ 15     108.5283917347479274
+ 16     108.5283917347334182
+ 17     108.5283907788708575
+ 18     108.5283907788655426
+ 19       0.0201311023078189
+ 20       0.0201305313694524
+ 21       0.0198312735576416
+ 22      -4.7239924737495516
+ 23      -4.7239924776967381
 
-===== OUTPUT FILES =====
 
-CONTCAR
-OUTCAR - contains the eigenvalues and eigenvectors of the structure
-OSZICAR
+=======================================================================
+    OUTPUT FILES
+=======================================================================
+
+CONTCAR  
+OUTCAR   contains the eigenvalues and eigenvectors of the structure
+OSZICAR  contains the enthalpy of the structure
+
+=======================================================================

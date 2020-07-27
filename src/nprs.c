@@ -1308,8 +1308,8 @@ void PARS_DAT(ANN *R, PRS *P, Cell *C, LNK *L)
     fprintf(dir,"%s",buf);
   fclose(dir);
   
-  if(rindex==0){fprintf(stderr,"\nError: none of %d  structuress is parsed! check energy and volume window\n",N);exit(1);} 
-  printf("\nSuccessfully parsed %d POSCAR.0 out of total %d structuress!\n",poscars,N);
+  if(rindex==0){fprintf(stderr,"\nError: none of %d  structures is parsed! check energy and volume window\n",N);exit(1);} 
+  printf("\nSuccessfully parsed %d POSCAR.0 out of total %d structures!\n",poscars,N);
   
   time ( &rawtime );
   timeinfo = localtime ( &rawtime );

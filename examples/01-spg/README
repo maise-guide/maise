@@ -1,22 +1,36 @@
-01 - SPG Example
+=======================================================================
+    01 - SPG Example
+=======================================================================
 
-Calculates the space group of a structure at all orders of magnitude up to a specified tolerance and
-outputs symmetrized conventional and primitive unit cells. If no tolerance is specified, 
-a default value of 0.01 Angstroms. If a negative tolerance is specified,
-it will output the symmetry at all orders of magnitude up to the specified tolerance. For example, 
-setting the [TOL] argument to -0.01 will check and output tolerances at 0.01, 0.001, 0.002, 0.003, 0.004, ..., 0.009, 
-0.0001, 0.0002, etc. The argument [NMAX] specifies the maximum amount of nearest neighbors in the symmetrization algorithm.
+Calculates the space group of a structure at all orders of magnitude
+up to a specified tolerance and outputs symmetrized conventional and
+primitive unit cells. If no tolerance is specified, a default value of
+0.01 Angstroms is used. If a negative tolerance is specified, MAISE
+will output the symmetry at all orders of magnitude starting with the
+specified value down to 1E-12. For example, setting the [TOL] argument
+to -0.01 will check and output tolerances at 0.01, 0.009, 0.008,
+0.007, 0.006, ..., 0.002, 0.001, 0.0009, ..., 1E-12. The optional
+argument [NMAX] specifies the maximum amount of nearest neighbors in
+the symmetrization algorithm.
 
-You need to copy the maise executable to the working directory of this example before use.
+If there are any problems/questions, please feel free to post 
+on the MAISE forum: https://harvey0.binghamton.edu/~akolmogo/forum/
 
-===== REQUIRED FILES =====
--> maise
--> POSCAR
+=======================================================================
+    REQUIRED FILES
+=======================================================================
+maise
+POSCAR
 
-===== EXECUTION COMMAND =====
+=======================================================================
+    EXECUTION COMMAND
+=======================================================================
 maise -spg [TOL] [NMAX]
 
-===== EXPECTED OUTPUT =====
+=======================================================================
+    EXPECTED OUTPUT
+=======================================================================
+
 =======================================================================
 |               Module for Ab Initio Structure Evolution              |
 |                        version     maise.2.7.00                     |
@@ -27,10 +41,15 @@ maise -spg [TOL] [NMAX]
 
 139    tI2      I4/mmm   1.0E-02    1.0000
 
-===== EXECUTION COMMAND =====
+=======================================================================
+    EXECUTION COMMAND
+=======================================================================
 maise -spg 0.00001
 
-===== EXPECTED OUTPUT =====
+=======================================================================
+    EXPECTED OUTPUT
+=======================================================================
+
 =======================================================================
 |               Module for Ab Initio Structure Evolution              |
 |                        version     maise.2.7.00                     |
@@ -41,10 +60,15 @@ maise -spg 0.00001
 
 12     mS2      C2/m     1.0E-05    1.0000
 
-===== EXECUTION COMMAND =====
+=======================================================================
+    EXECUTION COMMAND
+=======================================================================
 maise -spg -0.1
 
-===== EXPECTED OUTPUT =====
+=======================================================================
+    EXPECTED OUTPUT
+=======================================================================
+
 =======================================================================
 |               Module for Ab Initio Structure Evolution              |
 |                        version     maise.2.7.00                     |
@@ -57,8 +81,12 @@ maise -spg -0.1
 139    tI2      I4/mmm   3.0E-02    1.0000
 12     mS2      C2/m     1.0E-03    1.0000
 
-===== OUTPUT FILES =====
-CONV -> conventional unit cell symmetrized to closest space group
-PRIM -> primitive unit cell symmetrized
-str.cif -> CIF file of symmetrized structure
+=======================================================================
+    OUTPUT FILES
+=======================================================================
 
+CONV       conventional unit cell symmetrized to closest space group
+PRIM       symmetrized primitive unit cell
+str.cif    CIF file of the symmetrized structure
+
+=======================================================================

@@ -1,37 +1,30 @@
-07 - MD Example
+=======================================================================
+    07 - MD NVT Example
+=======================================================================
 
-Molecular dynamics simulation which loops between a minimum and maximum temperature.
+Molecular dynamics simulation starting at the minimum temperature and
+finishing at the maximum temperature.
 
-You need to copy the maise executable to the working directory of this example before use.
+If there are any problems/questions, please feel free to post 
+on the MAISE forum: https://harvey0.binghamton.edu/~akolmogo/forum/
 
-===== REQUIRED =====
--> maise
--> setup
--> model
--> POSCAR
+=======================================================================
+    REQUIRED FILES
+=======================================================================
+maise
+setup
+model
+POSCAR
 
-===== REQUIRED SETUP CONFIG =====
-
-JOBT  21                cell simulation:      (20) relaxation; (21) molecular dynamics;
-NPAR  16                number of cores for parallel NN training or cell simulation
-COUT  12                output options (00) E  final step (01) E  first/final steps (02) E  all steps
-                                       (10) EF final step (11) EF first/final steps (12) EF all steps
-NDIM  3                 (3) crystal; (0) cluster
-MDTP  20                MD type (10) NVE (20) NVT Nose-Hoover (30) NPT Nose-Hoover + Brendsen
-                                (11) NVE + velocities (21) NVT + velocities (31) NPT + velocities
-TMIN  1300.0            min temperature in MD runs
-TMAX  1500.0            max temperature in MD runs
-TSTP  100.0             tempterature step in MD runs
-DELT  2.0               time step in femtoseconds
-NSTP  100               number of steps
-CPLT  25.0              thermostat coupling constant
-CPLP  100.0             barostat coupling constant
-ICMP  0.01              isothermal compressibility (in 1/GPa)
-
-===== EXECUTION COMMAND =====
+=======================================================================
+    EXECUTION COMMAND
+=======================================================================
 maise 
 
-===== EXPECTED OUTPUT =====
+=======================================================================
+    EXPECTED OUTPUT
+=======================================================================
+
 =======================================================================
 |               Module for Ab Initio Structure Evolution              |
 |                        version     maise.2.7.00                     |
@@ -81,13 +74,17 @@ ave.       90:  U=    -3.115594   K=  1552.795179   IP=    22.124341   LV=     6
 ave.      100:  U=    -3.108723   K=  1535.504125   IP=    22.512468   LV=     6.000000  DE=   -0.146229  LI=    0.171381
 
  ===  1500.000000   -3.108723    1535.504125    22.512468    6.000000   -0.146229    0.171381          100            13.49
+ 
+=======================================================================
+    OUTPUT FILES
+=======================================================================
 
-===== OUTPUT FILES =====
+ave-out.dat   final averages for potential energy, kinetic energy, internal pressure, lattice parameter, change in energy, and Lindemann Index
+AVERAGE-TTT   "Average" structure for the given temperature TTT (created by averaging atomic positions)
+CONTCAR       final structure at the end of the run.
+CONTCAR-TTT   structure at the end of the temperature TTT
+RDF-TTT.dat   radial distribution function at temperature TTT.
+TEMP-TTT.dat  intermediate values (at every 10 integration steps) of the parameters that are being provided in ave-out.dat
 
-ave-out.dat: final averages for potential energy, kinetic energy, internal pressure, lattice parameter, change in energy, and Lindemann Index
-AVERAGE-TTT: "Average" structure for the given temperature TTT (created by averaging atomic positions)
-CONTCAR: final structure at the end of the run.
-CONTCAR-TTT: structure at the end of the temperature TTT
-RDF-TTT.dat: radial distribution function at temperature TTT.
-TEMP-TTT.dat: intermediate values (at every 10 integration steps) of the parameters that are being provided in ave-out.dat
+=======================================================================
 

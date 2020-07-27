@@ -1,7 +1,9 @@
-00 - RDF Example
+=======================================================================
+    00 - RDF Example
+=======================================================================
 
-Calculates gaussian-smeared bond distance distributions (RDF) of particles in 
-a structure and outputs raw and normalized RDF and 
+Calculates Gaussian-smeared radial distribution function (RDF) of
+atoms in a structure and outputs raw and normalized RDF and
 nearest neighbor lists. Optional arguments are:
 
 NMAX: max number of neareast neighbors
@@ -9,18 +11,27 @@ RSFT: soft cutoff radius
 RHRD: hard cutoff radius
 SPRD: amount of gaussian spreading
 
-If optional arguments are not specified, then defaults will be used.
+If optional arguments are not specified, then defaults will be used
+and printed out on the screen.
 
-The maise executable must be compiled and copied into this directory before execution.
+If there are any problems/questions, please feel free to post 
+on the MAISE forum: https://harvey0.binghamton.edu/~akolmogo/forum/
 
-===== REQUIRED FILES =====
--> maise
--> POSCAR
+=======================================================================
+    REQUIRED FILES
+=======================================================================
+maise
+POSCAR
 
-===== EXECUTION COMMAND =====
+=======================================================================
+    EXECUTION COMMAND
+=======================================================================
 maise -rdf [NMAX] [RSFT] [RHRD] [SPRD]
 
-===== EXPECTED OUTPUT =====
+=======================================================================
+    EXPECTED OUTPUT
+=======================================================================
+
 =======================================================================
 |               Module for Ab Initio Structure Evolution              |
 |                        version     maise.2.7.00                     |
@@ -40,8 +51,13 @@ Bond       list      written to     bond.dat
 Normalized RDF       written to     RDF.dat
 Original   RDF       written to     rdf.dat
 
-===== OUTPUT FILES =====
-list.dat -> list of nearest neighbors
-bond.dat -> list of bond lengths and atom indexes of bonds
-rdf.dat -> normalized RDF
-RDF.dat -> raw/original RDF
+=======================================================================
+    OUTPUT FILES
+=======================================================================
+
+list.dat    list of nearest neighbors
+bond.dat    list of bond lengths and atom indexes of bonds
+RDF.dat     normalized RDF
+rdf.dat     original RDF
+
+=======================================================================

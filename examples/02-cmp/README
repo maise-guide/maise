@@ -1,22 +1,31 @@
-02 - POSCAR Comparison Example
+=======================================================================
+    02 - CMP Example
+=======================================================================
 
-Computes the RDF of two structures and finds the similarity via dot product of 
-gaussian smeared RDF values. Also tests the symmetry at various toleramces
-using SPGLib and finds volume per atom of each structure. Optional
-arguments are the same as those used in the RDF example. If arguments
-are not specified then defaults will be used.
+Computes the RDF of two structures and finds the similarity via dot
+product of Gaussian-smeared RDF values. It also tests the symmetry at
+various tolerances using SPGLib and finds volume per atom of each
+structure. Optional arguments are the same as those used in the RDF
+example. If arguments are not specified then defaults will be used.
 
-You need to copy the maise executable to the working directory of this example before use.
+If there are any problems/questions, please feel free to post 
+on the MAISE forum: https://harvey0.binghamton.edu/~akolmogo/forum/
 
-===== REQUIRED FILES =====
--> maise
--> POSCAR0
--> POSCAR1
+=======================================================================
+    REQUIRED FILES
+=======================================================================
+maise
+POSCAR0
+POSCAR1
 
-===== EXECUTION COMMAND =====
+=======================================================================
+    EXECUTION COMMAND
+=======================================================================
 maise -cmp [NMAX] [RSFT] [RHRD] [SPRD]
 
-===== EXPECTED OUTPUT =====
+=======================================================================
+    EXPECTED OUTPUT
+=======================================================================
 
 =======================================================================
 |               Module for Ab Initio Structure Evolution              |
@@ -32,9 +41,14 @@ maise -cmp [NMAX] [RSFT] [RHRD] [SPRD]
    0     13.500000      221     221     221     221      1.000000   0.760837
    1     13.635000      221     123      10      10      0.760837   1.000000
 
-===== OUTPUT FILES =====
-list0.dat -> list of nearest neighbors for POSCAR0
-list1.dat -> list of nearest neighbors for POSCAR1
-RDF0.dat -> raw/original RDF of POSCAR0
-RDF1.dat -> raw/original RDf of POSCAR1
+=======================================================================
+    OUTPUT FILES
+=======================================================================
+
+list0.dat    list of nearest neighbors for POSCAR0
+list1.dat    list of nearest neighbors for POSCAR1
+RDF0.dat     normalized RDF of POSCAR0
+RDF1.dat     normalized RDf of POSCAR1
+
+=======================================================================
 
