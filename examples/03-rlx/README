@@ -7,7 +7,7 @@ iterations steps is met (MITR).
 
 You need to copy the maise executable to the working directory of this example before use.
 
-===== REQUIRED =====
+===== REQUIRED FILES =====
 -> maise
 -> POSCAR
 -> model
@@ -17,16 +17,17 @@ You need to copy the maise executable to the working directory of this example b
 
 JOBT  20    specifies this job will be a cell relaxation
 NPAR  8     number of cores for parallel run
-NDIM  3     dimensionality of unit cell (3) crystal (2) film (0) particle
+NDIM  3     dimensionality of unit cell: (3) crystal; (0) particle
 MITR  100   maximum number of cell optimization steps
-RLXT  3     cell optimization type (2) force only (3) full cell (7) volume (ISIF in VASP)
+RLXT  3     cell optimization type: (2) force only; (3) full cell; (7) volume (ISIF in VASP)
 PGPA  0.0   external  pressure in GPa
 STOP  0     stop as soon as distances are shorter than the table file
 ETOL  1e-8  error tolerance for cell optimization convergence 
-COUT  12    output options: E (00) final (01) first/final (02) all steps; EF (10) final (11) first/final (12) all steps
-MINT  0     minimizer type (0) BFGS2 (1) CG-FR (2) CG-PR (3) steepest descent
+COUT  12    output options: E (00) final; (01) first/final; (02) all steps; EF (10) final; (11) first/final; (12) all steps
+MINT  0     minimizer type: (0) BFGS2; (1) CG-FR; (2) CG-PR; (3) steepest descent
+MMAX  500   maximum number of nearest neighbors
 
-===== INPUT COMMAND =====
+===== EXECUTION COMMAND =====
 maise
 
 ===== EXPECTED OUTPUT =====

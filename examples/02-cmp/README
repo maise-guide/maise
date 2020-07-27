@@ -8,12 +8,12 @@ are not specified then defaults will be used.
 
 You need to copy the maise executable to the working directory of this example before use.
 
-===== REQUIRED =====
+===== REQUIRED FILES =====
 -> maise
 -> POSCAR0
 -> POSCAR1
 
-===== INPUT COMMAND =====
+===== EXECUTION COMMAND =====
 maise -cmp [NMAX] [RSFT] [RHRD] [SPRD]
 
 ===== EXPECTED OUTPUT =====

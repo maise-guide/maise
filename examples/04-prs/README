@@ -34,12 +34,11 @@ EMAX  0.90              parse only this fraction of lowest-energy structures
 FMAX  100.0             do not parse data with larger force
 VMIN  0.0               do not parse data with lower  volume
 VMAX  45.0              do not parse data with larger volume
-NDIM  3                 (3) crystal (2) film (0) particle
-RAND  5                 optional for fixed parsing
+RAND  5                 seed for random number generator (0 for current time as seed)
 DEPO  ./DATA            location of DFT data
 DATA  ./PARS            location of parsed data
 
-===== INPUT COMMAND =====
+===== EXECUTION COMMAND =====
 maise
 
 ===== EXPECTED OUTPUT =====

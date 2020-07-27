@@ -1,18 +1,14 @@
 =============================================================================================================
                                         JOB/MODEL types
 =============================================================================================================
-JOBT  22                structure analysis   (00) use analysis tools specified by flags
-                        evolutionary search  (10) run;  (11) soft exit;  (12) hard exit; (13) analysis
-                        cell simulation      (20) relaxation; (21) molecular dynamics; (22) phonon
-			data parsing         (30) prepare inputs for NN training
-			NN training          (40) full training; (41) stratified training
+JOBT  22                cell simulation      (20) relaxation; (21) molecular dynamics; (22) phonon
 =============================================================================================================
                                     OPTIMIZATION parameters
 =============================================================================================================
-NPAR  32                number of cores for parallel NN training or cell simulation
+NPAR  8                number of cores for parallel NN training or cell simulation
 RLXT  3                 cell optimization type: (2) force only; (3) full cell; (7) volume (ISIF in VASP)
 ETOL  1e-8              error tolerance for NN training or cell optimization convergence
 COUT  12                output options: (00) E  final step; (01) E  first/final steps; (02) E  all steps
                                         (10) EF final step; (11) EF first/final steps; (12) EF all steps
-NDIM  3
+NDIM  3                (3) crystal; (0) cluster
 =============================================================================================================

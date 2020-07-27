@@ -9,7 +9,7 @@ RLXT  3                 cell optimization type: force only (2); full cell (3); v
 ETOL  1e-9              error tolerance for cell optimization convergence
 COUT  12                output options: EF all steps
 PGPA  0.0               pressure in GPa
-NDIM  3                 (3) crystal (2) film (0) particle
+NDIM  3                 (3) crystal (0) particle
 MMAX  1000              max number of nearest neighbors
 =============================================================================================================
 

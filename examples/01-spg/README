@@ -9,15 +9,12 @@ setting the [TOL] argument to -0.01 will check and output tolerances at 0.01, 0.
 
 You need to copy the maise executable to the working directory of this example before use.
 
-===== REQUIRED =====
+===== REQUIRED FILES =====
 -> maise
 -> POSCAR
 
-===== INPUT FORMAT =====
+===== EXECUTION COMMAND =====
 maise -spg [TOL] [NMAX]
-
-===== INPUT COMMAND =====
-maise -spg
 
 ===== EXPECTED OUTPUT =====
 =======================================================================
@@ -30,7 +27,7 @@ maise -spg
 
 139    tI2      I4/mmm   1.0E-02    1.0000
 
-===== INPUT COMMAND =====
+===== EXECUTION COMMAND =====
 maise -spg 0.00001
 
 ===== EXPECTED OUTPUT =====
@@ -44,7 +41,7 @@ maise -spg 0.00001
 
 12     mS2      C2/m     1.0E-05    1.0000
 
-===== INPUT COMMAND =====
+===== EXECUTION COMMAND =====
 maise -spg -0.1
 
 ===== EXPECTED OUTPUT =====

@@ -9,13 +9,15 @@ RSFT: soft cutoff radius
 RHRD: hard cutoff radius
 SPRD: amount of gaussian spreading
 
-If arguments are not specified, then defaults will be used.
+If optional arguments are not specified, then defaults will be used.
 
-===== REQUIRED =====
+The maise executable must be compiled and copied into this directory before execution.
+
+===== REQUIRED FILES =====
 -> maise
 -> POSCAR
 
-===== INPUT COMMAND =====
+===== EXECUTION COMMAND =====
 maise -rdf [NMAX] [RSFT] [RHRD] [SPRD]
 
 ===== EXPECTED OUTPUT =====

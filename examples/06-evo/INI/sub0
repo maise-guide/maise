@@ -14,7 +14,7 @@ date -d now +%s > stamp
 
 cp -r ../../../INI/NNET/* .
 
-maise-nnet > out
+./maise-nnet > out
 
 mv POSCAR    POSCAR.0
 mv CONTCAR   CONTCAR.0

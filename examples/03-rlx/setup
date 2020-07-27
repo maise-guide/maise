@@ -1,6 +1,6 @@
 JOBT  20       cell relaxation
 NPAR  4        number of cores for parallel run
-NDIM  3        (3) crystali; (0) particle;
+NDIM  3        (3) crystal; (0) particle;
 MITR  100      number of cell optimization steps
 RLXT  3        cell optimization type: (2) force only; (3) full cell; (7) volume (ISIF in VASP);
 PGPA  0.0      pressure in GPa
@@ -8,4 +8,4 @@ ETOL  1e-8     error tolerance for cell optimization convergence
 COUT  12       output options: E (00) final; (01) first/final; (02) all steps; 
                EF (10) final; (11) first/final; (12) all steps;
 MINT  0        minimizer type: (0) BFGS2; (1) CG-FR; (2) CG-PR; (3) steepest descent;
-MMAX  500
+MMAX  500      maxiumum number of nearest neighbors
