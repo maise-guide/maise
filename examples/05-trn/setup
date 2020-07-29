@@ -3,8 +3,8 @@
 =============================================================================================================
 JOBT  41                training type: full training (40); stratified training (41)
 NPAR  16                number of cores for parallel NN training
-MINT  0                 gsl minimier type: (0) BFGS2; (1) CG-FR; (2) CG-PR; (3) steepest descent;
-MITR  100               maximum N for NN training or cell opimization steps
+MINT  0                 gsl minimizer type: (0) BFGS2; (1) CG-FR; (2) CG-PR; (3) steepest descent;
+MITR  100               maximum N for NN training or cell optimization steps
 ETOL  1e-6              error tolerance for training
 NSPC  2                 number of species types
 TSPC  29 47             species types
