@@ -1109,6 +1109,112 @@ void Print_LOG(char buf[])
   fclose(out);
 }
 //==============================================================================
+//    Reads in model parameters from 'model' file
+//==============================================================================
+void READ_MODEL(ANN *R, PRS *P, Cell *C)
+{
+  int    i,n,k,ver;
+  FILE  *in;
+  char   s[225];
+
+  if(R->JOBT/10 == 5)
+    sprintf(s,"%s/model",R->otpt);
+  else
+    sprintf(s,"model");
+  
+  ver=check_ver(s);
+  
+  if( (in=fopen(s,"r")) == 0 )
+  {
+    fprintf(stderr,"ERROR opening model file!\n");
+    exit(1);
+  }
+  R->MODT = 0;
+  fgets(s,200,in);
+  fgets(s,200,in);
+  sscanf(s+2,"%s",s);
+  if( strncmp(s,"neural",6) == 0 )
+    C->MODT = R->MODT = 1;
+  if( strncmp(s,"Gupta",5) == 0 )
+    C->MODT = R->MODT = 2;
+  if( strncmp(s,"Sutton-Chen",11) == 0 )
+    C->MODT = R->MODT = 3;
+  if( strncmp(s,"Lennard-Jones",13) == 0 )
+    C->MODT = R->MODT = 4;
+  
+  if( R->MODT==0 )
+  {
+    fprintf(stderr,"ERROR reading %s\n",s);
+    exit(1);
+  }
+  
+  R->NSPC = 0;
+  
+  while( fgets(s,200,in) )
+    if( strncmp(s,"|  number of species    |",25) == 0 )
+    {
+      sscanf(s+26,"%d" ,&R->NSPC);
+      break;
+    }
+  
+  while( fgets(s,200,in) )
+    if( strncmp(s,"|  species types        |",25) == 0 )
+    {
+      for(i=0,n=0,k=26; i < R->NSPC;i++,k+=n)
+	sscanf(s+k,"%d%n",&R->SPCZ[i],&n);
+      break;
+    }
+  
+  if( R->MODT==1 )
+  {
+    if( ver < 2400 )
+    {
+      printf("Error: the model file is in old format; convert the model first!\n");
+      exit(1);
+    }
+    
+    while( fgets(s,200,in) )
+      if( strncmp(s,"|  number of layers     |",25) == 0 )
+      {
+	sscanf(s+26,"%d",&R->NL);
+	break;
+      }
+    
+    while( fgets(s,200,in) )
+      if( strncmp(s,"|  architecture         |",25) == 0 )
+      {
+	for(i=0,n=0,k=26; i < R->NL;i++,k+=n)
+	  sscanf(s+k,"%d%n",&R->NU[i],&n);
+	break;
+      }
+    
+    while( fgets(s,200,in) )
+      if( strncmp(s,"  B2A",5) == 0 )
+	break;
+    for(i=0; i < 4;i++)
+      fgets(s,200,in);
+    i = -1;
+    while( fgets(s,200,in) )
+      if( strncmp(s," Rc  ",5) == 0 )
+	break;
+      else
+	i++;
+    P->NSYM = R->NSYM = i;
+    P->D    = R->NU[0];
+    R->D    = R->NU[0];
+  }
+  fclose(in);
+
+
+  if( R->MODT == 1 )
+    P->DSCR = 2;
+
+  if( R->MODT >  1 )
+    P->DSCR = 3;
+
+  return;
+}
+//==============================================================================
 //    reads in EVOS parameters from "setup" file
 //==============================================================================
 void READ_MAIN(Tribe *T, ANN *R, PRS *P, Cell *C, int J, int ARGC)

@@ -1,5 +1,6 @@
 #=============================================================================#
 EXE        = maise
+MLIB       = libmaise.a
 CC         = gcc
 VER        = maise.2.7.00
 CFLAGS     = -O3 -Wall -fno-strict-overflow
@@ -25,6 +26,11 @@ CPPFLAGS   = -DVERSION='"$(VER)"'
 CFLAGS    += $(LDFLAGS) $(INCLUDE) $(CPPFLAGS)
 DFLAGS     = -MT $@ -MMD -MP -MF 
 #=============================================================================#
+$(MLIB): $(OBJ) $(EXE)
+	@ld -o maise.o -r $(shell ls ./obj/*.o | grep -v main.o ) $(GSL_H) ./lib/libgsl.a ./lib/libgslcblas.a ./lib/libsymspg.a;
+	@ar rcs $@ maise.o; ranlib $@;
+	@if [ -e $@ ]; then mv ./$@ ./lib/$@;fi; rm -rf ./maise.o; 
+
 $(EXE): $(OBJ) 
 	@printf "Linking $(_OBJ)...\n";
 	@$(CC) $(CFLAGS) -o $@ $^ $(LIB);
@@ -36,8 +42,7 @@ $(ODIR)/%.o: $(SDIR)/%.c $(LDIR)/gsl-config
 	@mv -f $(DDIR)/$*.tmpd $(DDIR)/$*.d && touch $@; 
 
 $(LDIR)/gsl-config: $(LDIR)/libsymspg.a
-	@mkdir -p $(LDIR); printf "Getting $(@F)...\n";
-	@bash dep-gsl;
+	@if [ ! -e $@ ]; then mkdir -p $(LDIR); printf "Getting $(@F)...\n"; bash dep-gsl;fi;
 
 $(LDIR)/libsymspg.a: 
 	@mkdir -p $(LDIR); printf "Getting $(@F)...\n";
@@ -55,7 +60,7 @@ clean-all: clean clean-lib
 clean:
 	@printf "Cleaning object files, dependencies, and maise executables...";
 	@rm -rf test/parse/maise test/relax/maise test/train/maise;
-	@rm -rf $(ODIR)/* ./maise ./bin/maise; printf "Done!\n";
+	@rm -rf $(ODIR)/* ./maise ./bin/maise ./lib/libmaise.a ; printf "Done!\n";
 	@rm -rf obj;
 
 clean-lib: 

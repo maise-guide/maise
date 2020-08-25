@@ -3,6 +3,10 @@
 extern const double Pi;
 extern const double eV2GPa;
 const double kb = 11604.0;
+extern const double atom_mass[96];
+extern const double mindist[96];
+extern const double minpres[96];
+extern const double maxpres[96];
 
 //========================================================================
 double CELL_KIN(Cell *C)
@@ -978,5 +982,147 @@ void CELL_MAIN(ANN *R, PRS *P, Cell *C)
   JAR(C);
 
   SAVE_CELL(C,"CONTCAR",0);
+}
+//======================================================
+//  Convert GMIN unit cell to MAISE unit cell
+//======================================================
+int GMIN_CELL(Cell *C,  int *ATMN, double *LAT, double *X)
+{
+  int     i,q,q1;
+  double  x[3];
+
+  //===== count # of species =====
+  for(i=0,C->NSPC=1;i<C->N;i++)
+    if( i>0 && ATMN[i]!=ATMN[i-1] )
+      C->NSPC++;
+
+  for(i=0; i < C->NSPC;i++)
+    C->SPCN[i] = 0;
+
+  for(i=0;i<D3;i++)
+    for(q=0;q<D3;q++)
+      C->L[i][q] = LAT[3*i+q]*C->R0;
+
+  //===== assign species & atomic positions =====
+  for(i=0;i<C->N;i++)
+  {
+    C->ATMN[i] = ATMN[i];
+    C->ATMZ[i] = C->SPCZ[ATMN[i]];
+    C->SPCN[C->ATMN[i]]++;
+
+    for(q=0;q<D3;q++)
+      C->X[i][q] = X[3*i+q];
+
+    //===== convert to Cartesian if in fractional =====
+    if(C->XT==0)
+    {
+      for(q=0; q < D3;q++)
+      {
+	for(q1=0,x[q]=0.0; q1 < D3;q1++)
+	  x[q] += C->X[i][q1]*C->L[q1][q];
+      }
+      for(q=0; q < D3;q++)
+	C->X[i][q] = x[q];
+    }
+  }
+
+  //===== Cartesian =====
+  C->XT = 1;
+
+  for(i=0;i<96;i++)
+  {
+    C->mass[i] = atom_mass[i];
+    C->m[i]    = atom_mass[i]*103.6427;
+    C->Rm[i]   = mindist[i];
+  }
+
+  return 1;  
+}
+//======================================================
+// Interface for calculating energy, forces, stresses
+//------------------------------------------------------
+// pointers to be passed from external code
+//------------------------------------------------------
+// ANN    *R     neural network model
+// PRS    *P     parser
+// PRS    *W     array of parsers
+// LNK    *L     link
+// Cell   *C     cell
+//------------------------------------------------------
+// job/cell settings to be defined by user
+//------------------------------------------------------
+// int    CODE   external code type
+// int    N      number of atoms
+// int    NM     max number of nearest neighbors
+// int    ND     clusters (0) or crystals (3)
+// int    NP     number of cores for parallelization
+// int    XT     fractional (0) or Cartesian (1)
+// int    *ATMN  species types
+// double *LAT   lattice in 1D array
+// double *X     positions in 1D array
+//------------------------------------------------------
+// calculated values
+//------------------------------------------------------ 
+// double FRC  forces
+// double STR  stresses
+//======================================================
+double CALL_MAISE(ANN *R, PRS *P, PRS *W, LNK *L, Cell *C, 
+		 int CODE, int N, int NM, int ND, int NP, int XT, int *ATMN, double *LAT, double *X, 
+                  double *FRC, double *STR)
+{
+  int     i, q;
+  double  H;
+
+  C->N    = N;
+  C->NM   = NM;
+  C->ND   = ND;
+  C->NP   = NP;
+  C->XT   = XT;
+  C->R0   = 1.0;
+  R->JOBT = C->JOBT =    20;
+  R->NB   = C->NB   =     1;
+  R->A    = C->A    =  C->N;
+  R->NP   = C->NP;
+
+  //===== allocate and initialize everything when CALL_MAISE is called the first time =====
+  if(L->B == 0)
+  {
+    READ_MODEL(R,P,C);
+    Build_ANN(R);
+    if(R->MODT==1)
+      READ_ANN(R);
+    else
+      READ_POT(C,".");
+
+    Build_Cell(C,1);
+
+    C->NSPC = C->nspc = P->NSPC = R->NSPC;
+    for(i=0;i<C->nspc;i++)
+      C->spcz[i] = C->SPCZ[i] = P->SPCZ[i] = R->SPCZ[i];
+
+    Build_LNK(L,C->N,C->NM,P->D,3);
+    for(i=0;i<C->N;i++)
+      L->MRK[i] = 1;
+
+    if(R->MODT==1) 
+      Build_PRS(P,W,0); 
+  }
+
+  //===== convert GMIN cell to MAISE cell =====
+  if(CODE==0)
+    GMIN_CELL(C, ATMN, LAT, X);
+
+  //===== calculate enthalpy, forces, and stresses =====
+  H = CELL_FRC(R, P, W, C, L);
+
+  //===== copy forces and stresses to designated arrays =====
+  for(i=0;i<C->N;i++)
+    for(q=0;q<D3;q++)
+      FRC[3*i+q] = C->F[i][q]; 
+
+  for(q=0;q<D3;q++)
+    STR[q] = C->U[q];
+
+  return H;
 }
 //======================================================

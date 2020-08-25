@@ -83,5 +83,6 @@ void   GetSeed(long *x);
 void   SelectStream(int index);
 void   TestRandom(void);
 int    check_ver(char *fname);
+void   READ_MODEL(ANN *R, PRS *P, Cell *C);
 
 #endif

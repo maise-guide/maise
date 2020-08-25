@@ -27,5 +27,5 @@ int    CELL_OK(Cell *C);
 void   CELL_RELX(ANN *R, PRS *P, PRS *W, Cell *C, LNK *L);
 void   CELL_PHON(ANN *R, PRS *P, PRS *W, Cell *C, LNK *L);
 void   CELL_MAIN(ANN *R, PRS *P, Cell *C);
-
+double CALL_MAISE(ANN *R, PRS *P, PRS *W, LNK *L, Cell *C, int CODE, int N, int NM, int ND, int NP, int XT, int *ATMN, double *LAT, double *X, double *FRC, double *STR);
 #endif
