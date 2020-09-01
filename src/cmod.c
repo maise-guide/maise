@@ -1087,6 +1087,8 @@ double CALL_MAISE(ANN *R, PRS *P, PRS *W, LNK *L, Cell *C,
   //===== allocate and initialize everything when CALL_MAISE is called the first time =====
   if(L->B == 0)
   {
+    P->LM = P->GM = 1;
+
     READ_MODEL(R,P,C);
     Build_ANN(R);
     if(R->MODT==1)
