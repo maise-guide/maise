@@ -984,9 +984,9 @@ void CELL_MAIN(ANN *R, PRS *P, Cell *C)
   SAVE_CELL(C,"CONTCAR",0);
 }
 //======================================================
-//  Convert GMIN unit cell to MAISE unit cell
+//  Convert external code unit cell to MAISE unit cell
 //======================================================
-int GMIN_CELL(Cell *C,  int *ATMN, double *LAT, double *X)
+int CAST_CELL(Cell *C,  int *ATMN, double *LAT, double *X)
 {
   int     i,q,q1;
   double  x[3];
@@ -1051,7 +1051,7 @@ int GMIN_CELL(Cell *C,  int *ATMN, double *LAT, double *X)
 //------------------------------------------------------
 // job/cell settings to be defined by user
 //------------------------------------------------------
-// int    CODE   external code type
+// int    CODE   external code type (for future use)
 // int    N      number of atoms
 // int    NM     max number of nearest neighbors
 // int    ND     clusters (0) or crystals (3)
@@ -1083,6 +1083,7 @@ double CALL_MAISE(ANN *R, PRS *P, PRS *W, LNK *L, Cell *C,
   R->NB   = C->NB   =     1;
   R->A    = C->A    =  C->N;
   R->NP   = C->NP;
+  C->p   /= eV2GPa;
 
   //===== allocate and initialize everything when CALL_MAISE is called the first time =====
   if(L->B == 0)
@@ -1110,9 +1111,8 @@ double CALL_MAISE(ANN *R, PRS *P, PRS *W, LNK *L, Cell *C,
       Build_PRS(P,W,0); 
   }
 
-  //===== convert GMIN cell to MAISE cell =====
-  if(CODE==0)
-    GMIN_CELL(C, ATMN, LAT, X);
+  //===== convert external code cell to MAISE cell =====
+  CAST_CELL(C, ATMN, LAT, X);
 
   //===== calculate enthalpy, forces, and stresses =====
   H = CELL_FRC(R, P, W, C, L);
