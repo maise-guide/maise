@@ -289,6 +289,9 @@ void Copy_C(Cell *C, Cell *C1)
   C1->NSPC = C->NSPC;
   for(i=0;i<C->NSPC;i++)
     C1->SPCZ[i] = C->SPCZ[i];
+  for(i=0;i<C->NSPC;i++)
+    C1->mass[C->SPCZ[i]] = C->mass[C->SPCZ[i]];
+
   for(i=0;i<C->nspc;i++)
     C1->spcz[i] = C->spcz[i];
 
