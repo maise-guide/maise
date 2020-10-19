@@ -970,7 +970,7 @@ void SORT_FIT(int *NFIT, double *EFIT, int *RFIT, double *FFIT, int n, int N, in
 void PARS_DAT(ANN *R, PRS *P, Cell *C, LNK *L)
 {
   int    i,j,n,m,nn,k,Nmax,x,ND,*RFIT,*NFIT,NRDF,spc1,spc2,TAG,N,totf;
-  double *EFIT,***H,EMAX,t,FMAX,ECUT,*FFIT,fmax,d0,d1;
+  double *EFIT,***H,EMAX,t,FMAX,ECUT,*FFIT,fmax;
   char    buf[500],buf2[400],s[700],d[600],dn[2000][400],kw[400];
   FILE    *stamp,*in,*dir,*rtable,*nd,*ve;
   PRS     W[9];   // 2*NSPC+1, so for maximum 3 species one needs 9
@@ -1059,12 +1059,11 @@ void PARS_DAT(ANN *R, PRS *P, Cell *C, LNK *L)
   EFIT = make_d1D(N);
   FFIT = make_d1D(N);
 
-  printf(" dir         poscars           Emin               Emax               Ecut                  path\n");
+  printf(" dir         poscars               Emin               Emax               Ecut                  path\n");
   for(n=m=0;n<ND;n++)
   {
     k = 0;      
-    
-    temp=tmp[n];
+        temp=tmp[n];
     tgets(buf,200,&temp);
     while(tgets(buf,200,&temp))
     {
@@ -1073,27 +1072,14 @@ void PARS_DAT(ANN *R, PRS *P, Cell *C, LNK *L)
       sprintf(s,"%s/POSCAR.0",d);
       READ_CELL(C,s);
       sprintf(s,"%s/dat.dat",d);
-      EFIT[m+k] = -99999.9;
+      EFIT[m+k] = 10000000.0;
       if( (in=fopen(s,"r")) != 0 )
       {
-	while(fgets(d,200,in))
-	{
-	  sscanf(d,"%s %lf %lf\n",buf,&d0,&d1);
-	  if(strncmp(buf,"vol",3)==0 && R->PENE == 0)
-	    EFIT[m+k] = d1;
-	  if(strncmp(buf,"ent",3)==0 && R->PENE == 1)
-	    EFIT[m+k] = d0;
-	}
+	fgets(d,200,in);
+	sscanf(d,"%lf\n",&EFIT[m+k]);
+	EFIT[m+k] /= (double)C->N;
 	fclose(in);
-	if(EFIT[m+k] == -99999.9)
-        {
-	  in=fopen(s,"r");
-	  fgets(d,200,in);
-	  sscanf(d,"%lf\n",&EFIT[m+k]);
-	  EFIT[m+k] /= (double)C->N;
-	  fclose(in);
-	}
-	if(EFIT[m+k] == -99999.9)
+	if( EFIT[m+k]>100000.0 )
 	{
 	  fprintf(stderr,"ERROR reading %s\n",s);
 	  exit(1);
