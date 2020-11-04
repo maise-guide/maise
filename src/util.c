@@ -1425,6 +1425,7 @@ void READ_MAIN(Tribe *T, ANN *R, PRS *P, Cell *C, int J, int ARGC)
     if( strncmp(buf,"NNRC",4) == 0 ) { sscanf(buf+4,"%lf",&P->RC   );       }  // for PS only
     if( strncmp(buf,"LREG",4) == 0 ) { sscanf(buf+4,"%lf",&R->LREG );       }
     if( strncmp(buf,"WFRC",4) == 0 ) { sscanf(buf+4,"%lf",&R->WF   );       }
+    if( strncmp(buf,"WENE",4) == 0 ) { sscanf(buf+4,"%lf",&R->WENE );       }
     //==================== data parameters  =================================
     if( strncmp(buf,"PENE",4) == 0 ) { sscanf(buf+4,"%d", &R->PENE );       }
     if( strncmp(buf,"EMAX",4) == 0 ) { sscanf(buf+4,"%lf",&R->EMAX );       }

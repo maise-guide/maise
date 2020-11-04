@@ -87,25 +87,26 @@ void CHCK_ERR(ANN *R, LNK *L)
     if(NF<L[n].N)
       NF = L[n].N;
   F = make_d2D(NF,3);
-  
+
   R->RT=R->ET=R->RE=R->EE=R->RF=R->EF= 0.0;
   N1=N2=N3=N4=0;
   for(n=0;n<R->N+R->TN;n++)
+    if( R->WENE>0 || ( R->WENE<0 && (L[n].W<1.0) ) )
     {
       R->TEeval[n] = ENE_ANN(R,&L[n])/(double)L[n].N;
       R->E[n]      = L[n].E          /(double)L[n].N;      
       if(n<R->N)
-	{
-	  R->RE += pow( L[n].E/(double)L[n].N - R->TEeval[n] ,2.0);
-	  R->RT += pow( L[n].E - R->TEeval[n]*(double)L[n].N ,2.0);
-	  N1 += L[n].N*L[n].N;
-	}
+      {
+	R->RE += pow( L[n].E/(double)L[n].N - R->TEeval[n] ,2.0)*L[n].W;
+	R->RT += pow( L[n].E - R->TEeval[n]*(double)L[n].N ,2.0)*L[n].W;
+	N1 += L[n].N*L[n].N;
+      }
       else
-	{
-	  R->EE += pow( L[n].E/(double)L[n].N - R->TEeval[n] ,2.0);
-	  R->ET += pow( L[n].E - R->TEeval[n]*(double)L[n].N ,2.0);
-	  N2 += L[n].N*L[n].N;
-	}
+      {
+	R->EE += pow( L[n].E/(double)L[n].N - R->TEeval[n] ,2.0)*L[n].W;
+	R->ET += pow( L[n].E - R->TEeval[n]*(double)L[n].N ,2.0)*L[n].W;
+	N2 += L[n].N*L[n].N;
+      }
     }
   R->RE  = sqrt(R->RE/(double)R->N);
   if(N2 > 0)
@@ -116,28 +117,29 @@ void CHCK_ERR(ANN *R, LNK *L)
   if(R->EFS==1||R->EFS==3)
   {
     for(n=0;n<R->N+R->TN;n++)
-    {
-      for(ii=0;ii<L[n].NF;ii++)
-	for(q=0;q<3;q++)
-	  F[L[n].Fi[ii]][q] = L[n].F[L[n].Fi[ii]][q];
-      FRC_ANN(R,&L[n]);
-      
-      for(ii=0;ii<L[n].NF;ii++)
+      if( R->WENE>0 || ( R->WENE<0 && (L[n].W<1.0) ) )
       {
-	i = L[n].Fi[ii];
-	for(q=0;q<3;q++)
-	  if(n<R->N)
-	  {
-	    R->RF += pow( L[n].f[i][q] - F[i][q], 2.0);
-	    N3++;
-	  }
-	  else
-	  {
-	    R->EF += pow( L[n].f[i][q] - F[i][q], 2.0);
-	    N4++;
-	  }
+	for(ii=0;ii<L[n].NF;ii++)
+	  for(q=0;q<3;q++)
+	    F[L[n].Fi[ii]][q] = L[n].F[L[n].Fi[ii]][q];
+	FRC_ANN(R,&L[n]);
+	
+	for(ii=0;ii<L[n].NF;ii++)
+	{
+	  i = L[n].Fi[ii];
+	  for(q=0;q<3;q++)
+	    if(n<R->N)
+	    {
+	      R->RF += pow( L[n].f[i][q] - F[i][q], 2.0)*L[n].W;
+	      N3++;
+	    }
+	    else
+	    {
+	      R->EF += pow( L[n].f[i][q] - F[i][q], 2.0)*L[n].W;
+	      N4++;
+	    }
+	}
       }
-    }
     R->RT += R->RF*R->WF*R->WF;
     R->ET += R->EF*R->WF*R->WF;
     R->RF  = sqrt( R->RF/(double)N3 );
@@ -151,15 +153,6 @@ void CHCK_ERR(ANN *R, LNK *L)
   
   free_d2D(F,NF);
 
-/*
-  sprintf(s,"%s/error.dat",R->otpt);
-  out = fopen(s,"w");
-  if(R->EFS==1)
-    fprintf(out,"% 5d % 5d   % lf % lf   % lf % lf  % lf % lf\n",R->M,R->N+N1,R->RE,R->EE,R->RF,R->EF,R->RT,R->ET);
-  else
-    fprintf(out,"% 5d % 5d   % lf % lf   % lf\n",R->M,R->N,R->RE,R->EE,R->time);
-  fclose(out);
-*/
 }
 //==================================================================
 //
@@ -236,6 +229,14 @@ void LOAD_LNK(ANN *R, Cell *C, LNK *L)
 
   R->Eavg /= (double)R->STR;
   R->Edev  = sqrt( R->Edev/(double)R->STR - R->Eavg*R->Eavg );
+
+  for(n=0;n<R->N+R->TN;n++)
+  {
+    if( L[n].DE < fabs(R->WENE) )
+      L[n].W = 1.0;
+    else
+      L[n].W = fabs(R->WENE)/L[n].DE;
+  }
 }
 //=========================================================
 // Rescale inputs once to avoid multiplications by R->DR

@@ -319,9 +319,9 @@ void LNK_IN(LNK *L, int o, char *path)
     exit(1);
   }
   L->p = 0.0;
-  fscanf(in,"%d %d %d %d %d %lf %lf\n",&EFS,&D,&N,&L->NF,&DNn,&L->E,&L->p);
+  fscanf(in,"%d %d %d %d %d %lf %lf %lf\n",&EFS,&D,&N,&L->NF,&DNn,&L->E,&L->p,&L->DE);
   L->N = N;
-  
+
   Build_LNK(L,N,DNn,D,EFS);
   
   if(EFS==1||EFS==3)
@@ -390,7 +390,7 @@ void LNK_OUT(LNK *L, int o, char *path, int EFS, int D)
     if(L->MRK[i]&&DNn<L->DNn[i])
       DNn = L->DNn[i];
   
-  fprintf(out,"%d %3d %3d %3d %3d   % lf  % lf\n",EFS,D,L->N,L->NF,DNn,L->E,L->p);
+  fprintf(out,"%d %3d %3d %3d %3d   % lf  % lf  % lf\n",EFS,D,L->N,L->NF,DNn,L->E,L->p,L->DE);
   if(EFS==1||EFS==3)
     {
       for(i=0;i<L->N;i++)
@@ -876,7 +876,7 @@ double CHCK_FRCS(LNK *L, double FMAX)
   return max;
 }
 //==================================================================
-void SORT_FIT(int *NFIT, double *EFIT, int *RFIT, double *FFIT, int n, int N, int TAG, double ECUT, double EMAX, double FMAX, char *add)
+void SORT_FIT(int *NFIT, double *EFIT, int *RFIT, double *FFIT, double *EDIF, int n, int N, int TAG, double ECUT, double EMAX, double FMAX, char *add)
 {
   int i,k,m;
   double Emin,Emax,El,Em,Eh;
@@ -892,6 +892,8 @@ void SORT_FIT(int *NFIT, double *EFIT, int *RFIT, double *FFIT, int n, int N, in
     if(EFIT[i]>Emax)
       Emax = EFIT[i];
   }
+  for(i=n;i<N+n;i++)
+    EDIF[i] = EFIT[i] - Emin;
 
   if (TAG <  0) // tag will be used; but all other conditions are relaxed!
   {
@@ -963,6 +965,7 @@ void SORT_FIT(int *NFIT, double *EFIT, int *RFIT, double *FFIT, int n, int N, in
     if(EFIT[i]>=Em)
       NFIT[i] = 4; // means discarding!
   }
+  return;
 }
 //==================================================================
 // Parse all structures in directory specified as DEPO in setup
@@ -970,7 +973,7 @@ void SORT_FIT(int *NFIT, double *EFIT, int *RFIT, double *FFIT, int n, int N, in
 void PARS_DAT(ANN *R, PRS *P, Cell *C, LNK *L)
 {
   int    i,j,n,m,nn,k,Nmax,x,ND,*RFIT,*NFIT,NRDF,spc1,spc2,TAG,N,totf;
-  double *EFIT,***H,EMAX,t,FMAX,ECUT,*FFIT,fmax;
+  double *EFIT,***H,EMAX,t,FMAX,ECUT,*FFIT,fmax,*EDIF;
   char    buf[500],buf2[400],s[700],d[600],dn[2000][400],kw[400];
   FILE    *stamp,*in,*dir,*rtable,*nd,*ve;
   PRS     W[9];   // 2*NSPC+1, so for maximum 3 species one needs 9
@@ -1058,6 +1061,7 @@ void PARS_DAT(ANN *R, PRS *P, Cell *C, LNK *L)
   NFIT = make_i1D(N);
   EFIT = make_d1D(N);
   FFIT = make_d1D(N);
+  EDIF = make_d1D(N);
 
   printf(" dir         poscars               Emin               Emax               Ecut                  path\n");
   for(n=m=0;n<ND;n++)
@@ -1119,9 +1123,10 @@ void PARS_DAT(ANN *R, PRS *P, Cell *C, LNK *L)
     if (EMAX == 0.0) EMAX = R->EMAX;
     if (FMAX == 0.0) FMAX = R->FMAX;
     
-    SORT_FIT(NFIT,EFIT,RFIT,FFIT,m,p[n],TAG,ECUT,EMAX,FMAX,dn[n]);
+    SORT_FIT(NFIT,EFIT,RFIT,FFIT,EDIF,m,p[n],TAG,ECUT,EMAX,FMAX,dn[n]);
     m += p[n];      
   }
+
   printf("Total %6d POSCAR.0 files are found in %s/*\n\n",N,R->depo);
   
   Build_PRS(P,W,1);    
@@ -1140,7 +1145,8 @@ void PARS_DAT(ANN *R, PRS *P, Cell *C, LNK *L)
   {
     if(R->seed2==0) R->seed2=time(NULL);
     PlantSeeds(R->seed2); 
-    for(nn=0;nn<N;nn++) NP[NFIT[nn]]++;
+    for(nn=0;nn<N;nn++) 
+      NP[NFIT[nn]]++;
     printf("Structures marked for:    TRAIN=% d    TEST=% d    TRAIN+TEST=% d    DISCARD=% d\n",NP[2],NP[3],NP[1],NP[4]); 
     corr=make_i1D(5);
     corr[1]=NP[2];
@@ -1195,6 +1201,7 @@ void PARS_DAT(ANN *R, PRS *P, Cell *C, LNK *L)
       
       if(C->N>Nmax)
 	Nmax = C->N;
+      L->DE = EDIF[n];
       in=fopen(buf2,"r");
       L->p = 0.0;
       fgets(buf,200,in);
@@ -1336,6 +1343,7 @@ void PARS_DAT(ANN *R, PRS *P, Cell *C, LNK *L)
   free_d1D(EFIT);
   free_i1D(RFIT);
   free_d1D(FFIT);
+  free_d1D(EDIF);
   free_i1D(tag);
   
   fclose(ve);  

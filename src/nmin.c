@@ -103,7 +103,7 @@ double tot_err_gsl()
     omp_set_num_threads(RRR->NP);
     #pragma omp parallel for reduction(+:E) schedule(dynamic,RRR->NB)
     for(n=0;n<RRR->N;n++)
-      E += pow( (LLL[n].E-ENE_ANN(RRR,&LLL[n]))/(double)LLL[n].N,2.0 );
+      E += pow( (LLL[n].E-ENE_ANN(RRR,&LLL[n]))/(double)LLL[n].N,2.0 )*LLL[n].W;
     RRR->RE = E;
     RRR->RF = 0.0; // by Samad: to keep force training error zero in EFS = 0
   }
@@ -116,7 +116,7 @@ double tot_err_gsl()
       nth = omp_get_thread_num();
       #pragma omp for reduction(+:E) schedule(dynamic,RRR->NB)
       for(n=N=0;n<RRR->N;n++)
-        E += pow( (LLL[n].E-FRC_ANN_PARA(RRR,&LLL[n],OOO[nth].e,OOO[nth].d))/(double)LLL[n].N,2.0 );
+        E += pow( (LLL[n].E-FRC_ANN_PARA(RRR,&LLL[n],OOO[nth].e,OOO[nth].d))/(double)LLL[n].N,2.0 )*LLL[n].W;
     }
     RRR->RE = E;
     
@@ -124,7 +124,7 @@ double tot_err_gsl()
     {
       for(ii=0;ii<LLL[n].NF;ii++) // consider only 'marked' atoms
 	for(q=0;q<3;q++)
-	  RRR->RF += pow( LLL[n].F[LLL[n].Fi[ii]][q] - LLL[n].f[LLL[n].Fi[ii]][q], 2.0);
+	  RRR->RF += pow( LLL[n].F[LLL[n].Fi[ii]][q] - LLL[n].f[LLL[n].Fi[ii]][q], 2.0)*LLL[n].W;
       N += LLL[n].NF*3;
     }
   }  
@@ -158,7 +158,7 @@ double tot_err_gsl()
     omp_set_num_threads(RRR->NP);
     #pragma omp parallel for reduction(+:E) schedule(dynamic,RRR->NB)
     for(n=RRR->N;n<RRR->N+RRR->TN;n++)
-      E += pow( (LLL[n].E-ENE_ANN(RRR,&LLL[n]))/(double)LLL[n].N,2.0 );
+      E += pow( (LLL[n].E-ENE_ANN(RRR,&LLL[n]))/(double)LLL[n].N,2.0 )*LLL[n].W;
 
     RRR->EE = sqrt(E/(double)RRR->TN);
   }
@@ -171,7 +171,7 @@ double tot_err_gsl()
       nth = omp_get_thread_num();
       #pragma omp for reduction(+:E) schedule(dynamic,RRR->NB)
       for(n=RRR->N;n<RRR->N+RRR->TN;n++)
-	  E += pow( (LLL[n].E-FRC_ANN_PARA(RRR,&LLL[n],OOO[nth].e,OOO[nth].d))/(double)LLL[n].N,2.0 );
+	  E += pow( (LLL[n].E-FRC_ANN_PARA(RRR,&LLL[n],OOO[nth].e,OOO[nth].d))/(double)LLL[n].N,2.0 )*LLL[n].W;
     }
 
     RRR->EE = sqrt(E/(double)RRR->TN);
@@ -180,12 +180,12 @@ double tot_err_gsl()
     {
       for(ii=0;ii<LLL[n].NF;ii++) // consider only 'marked' atoms
 	for(q=0;q<3;q++)
-	  E += pow( LLL[n].F[LLL[n].Fi[ii]][q] - LLL[n].f[LLL[n].Fi[ii]][q], 2.0);
+	  E += pow( LLL[n].F[LLL[n].Fi[ii]][q] - LLL[n].f[LLL[n].Fi[ii]][q], 2.0)*LLL[n].W;
       N += LLL[n].NF*3;
     }
 
     RRR->EF = sqrt(E/(double) N);
-    }  
+  }  
 
   return RRR->RT;
 

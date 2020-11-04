@@ -173,7 +173,7 @@ double DF_ANN_PARA(ANN *R, LNK *L, double ***Bp, double ****Wp,  double ***e,  d
   {
     spc = L->ATMN[i];
     for(q=0;q<3;q++)
-      dfq[q] = 2.0*(L->f[i][q]-L->F[i][q])*R->WF;
+      dfq[q] = 2.0*(L->f[i][q]-L->F[i][q])*R->WF*L->W;
 
     k = R->NL-2;
     //===== calculate xn to store for backpropagation =====
@@ -310,7 +310,7 @@ double DE_ANN_PARA(ANN *R, LNK *L, double ***Bp, double ****Wp,  double ***e)
     E += e[i][R->NL-1][0];
   }
   
-  c = 2.0*(E-L->E)/(double)(L->N*L->N)*R->WE;
+  c = 2.0*(E-L->E)/(double)(L->N*L->N)*R->WE*L->W;
 
   for(i=0;i<L->N;i++)
   {
