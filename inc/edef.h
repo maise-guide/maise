@@ -80,5 +80,6 @@ typedef struct
   char   ISO[200];// path to isotropy
   double maxpres[96];  // min. equi. dist. at 000 GPa
   double minpres[96];  // min. equi. dist. at 110 GPa
+  int    MODE;    // operation mode for manual EVOS (JOBT=14)
 }Tribe;
 #endif

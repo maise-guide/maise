@@ -48,6 +48,7 @@ typedef struct
   double WE;      // weights for EFS
   double WF;
   double WS;
+  double WENE;    // energy range for calculating error weights
   double time;
   int    EFS;     // E (0) EF (1) ES (2) EFS (3)
   //===== for data analysis =====
@@ -140,6 +141,8 @@ typedef struct
   int    *Fi;
   int    B;     // built or not yet
   char   path[200]; // path to POSCAR.0
+  double DE;    // energy above the lowest-energy structure in the subset
+  double W;     // weight for each structure in the error function
 } LNK;
 
 typedef struct
