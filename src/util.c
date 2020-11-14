@@ -1279,6 +1279,7 @@ void READ_MAIN(Tribe *T, ANN *R, PRS *P, Cell *C, int J, int ARGC)
   T->te    = 0.0;
   R->ECUT  = 0.9;
   R->EMAX  = 5.0;
+  R->WENE  = 1000.0;
   R->FMAX  = 50.0;
   R->FMIN  = 1e-5;
   R->VMIN  = 0.0;

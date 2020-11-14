@@ -16,7 +16,7 @@ int   CLL;
 
 ANN  *RRR;
 PRS  *PPP;
-Cell *CCC;
+Cell *CCN;
 LNK  *LLL;
 
 void sig_term_handler(int signum, siginfo_t *info, void *ptr)
