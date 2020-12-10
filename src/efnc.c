@@ -1467,6 +1467,24 @@ void BULK_MATE(Tribe *T, int J)
       Print_LOG(buf);
     }
     // -----------------------------------------------------------------------
+    //   apply a random shift to all atoms in each parent
+    // -----------------------------------------------------------------------
+    for(q=0;q<3;q++)
+    {
+      a[q] = Random();
+      b[q] = Random();
+    }
+    for(i=0;i<T->C[k1].N;i++)
+      for(q=0;q<3;q++)
+      {
+	T->C[k1].X[i][q] += a[q];
+	T->C[k2].X[i][q] += b[q];
+	if( T->C[k1].X[i][q]>1.0 )
+	  T->C[k1].X[i][q] -= 1.0;
+	if( T->C[k2].X[i][q]>1.0 )
+          T->C[k2].X[i][q] -= 1.0;
+      }
+    // -----------------------------------------------------------------------
     //   slice the first parent
     // -----------------------------------------------------------------------
     for(qq=0;qq<T->NSPC;qq++)
@@ -1477,15 +1495,8 @@ void BULK_MATE(Tribe *T, int J)
       for(q=0;q<3;q++)
 	a[q] = 0.5 + a[q]*0.25;
     if(T->ND==2)     // for film select center near middle
-    {
-      for(q=0;q<T->ND;q++)
-	a[q] = 0.5 + a[q]*0.25;
       a[2] = 0.5;
-    }
-    if(T->ND==0)     // for particles select center near the middle
-      for(q=0;q<3;q++)
-	a[q] = 0.5 + a[q]*T->C[p].R0/T->C[p].LAT[q];
-    
+
     RAND_VC(b);
     if(T->ND==2)
       b[2] = 0.0;
@@ -1591,7 +1602,7 @@ void BULK_MATE(Tribe *T, int J)
 	      T->C[p].X[i][q] += 0.5*a[q]*T->C[p].R0/T->C[p].LAT[q];
 
 	  Real(&T->C[p]);
-	  if(CHCK_Rm(&T->C[p],T->Rm,1.0)==1)
+	  if( CHCK_Rm(&T->C[p],T->Rm,1.0)==1 || ADJT_CL(&T->C[p],T->Rm,T->C[p].N/4)==1 )
 	  {
 	    Relative(&T->C[p]);
 	    break;
@@ -1631,7 +1642,7 @@ void BULK_MATE(Tribe *T, int J)
                       dSwap(&T->C[N].X[i][q],&T->C[N].X[j][q]);
                     s++;
                   }
-	      if(CHCK_Rm(&T->C[N],T->Rm,1.0)==1)
+	      if( CHCK_Rm(&T->C[p],T->Rm,1.0)==1 || ADJT_CL(&T->C[p],T->Rm,T->C[p].N/4)==1 )
 	      {
 		Copy_C(&T->C[N],&T->C[p]);
 		break;
@@ -1757,7 +1768,7 @@ void BULK_MUTE(Tribe *T, int J)
 	      dSwap(&T->C[p].X[i][q],&T->C[p].X[j][q]);
 	    s++;
 	  }
-      if(CHCK_Rm(&T->C[p],T->Rm,1.0)==1)
+      if( CHCK_Rm(&T->C[p],T->Rm,1.0)==1 || ADJT_CL(&T->C[p],T->Rm,T->C[p].N/4)==1 )
       {
 	T->P1[p] = T->P2[p] = T->C[k].P;
 	printf("%s %3d\n",T->NES[J],p);
