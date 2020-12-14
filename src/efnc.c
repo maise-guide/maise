@@ -1642,7 +1642,7 @@ void BULK_MATE(Tribe *T, int J)
                       dSwap(&T->C[N].X[i][q],&T->C[N].X[j][q]);
                     s++;
                   }
-	      if( CHCK_Rm(&T->C[p],T->Rm,1.0)==1 || ADJT_CL(&T->C[p],T->Rm,T->C[p].N/4)==1 )
+	      if( CHCK_Rm(&T->C[N],T->Rm,1.0)==1 || ADJT_CL(&T->C[N],T->Rm,T->C[p].N/4)==1 )
 	      {
 		Copy_C(&T->C[N],&T->C[p]);
 		break;
