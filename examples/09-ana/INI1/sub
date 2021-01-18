@@ -1,0 +1,45 @@
+#!/bin/bash
+#SBATCH -p tera,best
+#SBATCH -n 32
+#SBATCH -N 1-1
+#SBATCH --mem-per-cpu=MaxMemPerCPU
+
+ulimit -s unlimited
+
+cd $SLURM_SUBMIT_DIR
+
+# path to VASP executable
+EXE=/opt/ohpc/pub/apps/VASP/vasp.5.4.4/bin/vasp_std
+
+
+#============================ DO NOT CHANGE FROM HERE
+
+
+sed -i 's/NSW=0/NSW=10/' INCAR
+
+mesh 4000
+mpirun $EXE  > out
+mv POSCAR    POSCAR.1
+mv CONTCAR   CONTCAR.1
+mv OUTCAR    OUTCAR.1
+mv OSZICAR   OSZICAR.1
+cp CONTCAR.1 POSCAR
+
+mesh 8000
+mpirun $EXE  > out
+mv POSCAR    POSCAR.2
+mv CONTCAR   CONTCAR.2
+mv OUTCAR    OUTCAR.2
+mv OSZICAR   OSZICAR.2
+cp CONTCAR.2 POSCAR
+
+sed -i 's/NSW=10/NSW=0/' INCAR
+
+mesh 8000
+mpirun $EXE  > out
+mv POSCAR    POSCAR.0
+mv CONTCAR   CONTCAR.0
+mv OUTCAR    OUTCAR.0
+mv OSZICAR   OSZICAR.0
+
+rm IB* EI* PC* XD* CH* WA* vasp* DO*

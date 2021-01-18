@@ -1,0 +1,33 @@
+#!/bin/bash
+#SBATCH -p best,main,tera,long
+#SBATCH -n 16
+#SBATCH -N 1-1
+
+cd $SLURM_SUBMIT_DIR
+
+maise-nnet -spg 0.1
+
+mv CONV POSCAR
+
+maise-nnet > out
+
+mv POSCAR    POSCAR.1
+mv CONTCAR   CONTCAR.1
+mv OUTCAR    OUTCAR.1
+mv OSZICAR   OSZICAR.1
+
+cp CONTCAR.1 POSCAR
+maise-nnet -spg 0.1
+
+mv CONV POSCAR
+sed -i 's|MITR\s\s400|MITR  0|' setup
+
+maise-nnet >> out
+
+mv POSCAR    POSCAR.0
+mv CONTCAR   CONTCAR.0
+mv OUTCAR    OUTCAR.0
+mv OSZICAR   OSZICAR.0
+
+rm -rf setup tmp* wyck* mod* maise-nnet
+

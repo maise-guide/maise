@@ -1,0 +1,14 @@
+=============================================================================================================
+                                     RELAXATION SETTINGS
+=============================================================================================================
+JOBT  20       job type: structure relaxation (20)
+NPAR  16       number of cores for parallel run
+NDIM  3        dimensionality of unit cell: crystal (3); cluster (0)
+MITR  400      maximum number of cell optimization steps
+RLXT  3        cell optimization type: force only (2); full cell (3); volume (7)
+PGPA  20.0     external pressure in GPa
+ETOL  1e-8     error tolerance for cell optimization convergence
+COUT  12       output options: E (00) final; (01) first/final; (02) all steps; 
+               EF (10) final; (11) first/final; (12) all steps;
+MINT  0        minimizer type: (0) BFGS2; (1) CG-FR; (2) CG-PR; (3) steepest descent;
+=============================================================================================================

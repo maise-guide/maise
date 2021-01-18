@@ -750,19 +750,30 @@ void EVLV_TR(Tribe *T, int J)
 //==================================================================
 void ANA_EVOS(Tribe *T, Cell *C, Cell *D)
 {
-  int i,n,N,m,M,g,G,*I;
+  int i,n,N,m,M,g,G,*I,J;
   double E0,*E,*V,tol;
-  char s[400],buf[400],dir[200];//,DIR[10000][200];
-  FILE *in;
+  char s[400],buf[400],dir[200],run[10][200];
+  FILE *in,*out;
 
   tol = 0.1;
 
-  sprintf(s,"tail -1 %s/ebest.dat",C->WDIR);
-  in = popen(s,"r");
-  fscanf(in,"%d %lf\n",&i,&E0);
-  pclose(in);
+  J = 0;
+  getcwd(dir,200);
+  sprintf(run[0],"EVOS");
+  while(chdir(run[J])==0)
+  {
+    chdir(dir);
+    J++;
+    sprintf(run[J],"POOL/RUN%d",J-1);    
+  }
+  if(J==0)
+  {
+    printf("Directory EVOS is not found\n");
+    exit(0);
+  }
+  J--;
 
-  sprintf(s,"find %s -name CONTCAR.0 | sort",C->WDIR);
+  sprintf(s,"find %s -name CONTCAR.0 | sort",run[J]);
   in = popen(s,"r");
   M = 0;
   while(fgets(buf,200,in))
@@ -774,25 +785,55 @@ void ANA_EVOS(Tribe *T, Cell *C, Cell *D)
   I = make_i1D(M);
   char DIR[M][200];
 
-  sprintf(s,"mkdir -p %s/POOL/",C->WDIR); 
-  system(s);                               
-
-  sprintf(s,"find %s -name CONTCAR.0 | sort",C->WDIR);
+  //===== for analysis of EVOS get the lowest enthalpy from ebest.dat =====
+  E0 = 1e12;
+  if(J==0)
+  {
+    sprintf(s,"tail -1 ebest.dat");
+    in = popen(s,"r");
+    fscanf(in,"%d %lf\n",&i,&E0);
+    pclose(in);
+    sprintf(s,"mkdir -p POOL");
+    system(s);
+  }
+  else
+  {
+    sprintf(s,"find %s -name CONTCAR.0 | sort",run[J]);
+    in = popen(s,"r");
+    for(m=0;m<M;m++)
+    {
+      fscanf(in,"%s\n",dir);
+      dir[strlen(dir)-strlen("CONTCAR.0")-1] = 0;
+      sprintf(s,"%s/CONTCAR.0",dir);
+      READ_CELL(C,s);
+      sprintf(s,"%s/OSZICAR.0",dir);
+      E[m] = Read_OSZI(s)/(double)C->N;
+      sprintf(s,"%s/OUTCAR.0",dir);
+      if( fabs((E[m]-1.0)*(double)C->N)>1e-14 && E[m]<E0 && Check_OUTCAR(C,s)==1 )
+	E0 = E[m];
+    }
+    pclose(in);
+  }
+  sprintf(s,"find %s -name CONTCAR.0 | sort",run[J]);
   in = popen(s,"r");
   for(m=G=0;m<M;m++)
   {
     fscanf(in,"%s\n",dir);
     dir[strlen(dir)-strlen("CONTCAR.0")-1] = 0;
-    sprintf(s,"%s/OSZICAR.0",dir);
-    E[G] = Read_OSZI(s);
     sprintf(s,"%s/CONTCAR.0",dir);
     READ_CELL(C,s);
-    V[G] = CELL_VOL(C)/(double)C->N;
-    if( fabs(E[G]-1.0)>1e-14 && E[G]<((E0+T->DE)*(double)C->N) )
+    sprintf(s,"%s/OSZICAR.0",dir);
+    E[G] = Read_OSZI(s)/(double)C->N;
+    V[G] = CELL_VOL(C) /(double)C->N;
+    sprintf(s,"%s/OUTCAR.0",dir);
+    if( fabs((E[G]-1.0)*(double)C->N)>1e-14 && E[G]<(E0+T->DE) && Check_OUTCAR(C,s)==1 )
       sprintf(DIR[G++],"%s",dir);
   }
   pclose(in);
+
   Sort(E,I,G);
+
+  system("rm -f POOL/POSCAR*");
 
   for(N=0,g=G-1;g>=0;g--)
   {
@@ -802,7 +843,7 @@ void ANA_EVOS(Tribe *T, Cell *C, Cell *D)
     RDF(C,1);
     for(n=0;n<N;n++)
     {
-      sprintf(buf,"%s/POOL/POSCAR%03d",C->WDIR,n);
+      sprintf(buf,"POOL/POSCAR%03d",n);
       READ_CELL(D,buf);
       LIST(D,0);
       RDF(D,1);
@@ -811,20 +852,27 @@ void ANA_EVOS(Tribe *T, Cell *C, Cell *D)
     }
     if(n==N)
     {
-      sprintf(buf,"%s/POOL/POSCAR%03d",C->WDIR,N);
+      sprintf(buf,"POOL/POSCAR%03d",N);
       sprintf(C->TAG,"%s % lf",DIR[I[G-g-1]],E[I[G-g-1]]);
       if(C->ND==0)
 	NANO_ROT(C,0);
       SAVE_CELL(C,buf,0);
-      printf("%4d % lf % lf %3d %s\n",N++,V[I[G-g-1]],E[I[G-g-1]]/(double)C->N,C->SGN,C->PRS);
+      N++;
     }
   }        
 
+  sprintf(buf,"mkdir -p POOL/SET%d; cp POOL/POSCAR* POOL/SET%d",J,J);
+  system(buf);
+
+  sprintf(buf,"ana%d.dat",J);
+  out = fopen(buf,"w");
   for(n=0;n<N;n++)
   {
     sprintf(buf,"POOL/POSCAR%03d",n);
     READ_CELL(C,buf);
     READ_CELL(D,buf);
+    sscanf(C->TAG,"%s %lf",buf,&E[n]);
+    V[n] = CELL_VOL(C)/(double)C->N;
     if(C->ND==0)
     {
       CENTER(C,0.5);
@@ -833,12 +881,29 @@ void ANA_EVOS(Tribe *T, Cell *C, Cell *D)
     FIND_WYC(C,D,tol,1);
     READ_CIF(C,"str.cif",tol,C->NM);
     FIND_PRS(C,D,tol);
-    printf("%4d %3d %s%d\n",n,C->SGN,C->PRS,C->N);
+    printf("%4d %3d %s%d % 12.6lf % 12.6lf % 12.6lf\n",n,C->SGN,C->PRS,C->N,V[n],E[n],E[n]-E0);
+    fprintf(out,"%4d %3d %s%d % 12.6lf % 12.6lf % 12.6lf\n",n,C->SGN,C->PRS,C->N,V[n],E[n],E[n]-E0);
+  }
+  fclose(out);
+  printf("Found %6d candidates in %s with lowest enthalpy % 12.6lf\n",M,run[J],E0);
+  printf("Found %6d structures in %s with enthalpy range  % 12.6lf % 12.6lf\n",G,run[J],E0,E0+T->DE);
+  printf("Found %6d structures in %s with enthalpy range  % 12.6lf % 12.6lf   different by CxC % lf\n",N,run[J],E0,E0+T->DE,T->CUT);
+
+  sprintf(buf,"POOL/INI%d",J);
+  if(chdir(buf)==0)
+  {
+    chdir("..");
+    sprintf(buf,"mkdir -p RUN%d",J);
+    system(buf);    
+    for(n=0;n<N;n++)
+    {
+      sprintf(buf,"cp -r INI%d RUN%d/M%03d; cp POSCAR%03d RUN%d/M%03d/POSCAR",J,J,n,n,J,n);
+      system(buf);
+      sprintf(buf,"cd RUN%d/M%03d; mv sub g%03d; sbatch g%03d",J,n,n,n);
+      system(buf);
+    }
   }
 
-  printf("Found %6d candidates with lowest enthalpy % lf\n",M,E0);
-  printf("Found %6d structures with enthalpy range  % lf % lf\n",G,E0,E0+T->DE);
-  printf("Found %6d structures with enthalpy range  % lf % lf different by CxC % lf\n",N,E0,E0+T->DE,T->CUT);
   free_d1D(E);
   free_d1D(V);
   free_i1D(I);
