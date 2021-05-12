@@ -442,6 +442,8 @@ int Check_OUTCAR(Cell *C, char file[200])
   in = popen(buf,"r");
   fscanf(in,"%d",&E);
   pclose(in);
+  if(E>0)
+    E = 1;
   return J*(1-E);
 }
 //-------------------------------------------------------------------------

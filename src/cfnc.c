@@ -92,7 +92,7 @@ void APPL_SG(Cell *C, double tol)
   LIST(C,0);
 }
 //==================================================================
-void READ_CIF(Cell *C, char file[], double tol, int NM)    
+void READ_CIF(Cell *C, char file[], double tol, int NM, char input[])    
 { 
   int i,j,n,q,k; 
 
@@ -132,7 +132,7 @@ void READ_CIF(Cell *C, char file[], double tol, int NM)
       exit(0);    
     }
     else
-      INIT_CELL(C,"POSCAR",4,NM,0);
+      INIT_CELL(C,input,4,NM,0);
   }
   //====================================================================
    
@@ -382,7 +382,7 @@ void FIND_PRS(Cell *C, Cell *D, double tol)
 //==================================================================
 //    compute dot product CxC for two structures based on RDF
 //==================================================================
-void FIND_CXC(Cell *C, Cell *D, int argc, char **argv)
+void FIND_CXC(Cell *C, Cell *D, int argc, char argv[20][200])
 {
   if(argc > 2)
     C->NM   = D->NM   = ( int  )atoi(argv[2]);
@@ -406,7 +406,7 @@ void FIND_CXC(Cell *C, Cell *D, int argc, char **argv)
 //==================================================================
 //     plot non-normalized RDF 
 //==================================================================
-void PLOT_RDF(Cell *C, int argc, char **argv)
+void PLOT_RDF(Cell *C, int argc, char argv[20][200])
 {
   if(argc > 2)
     C->NM   = ( int  )atoi(argv[2]);
@@ -426,7 +426,7 @@ void PLOT_RDF(Cell *C, int argc, char **argv)
   LIST(C,1);
   PRNT_LIST(C);
   printf("\nNeighbor   list      written to     list.dat\n");
-  printf("\nBond       list      written to     bond.dat\n");
+  printf(  "Bond       list      written to     bond.dat\n");
   RDF(C,1);
   Print_RDF_FULL(C,"RDF.dat");
   printf(  "Normalized RDF       written to     RDF.dat\n");
@@ -437,7 +437,7 @@ void PLOT_RDF(Cell *C, int argc, char **argv)
 //==================================================================
 //    compare RDF, SG, and Volumes for two structures
 //==================================================================
-void COMP_STR(Cell *C, Cell *D, int argc, char **argv)
+void COMP_STR(Cell *C, Cell *D, int argc, char argv[20][200])
 {
   int    k;
   double t,o;
@@ -497,7 +497,7 @@ void COMP_STR(Cell *C, Cell *D, int argc, char **argv)
 //==================================================================
 //    compare RDF, SG, and Volumes for two structures
 //==================================================================
-void FIND_SPG(Cell *C, Cell *D, double tol, int NM)
+void FIND_SPG(Cell *C, Cell *D, double tol, int NM, char input[])
 {
   int    n,k,N,M;
   double o;
@@ -511,9 +511,9 @@ void FIND_SPG(Cell *C, Cell *D, double tol, int NM)
   if(tol>0.0)
   {
     FIND_WYC(C,D,tol,1);
-    READ_CIF(C,"str.cif",tol,NM);
+    READ_CIF(C,"str.cif",tol,NM,input);
     FIND_PRS(C,D,tol);
-    READ_CELL(D,"POSCAR");
+    READ_CELL(D,input);
     printf("%-6d %s%-6d %-6s   %6.1E  % 8.4lf\n",C->SGN,C->PRS,C->N,C->SGS,tol,CxC(C,D));
     return;
   }
@@ -528,11 +528,11 @@ void FIND_SPG(Cell *C, Cell *D, double tol, int NM)
       o = (double)k*pow(10.0,(double)n)-1e-12;
       if( o < tol && N!= M)
       {
-	READ_CELL(C,"POSCAR");
+	READ_CELL(C,input);
 	FIND_WYC(C,D,o,1);
-	READ_CIF(C,"str.cif",o,NM);
+	READ_CIF(C,"str.cif",o,NM,input);
 	FIND_PRS(C,D,o);
-	READ_CELL(D,"POSCAR"); 
+	READ_CELL(D,input); 
 	if( N!= C->SGN )
 	  printf("%-6d %s%-6d %-6s   %6.1E  % 8.4lf\n",C->SGN,C->PRS,C->N,C->SGS,o,CxC(C,D));
 	N = C->SGN;
@@ -580,7 +580,8 @@ void INIT_CELL(Cell *C, char filename[], int N, int NM, int J)
 void CELL_EXAM(Cell *C, Cell *D, int argc, char **argv)
 {
   double tol,L;
-  int    i,NM,N[3];
+  int    i,NM,N[3],m,M;
+  char   input[200],input0[200],input1[200],ARGV[20][200];
 
   NM = 500;
 
@@ -604,69 +605,96 @@ void CELL_EXAM(Cell *C, Cell *D, int argc, char **argv)
   printf("|                          Unit cell analysis                         |\n");
   printf("=======================================================================\n\n");
 
+  strcpy(input,"POSCAR");
+  strcpy(input0,"POSCAR0");
+  strcpy(input1,"POSCAR1");
+
+  for(m=0;m<argc;m++)
+    strcpy(ARGV[m],argv[m]);
+
+  //================  use file names for POSCARs   ==========
+  if(argc>2)
+  {
+    M = -1;
+    if(strncmp(argv[1],"1",1)==0&&argc>3)
+    {
+      M = 1;
+      strcpy(input,argv[2]);
+    }
+    if(strncmp(argv[1],"2",1)==0&&argc>4)
+    {
+      M = 2;
+      strcpy(input0,argv[2]);
+      strcpy(input1,argv[3]);
+    }
+    argc -= M+1;
+    for(m=1;m<argc;m++)
+      strcpy(ARGV[m],argv[m+M+1]);
+  }
+
   //================    plot RDF for 1 structure   ==========
-  if(strncmp(argv[1],"-rdf",4)==0)
+  if(strncmp(ARGV[1],"-rdf",4)==0)
   {
     if(argc>2)
-      NM = (int)atoi(argv[2]);
-    INIT_CELL(C,"POSCAR",1,NM,1);
+      NM = (int)atoi(ARGV[2]);
+    INIT_CELL(C,input,1,NM,1);
     C->POS = 0;
-    PLOT_RDF(C,argc,argv);
+    PLOT_RDF(C,argc,ARGV);
     exit(0);
   }
   //=============  determine Wyckoff positions  =============
-  if(strncmp(argv[1],"-spg",4)==0)
+  if(strncmp(ARGV[1],"-spg",4)==0)
   {
     tol = 0.01;
     if(argc>2)
-      tol = (double)atof(argv[2]);
+      tol = (double)atof(ARGV[2]);
     if(argc>3)
-      NM  = (int)atoi(argv[3]);
-    INIT_CELL(C,"POSCAR",4,NM,1);
-    INIT_CELL(D,"POSCAR",4,NM,1);
+      NM  = (int)atoi(ARGV[3]);
+    INIT_CELL(C,input,4,NM,1);
+    INIT_CELL(D,input,4,NM,1);
     C->POS = D->POS = 0;
-    FIND_SPG(C,D,tol,NM);
+    FIND_SPG(C,D,tol,NM,input);
     exit(0);
   }
    //================  convert cif into CONV  ================
-  if(strncmp(argv[1],"-cif",4)==0)
+  if(strncmp(ARGV[1],"-cif",4)==0)
   {
     tol = 0.01;
     if(argc>2)
-      tol = (double)atof(argv[2]);
+      tol = (double)atof(ARGV[2]);
     if(argc>3)
-      NM  = (int)atoi(argv[3]);
+      NM  = (int)atoi(ARGV[3]);
     C->N = 0;
     C->POS = 0;
-    READ_CIF(C,"str.cif",tol,NM);    
+    READ_CIF(C,"str.cif",tol,NM,input);    
     exit(0);
   }
   //================  find RDF-based dot product   ==========
-  if(strncmp(argv[1],"-cxc",4)==0)
+  if(strncmp(ARGV[1],"-cxc",4)==0)
   {
     if(argc>2)
-      NM = (int)atoi(argv[2]);
-    INIT_CELL(C,"POSCAR0",1,NM,1);
-    INIT_CELL(D,"POSCAR1",1,NM,1);
+      NM = (int)atoi(ARGV[2]);
+    INIT_CELL(C,input0,1,NM,1);
+    INIT_CELL(D,input1,1,NM,1);
     C->POS = D->POS = 0;
-    FIND_CXC(C,D,argc,argv);
+    FIND_CXC(C,D,argc,ARGV);
     exit(0);
   }
   //================  compare RDF of 2 structures  ==========
-  if(strncmp(argv[1],"-cmp",4)==0)
+  if(strncmp(ARGV[1],"-cmp",4)==0)
   {
     if(argc>2)
-      NM = (int)atoi(argv[2]);
-    INIT_CELL(C,"POSCAR0",4,NM,1);
-    INIT_CELL(D,"POSCAR1",4,NM,1);
+      NM = (int)atoi(ARGV[2]);
+    INIT_CELL(C,input0,4,NM,1);
+    INIT_CELL(D,input1,4,NM,1);
     C->POS = D->POS = 0;
-    COMP_STR(C,D,argc,argv);
+    COMP_STR(C,D,argc,ARGV);
     exit(0);
   }
   //================  rotate a nanoparticle  ================
-  if(strncmp(argv[1],"-rot",4)==0)
+  if(strncmp(ARGV[1],"-rot",4)==0)
   {
-    INIT_CELL(C,"POSCAR",1,NM,1);
+    INIT_CELL(C,input,1,NM,1);
     C->ND = FIND_NDIM(C);
     CENTER(C,0.0);
     if( C->ND!= 0)
@@ -678,18 +706,18 @@ void CELL_EXAM(Cell *C, Cell *D, int argc, char **argv)
     exit(0);
   }
   //================  determine dimensionality  =============
-  if(strncmp(argv[1],"-dim",4)==0)
+  if(strncmp(ARGV[1],"-dim",4)==0)
   {
     if(argc>2)
-      C->Rc = (double)atof(argv[2]);
-    INIT_CELL(C,"POSCAR",1,NM,1);
+      C->Rc = (double)atof(ARGV[2]);
+    INIT_CELL(C,input,1,NM,1);
     printf("% 3d\n",FIND_NDIM(C));
     exit(0);
   }
   //================  resize the nanparticle box  ===========
-  if(strncmp(argv[1],"-box",4)==0)
+  if(strncmp(ARGV[1],"-box",4)==0)
   {
-    INIT_CELL(C,"POSCAR",1,NM,1);
+    INIT_CELL(C,input,1,NM,1);
     C->ND = FIND_NDIM(C);
     if( C->ND!= 0)
       printf("WARNING POSCAR is periodic\n");
@@ -699,45 +727,45 @@ void CELL_EXAM(Cell *C, Cell *D, int argc, char **argv)
       fprintf(stderr,"Please provide new box size\n");
       exit(0);
     }
-    L = (double)atof(argv[2]);
+    L = (double)atof(ARGV[2]);
     for(i=0;i<3;i++)
       C->L[i][i] = L;
     SAVE_CELL(C,"CONTCAR",0);
     exit(0);
   }
   //===================== make a supercell  ==================
-  if(strncmp(argv[1],"-sup",4)==0)
+  if(strncmp(ARGV[1],"-sup",4)==0)
   {
     N[0] = N[1] = N[2] = 1;
     if(argc>2)
-      N[0] = (int)atoi(argv[2]);
+      N[0] = (int)atoi(ARGV[2]);
     if(argc>3)
-      N[1] = (int)atoi(argv[3]);
+      N[1] = (int)atoi(ARGV[3]);
     if(argc>4)
-      N[2] = (int)atoi(argv[4]);
-    INIT_CELL(C,"POSCAR",N[0]*N[1]*N[2],NM,1);
-    INIT_CELL(D,"POSCAR",1,NM,1);
+      N[2] = (int)atoi(ARGV[4]);
+    INIT_CELL(C,input,N[0]*N[1]*N[2],NM,1);
+    INIT_CELL(D,input,1,NM,1);
     Clone(C,D,N[0],N[1],N[2]);
     SAVE_CELL(C,"CONTCAR",0);
     exit(0);
   }
   //================  compute volume per atom  ================
-  if(strncmp(argv[1],"-vol",4)==0)
+  if(strncmp(ARGV[1],"-vol",4)==0)
   {
-    INIT_CELL(C,"POSCAR",1,NM,1);
+    INIT_CELL(C,input,1,NM,1);
     C->ND = FIND_NDIM(C);
     printf("% lf\n",CELL_VOL(C)/(double)C->N);
     exit(0);
   }
   //================  run user-defined functions   ==========
-  if(strncmp(argv[1],"-usr",4)==0)  
+  if(strncmp(ARGV[1],"-usr",4)==0)  
   {
     USER_CELL(C,D,argc,argv);
     exit(0);
   }
 
   //================   manual for flag operations =============
-  if(strncmp(argv[1],"-man",4)==0)
+  if(strncmp(ARGV[1],"-man",4)==0)
   {
     printf("-rdf    compute and plot the RDF for POSCAR                             \n");
     printf("        options: [ max near. neigh., soft cutoff, hard cutoff, spread ] \n");
@@ -759,7 +787,7 @@ void CELL_EXAM(Cell *C, Cell *D, int argc, char **argv)
   }
 
   //================   list available options  ===============
-  if(strncmp(argv[1],"-man",4)!=0)
+  if(strncmp(ARGV[1],"-man",4)!=0)
     printf("\nThe FLAG is not recognized. Allowed FLAGS are:\n\n");
   printf("-rdf    compute and plot the RDF for POSCAR                             \n");
   printf("-cxc    compute dot product for POSCAR0 and POSCAR1 using RDF           \n");

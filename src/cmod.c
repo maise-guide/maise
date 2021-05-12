@@ -1122,7 +1122,7 @@ double CALL_MAISE(ANN *R, PRS *P, PRS *W, LNK *L, Cell *C,
     for(q=0;q<D3;q++)
       FRC[3*i+q] = C->F[i][q]; 
 
-  for(q=0;q<D3;q++)
+  for(q=0;q<6;q++)
     STR[q] = C->U[q];
 
   return H;

@@ -53,6 +53,7 @@ void BUF_STR(const gsl_vector *x)
     for(q=0;q<3;q++)
       if(CCC->FF[i][q]==1)
         CCC->X[i][q] = x(j++);
+
   if(CCC->RLXT==2)
   {
     Real(CCC);
@@ -156,10 +157,10 @@ void cfdfunc_gsl(const gsl_vector *x, void *params, double *f, gsl_vector *df)
 double CELL_MIN(ANN *R, PRS *P, PRS *W, Cell *C, LNK *L)
 {
   gsl_vector *p;
-  void *params;
-  double E,O;
-  int i,q,iter,N,status;
-  char min[200];
+  void       *params;
+  double      E,O;
+  int         i,q,iter,N,status;
+  char        min[200];
 
   RRC = R; PPC = P; CCC = C; LLC = L; WWW = W;
 
@@ -226,9 +227,17 @@ double CELL_MIN(ANN *R, PRS *P, PRS *W, Cell *C, LNK *L)
     iter++;
     status = gsl_multimin_fdfminimizer_iterate (s);
 
+    if(status) 
+    {
+      sprintf(min,"echo >> OUTCAR;echo ERROR %s. Try a different MINT. >> OUTCAR",gsl_strerror(status));
+      system(min);
+      printf("ERROR %s. Try a different MINT.\n",gsl_strerror(status));
+      break;
+    }
+
     status = gsl_multimin_test_size( fabs(C->H-E), RRC->ETOL);
 
-    printf("%5d % 24.16lf % 24.16lf\n",iter, C->H,C->H-E);
+    printf("%5d % 24.16lf % 24.16lf %3d\n",iter, C->H,C->H-E,CELL_OK(C));
     E = C->H;
 
     if( C->OUT%10==2)
@@ -240,6 +249,7 @@ double CELL_MIN(ANN *R, PRS *P, PRS *W, Cell *C, LNK *L)
   }
   while (status == GSL_CONTINUE && iter < RRC->MITR );
 
+  C->H=s->f;
   E = C->H;
   BUF_STR(s->x);
 
@@ -252,6 +262,12 @@ double CELL_MIN(ANN *R, PRS *P, PRS *W, Cell *C, LNK *L)
 
   gsl_vector_free (p);
   gsl_multimin_fdfminimizer_free (s);
-
+/*
+  if(C->it>0)
+  {
+    CELL_ENE(R,P,W,C,L);
+    if( fabs(E-C->H)>1e-10)
+  }
+*/
   return 0.0;
 }

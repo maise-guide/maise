@@ -879,7 +879,7 @@ void ANA_EVOS(Tribe *T, Cell *C, Cell *D)
       CENTER(D,0.5);
     }
     FIND_WYC(C,D,tol,1);
-    READ_CIF(C,"str.cif",tol,C->NM);
+    READ_CIF(C,"str.cif",tol,C->NM,"POSCAR");
     FIND_PRS(C,D,tol);
     printf("%4d %3d %s%d % 12.6lf % 12.6lf % 12.6lf\n",n,C->SGN,C->PRS,C->N,V[n],E[n],E[n]-E0);
     fprintf(out,"%4d %3d %s%d % 12.6lf % 12.6lf % 12.6lf\n",n,C->SGN,C->PRS,C->N,V[n],E[n],E[n]-E0);
