@@ -58,6 +58,74 @@ double Lindemann(Cell *C, int J)
   return -1.0;
 }
 //=========================================================================
+void CELL_UREP(Cell *C, int J)
+{
+  int    i,j,q,nth;
+  double R,e,E,U,t,**us,**hs;
+
+  hs = make_d2D(C->NP,C->N);
+  us = make_d2D(C->NP,6);
+
+  U = 100.0;
+  E = 0.0;
+#pragma omp parallel private(R,e,j) num_threads(C->NP)
+  {
+#pragma omp for reduction (+:E) schedule(dynamic,C->NB)
+    for(i=0;i<C->N;i++)
+    {
+      for(j=0,e=0.0;j<C->Nn[i];j++)
+      {
+	R = C->Rm[C->ATMZ[i]]+C->Rm[C->ATMZ[C->Ni[i][j]]];
+	if(C->NDX[i][j]<R)
+	{
+	  e += U * FC(0.0,R,C->NDX[i][j]) * R/C->NDX[i][j] ;
+	  //printf("%3d %3d % lf % lf\n",i,j,C->NDX[i][j],R);
+	}
+      }
+      E += e;
+    }
+  }
+  C->E += E;
+  if(J==0)
+    return;
+
+  for(i=0;i<C->NP;i++)
+    for(q=0;q<6;q++)
+      us[i][q] = 0.0;
+
+#pragma omp parallel private(nth,t,j,q) num_threads(C->NP)
+  {
+    nth = omp_get_thread_num();
+#pragma omp for schedule(dynamic,C->NB)
+    for(i=0;i<C->N;i++)
+    {
+      for(j=0,t=0.0;j<C->Nn[i];j++)
+      {
+	R = C->Rm[C->ATMZ[i]]+C->Rm[C->ATMZ[C->Ni[i][j]]];
+	if(C->NDX[i][j]<R)
+	{
+          t = -2.0 * U * R/(C->NDX[i][j]*C->NDX[i][j]) * ( -FC(0.0,R,C->NDX[i][j])/C->NDX[i][j] + dFC(0.0,R,C->NDX[i][j]) );
+	  for(q=0;q<3;q++)
+	    C->F[i][q] -= t*DX(C,i,j,q);
+	  for(q=0;q<3;q++)
+	    us[nth][q]   += 0.5*t*DX(C,i,j,q)*DX(C,i,j,q);
+	  for(q=0;q<3;q++)
+	    us[nth][q+3] += 0.5*t*DX(C,i,j,q)*DX(C,i,j,(q+1)%3);
+	}			
+      }
+    }
+  }
+  
+  for(i=0;i<C->NP;i++)
+    for(q=0;q<6;q++)
+      C->U[q] += us[i][q];
+  
+  free_d2D(hs,C->NP);
+  free_d2D(us,C->NP);
+  
+  return; 
+}
+//=========================================================================
 double CELL_ENE(ANN *R, PRS *P, PRS *W, Cell *C, LNK *L)
 {   
   int i;
@@ -67,6 +135,9 @@ double CELL_ENE(ANN *R, PRS *P, PRS *W, Cell *C, LNK *L)
     P->EFS = 0;
     PARS_STR(P,W,C,L,0,"."); 
     C->E = ENE_ANN(R,L);
+
+    if(R->UREP)
+      CELL_UREP(C,0);
 
     for(i=0;i<C->N;i++)
       C->EA[i] = L->EA[i];
@@ -97,6 +168,9 @@ double CELL_FRC(ANN *R, PRS *P, PRS *W, Cell *C, LNK *L)
 	C->F[i][q] = L->f[i][q];
     for(q=0;q<6;q++)
       C->U[q] = L->s[q];
+
+    if(R->UREP)
+      CELL_UREP(C,1);
   }
   if( R->MODT>1 )
     C->E = FRC_POT(C);

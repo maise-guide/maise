@@ -339,7 +339,7 @@ void RAND_CL(Tribe *T, Cell *C, Cell *D, int J)
           if (C->FF[i][2]!=0)
 	    C->X[i][2] = D->X[i][2];
 
-      if(CHCK_Rm(C,T->Rm,1.0)==1)
+      if(CHCK_Rm(C,T->Rm,1.0)==1 || ADJT_CL(C,T->Rm,10)==1)
 	break;
     }
   }
