@@ -1355,7 +1355,8 @@ void READ_MAIN(Tribe *T, ANN *R, PRS *P, Cell *C, int J, int ARGC)
   T->ND    = -1;
   T->QT    = 0;            // default queue type is torque
   C->DISP  = 1e-3;         // displacement in Ang for frozen phonon calculation
-  R->UREP  = 1;            // use repulstive potential for short distances by default
+  R->UREP  = 100.0;            // use repulstive potential for short distances by default
+  R->RCUT  = 1.0;
   strcpy(C->WDIR,".");
   strcpy(R->depo,".");
   strcpy(R->data,".");
@@ -1489,7 +1490,8 @@ void READ_MAIN(Tribe *T, ANN *R, PRS *P, Cell *C, int J, int ARGC)
     if( strncmp(buf,"MINT",4) == 0 ) { sscanf(buf+4,"%d" ,&R->MINT );       }
     if( strncmp(buf,"MITR",4) == 0 ) { sscanf(buf+4,"%d" ,&R->MITR );       }
     if( strncmp(buf,"RLXT",4) == 0 ) { sscanf(buf+4,"%d", &C->RLXT );       }
-    if( strncmp(buf,"UREP",4) == 0 ) { sscanf(buf+4,"%d", &R->UREP );       }
+    if( strncmp(buf,"UREP",4) == 0 ) { sscanf(buf+4,"%lf",&R->UREP );       }
+    if( strncmp(buf,"RCUT",4) == 0 ) { sscanf(buf+4,"%lf",&R->RCUT );       }
     //===================== rdf parameters ==================================
     if( strncmp(buf,"RMAX",4) == 0 ) { sscanf(buf+4,"%lf",&C->Rmax );       } // Rmax for storing RDF 
     if( strncmp(buf,"RMIN",4) == 0 ) { sscanf(buf+4,"%lf",&C->Rmin );       } // Smooth cutoff between Rmin and Rmax in RDF

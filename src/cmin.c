@@ -237,7 +237,13 @@ double CELL_MIN(ANN *R, PRS *P, PRS *W, Cell *C, LNK *L)
 
     status = gsl_multimin_test_size( fabs(C->H-E), RRC->ETOL);
 
-    printf("%5d % 24.16lf % 24.16lf %3d\n",iter, C->H,C->H-E,CELL_OK(C));
+    //Real(C);
+    //LIST(C,0);
+    //Relative(C);
+    double worst_dist;
+    double cutoff_pct;
+    int ok = CELL_OK(R, C, &worst_dist, &cutoff_pct);
+    printf("%5d % 24.16lf % 24.16lf %3d %24.8lf %24.8lf \n",iter, C->H,C->H-E,ok, worst_dist, cutoff_pct);
     E = C->H;
 
     if( C->OUT%10==2)

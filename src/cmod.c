@@ -58,7 +58,7 @@ double Lindemann(Cell *C, int J)
   return -1.0;
 }
 //=========================================================================
-void CELL_UREP(Cell *C, int J)
+void CELL_UREP(Cell *C, int J, double U_)
 {
   int    i,j,q,nth;
   double R,e,E,U,t,**us,**hs;
@@ -66,7 +66,7 @@ void CELL_UREP(Cell *C, int J)
   hs = make_d2D(C->NP,C->N);
   us = make_d2D(C->NP,6);
 
-  U = 100.0;
+  U = U_;
   E = 0.0;
 #pragma omp parallel private(R,e,j) num_threads(C->NP)
   {
@@ -136,8 +136,8 @@ double CELL_ENE(ANN *R, PRS *P, PRS *W, Cell *C, LNK *L)
     PARS_STR(P,W,C,L,0,"."); 
     C->E = ENE_ANN(R,L);
 
-    if(R->UREP)
-      CELL_UREP(C,0);
+    if(R->UREP > 0.0)
+      CELL_UREP(C,0,R->UREP);
 
     for(i=0;i<C->N;i++)
       C->EA[i] = L->EA[i];
@@ -169,8 +169,8 @@ double CELL_FRC(ANN *R, PRS *P, PRS *W, Cell *C, LNK *L)
     for(q=0;q<6;q++)
       C->U[q] = L->s[q];
 
-    if(R->UREP)
-      CELL_UREP(C,1);
+    if(R->UREP > 0.0)
+      CELL_UREP(C,1,R->UREP);
   }
   if( R->MODT>1 )
     C->E = FRC_POT(C);
@@ -687,15 +687,29 @@ void CELL_OUT(Cell *C)
   fclose(out);
 }
 //======================================================
-int CELL_OK(Cell *C)
+int CELL_OK(ANN *R, Cell *C, double *worst, double *cut_pct)
 {
   int i;
+  int ok = 1;
+  double dist;
+  double cutoff;
+
+  *worst = 9999.0;
+  for(i=0;i<C->N;i++) 
+  {
+    dist = NDX(C,i,0);
+    cutoff = C->Rm[C->ATMZ[i]] + C->Rm[C->ATMZ[C->Ni[i][0]]];
+    if(dist < cutoff * R->RCUT) 
+      ok = 0;
+
+    if(dist < *worst) 
+    {
+      *worst = dist;
+      *cut_pct = dist / cutoff;
+    }
+  }
   
-  for(i=0;i<C->N;i++)
-    if(NDX(C,i,0)<C->Rm[C->ATMZ[i]]+C->Rm[C->ATMZ[C->Ni[i][0]]])
-      return 0;
-  
-  return 1;
+  return ok;
 }
 //======================================================
 double TOPK(double *x, int N, int K)
@@ -932,8 +946,16 @@ void CELL_RELX(ANN *R, PRS *P, PRS *W, Cell *C, LNK *L)
     CELL_OUT(C);
   LIST(C,0);
 
-  if(!CELL_OK(C))
-    system("echo >> OUTCAR;echo ERROR distances are too short >> OUTCAR");
+  double worst_dist;
+  double cutoff_pct;
+  if(!CELL_OK(R, C, &worst_dist, &cutoff_pct)) 
+  {
+    char errstr[200];
+    sprintf(errstr, "ERROR distances are too short %14.8lf %14.8lf", worst_dist, cutoff_pct);
+    char sysout[200];
+    sprintf(sysout, "echo >> OUTCAR; echo %s >> OUTCAR", errstr);
+    system(sysout);
+  }
   
   // compute wall and cpu time
   getrusage(RUSAGE_SELF, &t3);
