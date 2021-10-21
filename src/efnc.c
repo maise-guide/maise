@@ -7,13 +7,13 @@ void GEN_TYPE(Tribe *T, Cell *C, double *D, int *I)
 {
   int i;
 
-  if(T->JS==0)
+  if(T->NSPC==1)
   {
     for(i=0;i<C->N;i++)
       I[i] = i;
     return;
   }
-  if(T->JS==1)
+  if(T->NSPC>1)
   {
     for(i=0;i<C->N;i++)
       D[i] = Random();
@@ -203,7 +203,7 @@ void NANO_CHOP(Tribe *T, int J, Cell *C, int P)
 //==================================================================
 //     Generate NPs using randomized initial positions
 //==================================================================
-void NANO_BLOB(Tribe *T, int J, Cell *C, int P)
+void NANO_RAND(Tribe *T, int J, Cell *C, int P)
 {
   int i,q,s,n,*I,p;
   double V,R,*D,b[3],c[3],t;
@@ -1425,6 +1425,168 @@ void NANO_MUTE(Tribe *T, int J)
     Print_LOG(buf);
     exit(1);
   }
+}
+//==================================================================
+//     Generate crystals or films using randomized initial positions
+//==================================================================
+void BULK_RAND(Tribe *T, int J, Cell *C, int P)
+{
+  int  p,N,q;
+  char buf[200],s[200],w[3][200],*t;
+  FILE *in;
+
+  N = 2*T->N;
+
+  for(p=T->N;p<2*T->N;p++)
+  if( p==P || ( (P<0) && (p>=T->SES[J]) && (p<T->FES[J] ) ) )
+  {
+    //===== generate random structures =====
+    if(T->JS==0)
+    {
+      RAND_CL(T,&T->C[p],&T->C[N],0);
+      SHRT_LV(&T->C[p]);
+    }
+    //===== randomize specified structures =====
+    else if(T->JS==1)
+    {
+      sprintf(buf,"INI/POSCAR%03d",0);
+      READ_CELL(&T->C[N],buf);
+      TEMP_CL(T,&T->C[N],p);
+    }
+    //===== use specified LVs and generate atoms randomly =====
+    else if(T->JS==2 && T->ND==3)
+    {
+      sprintf(buf,"INI/POSCAR%03d",0);
+      READ_CELL(&T->C[p],buf);
+      RAND_CL(T,&T->C[p],&T->C[N],1);
+    }
+    else if(T->JS==3 && T->ND==3)
+    {
+      sprintf(buf,"INI/POSCAR%03d",0);
+      READ_CELL(&T->C[N],buf);
+      RAND_SYMM(T,&T->C[N],p);
+    }
+  }
+}
+//==================================================================
+//     Generate random crystals using TETRIS algorithm
+//==================================================================
+void BULK_TETR(Tribe *T, int J, Cell *C, int P)
+{
+  int i,j,q,s,w,W,n,m,M,*I,p;
+  double t,a[3],A,V,*D,L,R,dr,r[3],b[3],c[3],X[3],Rm;
+  char buf[200];
+
+  I = make_i1D(C->N);
+  D = make_d1D(C->N);
+
+  for(i=0,V=0.0;i<T->NSPC;i++)    
+    V += (4.0/3.0*Pi)*pow(T->Rm[i]/0.7,3.0)*(double)T->SPCN[i];
+  for(i=0,Rm=0.0;i<T->NSPC;i++)
+    Rm += T->Rm[i]/0.7*(double)T->SPCN[i];
+  Rm /= (double)C->N;
+
+  dr = 0.02;
+
+  for(q=0;q<3;q++)
+    r[q] = 0.0;
+
+  for(p=T->N;p<2*T->N;p++)
+  if( p==P || ( (P<0) && (p>=T->SES[J]) && (p<T->FES[J] ) ) )
+  {
+    printf("%s %3d\n",T->NES[J],p);
+    for(s=0;s<T->Nm;s++)
+    {
+      GEN_TYPE(T,C,D,I);
+
+      if(T->JS==0)
+      {
+	RAND_LV(C);
+	t = pow( 2.0*T->VOL*(1.0+0.25*(0.5-Random())*2.0),1.0/3.0);
+	SCALE_LATTICE(C,t);
+	SHRT_LV(C);
+	SHRT_LV(C);     // strangly, a single call does not straightened LVs for some
+	Lat_Align(C);
+      }
+      if(T->JS==2)
+	READ_CELL(C,"INI/POSCAR000");
+      
+      //===== atoms at drop point should not see neighbors along the c-axis =====      
+      for(q=0;q<3;q++)
+	C->L[2][q] *= 3.0;
+      R = VectorLen(C->L[2],3);      
+      R = C->L[2][2];
+      
+      CrossProd(C->L[0],C->L[1],a);                // find the unit cell base area
+      W = 5*(1+(int)(VectorLen(a,2)/(Pi*Rm*Rm)));  // 5 times the number of atoms per base
+      M = (int)(R*0.5/dr)-1; 
+
+      for(n=0;n<C->N;n++)
+      {
+        i = I[n];
+	L = C->L[2][2]*0.5;
+        for(w=0,j=0;w<W;w++)
+        {
+	  X[0] = Random();
+	  X[1] = Random();
+	  X[2] = 0.5;                              // start at 1.5 = 3.0*0.5 fractional height
+
+          for(m=0;m<M;m++)
+          {
+	    X[2] -= dr/R;
+	    for(q=0;q<D3;q++)
+	      for(j=0,C->X[i][q]=0.0;j<D3;j++)
+		C->X[i][q] += X[j]*C->L[j][q];
+            for(j=n-1;j>=0;j--)
+              if( NDR(C,i,I[j]) < 1.5*(T->Rm[C->ATMN[i]]+T->Rm[C->ATMN[I[j]]]) )
+              {
+                m = M;
+                break;
+              }
+          }
+          if( C->X[i][2] < L )
+          {
+            for(;j>=0;j--)
+              if( NDR(C,i,I[j]) < 1.0*(T->Rm[C->ATMN[i]]+T->Rm[C->ATMN[I[j]]]) )
+                break;
+            if(j==-1)
+            {
+              L = C->X[i][2];
+              for(q=0;q<3;q++)
+                r[q] = C->X[i][q];
+            }
+          }
+        }
+        for(q=0;q<3;q++)
+          C->X[i][q] = r[q];
+      }
+      for(q=0;q<3;q++)
+        C->L[2][q] /= 3.0;
+      if( CHCK_Rm(C,T->Rm,1.0)==1 || ADJT_CL(C,T->Rm,3)==1 )
+        break;
+
+      ORDER(C);
+    }
+    if(s==T->Nm)
+    {
+      sprintf(buf,"EXIT in %s: exceeded %3d tries\n",T->NES[J],T->Nm);
+      fprintf(stderr,"EXIT in %s: exceeded %3d tries\n",T->NES[J],T->Nm);
+      Print_LOG(buf);
+      exit(1);
+    }
+    Copy_C(C,&T->C[p]);
+    JAR(&T->C[p]);
+    ORDER_Z(&T->C[p]);
+    abc(C);
+    t = ( C->LAT[0]<C->LAT[1] ) ? C->LAT[0] : C->LAT[1];
+    sprintf(buf,"%3d %3d %s %3d %3d %3.2lf\n",T->n,p,T->NES[J],-1,-1,C->LAT[2]/t);
+    Print_LOG(buf);
+  }
+  ORDER_TYPE(T,J);
+
+  free_i1D(I);
+  free_d1D(D);
+
 }
 //==================================================================
 //     Evolve Tribe for 2D or 3D crystals

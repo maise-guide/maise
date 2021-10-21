@@ -58,15 +58,14 @@ double Lindemann(Cell *C, int J)
   return -1.0;
 }
 //=========================================================================
-void CELL_UREP(Cell *C, int J, double U_)
+void CELL_UREP(Cell *C, int J, double U)
 {
   int    i,j,q,nth;
-  double R,e,E,U,t,**us,**hs;
+  double R,e,E,t,**us,**hs;
 
   hs = make_d2D(C->NP,C->N);
   us = make_d2D(C->NP,6);
 
-  U = U_;
   E = 0.0;
 #pragma omp parallel private(R,e,j) num_threads(C->NP)
   {
@@ -687,25 +686,25 @@ void CELL_OUT(Cell *C)
   fclose(out);
 }
 //======================================================
-int CELL_OK(ANN *R, Cell *C, double *worst, double *cut_pct)
+int CELL_OK(ANN *R, Cell *C, double *rmin, double *frac)
 {
   int i;
   int ok = 1;
   double dist;
-  double cutoff;
+  double rcut;
 
-  *worst = 9999.0;
+  *rmin = 1e+10;
   for(i=0;i<C->N;i++) 
   {
     dist = NDX(C,i,0);
-    cutoff = C->Rm[C->ATMZ[i]] + C->Rm[C->ATMZ[C->Ni[i][0]]];
-    if(dist < cutoff * R->RCUT) 
+    rcut = C->Rm[C->ATMZ[i]] + C->Rm[C->ATMZ[C->Ni[i][0]]];
+    if(dist < rcut * R->FRAC) 
       ok = 0;
 
-    if(dist < *worst) 
+    if(dist < *rmin) 
     {
-      *worst = dist;
-      *cut_pct = dist / cutoff;
+      *rmin = dist;
+      *frac = dist / rcut;
     }
   }
   
@@ -901,6 +900,8 @@ void CELL_PHON(ANN *R, PRS *P, PRS *W, Cell *C, LNK *L)
 //======================================================
 void CELL_RELX(ANN *R, PRS *P, PRS *W, Cell *C, LNK *L)
 {
+  double rmin;
+  double frac;
   double H;
   FILE  *out;
   struct timeval t1, t2;
@@ -946,12 +947,10 @@ void CELL_RELX(ANN *R, PRS *P, PRS *W, Cell *C, LNK *L)
     CELL_OUT(C);
   LIST(C,0);
 
-  double worst_dist;
-  double cutoff_pct;
-  if(!CELL_OK(R, C, &worst_dist, &cutoff_pct)) 
+  if(!CELL_OK(R, C, &rmin, &frac)) 
   {
     char errstr[200];
-    sprintf(errstr, "ERROR distances are too short %14.8lf %14.8lf", worst_dist, cutoff_pct);
+    sprintf(errstr, "ERROR distances are too short %14.8lf %14.8lf", rmin, frac);
     char sysout[200];
     sprintf(sysout, "echo >> OUTCAR; echo %s >> OUTCAR", errstr);
     system(sysout);

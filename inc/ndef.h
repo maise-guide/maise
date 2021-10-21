@@ -116,7 +116,7 @@ typedef struct
   double Rc;
   int    PENE;    // 0 for parse based on energy; 1 for enthalpy
   double UREP;    // repulsive potential for short distances
-  double RCUT;    // repulsive potential cutoff for rejection
+  double FRAC;    // repulsive potential cutoff for rejection
 }ANN;
 
 typedef struct

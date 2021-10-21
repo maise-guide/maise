@@ -608,6 +608,7 @@ void ADD(Cell *C, Cell *D, double x, double y, double z)
     C->X[i+C->N][2] = D->X[i][2] + z;
     C->ATMN[i+C->N] = D->ATMN[i];
     C->Nn[i+C->N]   = D->Nn[i];
+    C->ATMZ[i+C->N] = D->ATMZ[i];
     for(q=0;q<3;q++)
       C->FF[i+C->N][q] = D->FF[i][q];
   }

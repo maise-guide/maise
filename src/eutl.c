@@ -120,7 +120,11 @@ int ADJT_CL(Cell *C, double *Rm, int N)
 	  C->F[i][q] *= 2.0/R;
     for(i=0;i<C->N;i++)
       for(q=0;q<3;q++)
+      {
+	if( fabs(C->F[i][q])<1e-8 )
+	  C->F[i][q] = 0.0;
 	C->X[i][q] += a*C->F[i][q];
+      }
     LIST(C,0);
   }
   JAR(C);
@@ -252,7 +256,8 @@ void RAND_LV(Cell *C)
   
   for(i=0;i<3;i++)
   {
-    L[i] = pow( 1.2 + 0.55*(0.5-Random())*2.0,1.0/3.0 );
+//    L[i] = pow( 1.2 + 0.55*(0.5-Random())*2.0,1.0/3.0 );
+    L[i] = 0.2 + 1.2*Random();
     for(q=0;q<3;q++)
       C->L[i][q] *= L[i];
   }
@@ -421,5 +426,134 @@ void TEMP_CL(Tribe *T, Cell *C, int p)
     Print_LOG(buf);
     exit(1);
   }
+}
+//==================================================================
+//     Create random cell with a given space group
+//==================================================================
+void RAND_SYMM(Tribe *T, Cell *C, int p)
+{
+  int  n,N[10],q,m,NS,M[1000],O[1000],k,o,ns,ni,i,Wk[10][1000],Nk[10],S;
+  char buf[200],s[200],w[3][200],*t,ws[1000][2];
+  double W[1000][3];
+  FILE *in;
+
+  abc(C);
+  if( !(in = fopen("INI/SYMINI000","r")) )
+  {
+    sprintf(buf,"Please provide INI/SYMINI000\n");
+    fprintf(stderr,"Please provide INI/SYMINI000\n");
+    Print_LOG(buf);
+    exit(1);
+  }
+  fgets(buf,200,in);
+  sscanf(buf,"%d\n",&C->SGN);
+  READ_SG(C);
+  NS = 0;
+  while( fgets(buf,200,in) )
+  {
+    sscanf(buf,"%d %s %s %s %s",&M[NS],ws[NS],w[0],w[1],w[2]);
+    for(q=0;q<3;q++)
+    {
+      if( !(strncmp(w[q],"x",1)==0 || strncmp(w[q],"y",1)==0 || strncmp(w[q],"z",1)==0) )
+	W[NS][q] = strtod(w[q],&t);
+      else
+      {
+	if( strncmp(w[q],"x",1)==0 ) W[NS][q] = 3.0;
+	if( strncmp(w[q],"y",1)==0 ) W[NS][q] = 4.0;
+	if( strncmp(w[q],"z",1)==0 ) W[NS][q] = 5.0;
+      }
+    }
+    // printf("%3d % lf % lf % lf\n",C->NS,C->W[C->NS][0],C->W[C->NS][1],C->W[C->NS][2]);
+    NS++;
+  }
+  fclose(in);
+
+  //===== all Wyckoff sites are possible =====
+  for(n=0;n<NS;n++)
+    O[n] = 1;
+
+  for(m=0;m<T->Nm;m++)
+  {
+    for(k=0;k<T->NSPC;k++)
+      N[k] = T->SPCN[k];
+
+    //===== Wyckoff sites with no adjustables can be occupited just once =====
+    for(n=0;n<NS&&S<=T->N;n++)
+      if( W[n][0]<1.5 && W[n][1]<1.5 &&W[n][2]<1.5 )
+	O[n] = 0;    
+    for(k=0;k<T->NSPC;k++)
+      Nk[k] = 0;
+    for(o=S=0;o<1000&&S<T->C[p].N;o++)
+    {      
+      k  = (int)(Random()*(double)T->NSPC); // select a species randomly      
+      for(n=ns=0;n<NS;n++)                  // count number of possible W.s.
+	if( O[n]>=0 && N[k]>=M[n] )
+	  ns++;
+      if(ns>0)
+      {
+	ni = (int)(Random()*(double)ns);    // select a W.s. randomly
+	for(n=i=0;n<NS&&i<=ni;n++)
+	  if( O[n]>=0 && N[k]>=M[n] )
+	    i++;
+	n--;
+	Wk[k][Nk[k]++] = n;                 // assign a W.s. to species k
+	if( O[n]==0 )
+	  O[n] = -1;                        // if unique mark as occupied
+	S += M[n];
+	N[k] -= M[n];
+      }
+      else
+	if(N[k]>0)
+	  break;
+    }
+    if(S==T->C[p].N)
+    {
+      if(0)
+      {
+	for(k=0;k<T->NSPC;k++)
+	  for(i=0;i<Nk[k];i++)
+	    printf("%3d %8d %3d %3d %3d %s\n",p,m,k,i,M[Wk[k][i]],ws[Wk[k][i]]);
+	printf("\n");
+      }
+      for(o=0;o<1000;o++)
+      {
+	for(k=i=0;k<T->NSPC;k++)
+	  for(n=0;n<Nk[k];n++,i++)
+	  {
+	    C->ATMN[i] = k;
+	    for(q=0;q<3;q++)
+	      if( W[Wk[k][n]][q]<1.5 )
+		C->W[i][q] = W[Wk[k][n]][q];
+	      else
+		C->W[i][q] = Random();
+	    if( (int)W[Wk[k][n]][1]==3 ) C->W[i][1] = C->W[i][0];
+	    if( (int)W[Wk[k][n]][2]==3 ) C->W[i][2] = C->W[i][0];
+	    if( (int)W[Wk[k][n]][2]==4 ) C->W[i][2] = C->W[i][1];
+	  }
+	C->NS = i;
+
+	APPL_SG(C,0.000001);
+
+	if( C->N==T->C[p].N && ADJT_CL(C,T->Rm,10)==1 )
+	  break;
+      }
+      if( C->N==T->C[p].N && CHCK_Rm(C,T->Rm,0.85)==1 )
+	break;
+    }      
+  }
+
+  if(m==T->Nm)
+  {
+    sprintf(buf,"EXIT in SYMM: exceeded %3d tries\n",T->Nm);
+    fprintf(stderr,"EXIT in SYMM: exceeded %3d tries\n",T->Nm);
+    Print_LOG(buf);
+    exit(1);
+  }
+  Copy_C(C,&T->C[p]);
+  JAR(&T->C[p]);
+  ORDER_Z(&T->C[p]);
+  sprintf(buf,"%3d %3d SYMM %3d %3d\n",T->n,p,-1,-1);
+  Print_LOG(buf);
+
 }
 //==================================================================

@@ -1355,8 +1355,8 @@ void READ_MAIN(Tribe *T, ANN *R, PRS *P, Cell *C, int J, int ARGC)
   T->ND    = -1;
   T->QT    = 0;            // default queue type is torque
   C->DISP  = 1e-3;         // displacement in Ang for frozen phonon calculation
-  R->UREP  = 100.0;            // use repulstive potential for short distances by default
-  R->RCUT  = 1.0;
+  R->UREP  = 100.0;        // use repulsive potential for short distances by default
+  R->FRAC  = 1.0;          // reject structures in EVOS below this fraction
   strcpy(C->WDIR,".");
   strcpy(R->depo,".");
   strcpy(R->data,".");
@@ -1404,7 +1404,7 @@ void READ_MAIN(Tribe *T, ANN *R, PRS *P, Cell *C, int J, int ARGC)
     if( strncmp(buf,"TETR",4) == 0 ) { sscanf(buf+4,"%lf",&t ); T->TES[ 0] = (int)(t*(double)T->N); } sprintf(T->NES[ 0],"TETR");  
     if( strncmp(buf,"PLNT",4) == 0 ) { sscanf(buf+4,"%lf",&t ); T->TES[ 1] = (int)(t*(double)T->N); } sprintf(T->NES[ 1],"PLNT");  
     if( strncmp(buf,"PACK",4) == 0 ) { sscanf(buf+4,"%lf",&t ); T->TES[ 2] = (int)(t*(double)T->N); } sprintf(T->NES[ 2],"PACK");  
-    if( strncmp(buf,"BLOB",4) == 0 ) { sscanf(buf+4,"%lf",&t ); T->TES[ 3] = (int)(t*(double)T->N); } sprintf(T->NES[ 3],"BLOB");
+    if( strncmp(buf,"RAND",4) == 0 ) { sscanf(buf+4,"%lf",&t ); T->TES[ 3] = (int)(t*(double)T->N); } sprintf(T->NES[ 3],"RAND");
     if( strncmp(buf,"MATE",4) == 0 ) { sscanf(buf+4,"%lf",&t ); T->TES[ 4] = (int)(t*(double)T->N); } sprintf(T->NES[ 4],"MATE");  
     if( strncmp(buf,"SWAP",4) == 0 ) { sscanf(buf+4,"%lf",&t ); T->TES[ 5] = (int)(t*(double)T->N); } sprintf(T->NES[ 5],"SWAP");  
     if( strncmp(buf,"RUBE",4) == 0 ) { sscanf(buf+4,"%lf",&t ); T->TES[ 6] = (int)(t*(double)T->N); } sprintf(T->NES[ 6],"RUBE");  
@@ -1491,7 +1491,7 @@ void READ_MAIN(Tribe *T, ANN *R, PRS *P, Cell *C, int J, int ARGC)
     if( strncmp(buf,"MITR",4) == 0 ) { sscanf(buf+4,"%d" ,&R->MITR );       }
     if( strncmp(buf,"RLXT",4) == 0 ) { sscanf(buf+4,"%d", &C->RLXT );       }
     if( strncmp(buf,"UREP",4) == 0 ) { sscanf(buf+4,"%lf",&R->UREP );       }
-    if( strncmp(buf,"RCUT",4) == 0 ) { sscanf(buf+4,"%lf",&R->RCUT );       }
+    if( strncmp(buf,"FRAC",4) == 0 ) { sscanf(buf+4,"%lf",&R->FRAC );       }
     //===================== rdf parameters ==================================
     if( strncmp(buf,"RMAX",4) == 0 ) { sscanf(buf+4,"%lf",&C->Rmax );       } // Rmax for storing RDF 
     if( strncmp(buf,"RMIN",4) == 0 ) { sscanf(buf+4,"%lf",&C->Rmin );       } // Smooth cutoff between Rmin and Rmax in RDF
@@ -1555,7 +1555,7 @@ void READ_MAIN(Tribe *T, ANN *R, PRS *P, Cell *C, int J, int ARGC)
     T->FES[n] = T->FES[n-1] + T->TES[n  ];
   }
   //===== For INVS the only odd number of atoms allowed is for 1 species in the core =====
-  if( T->JOBT == 1 && T->ND == 0 && T->TES[8] > 0 )
+  if( T->JOBT/10 == 1 && T->ND == 0 && T->TES[8] > 0 )
   {
     for(n=i=0; i < T->NSPC;i++)
       n += T->SPCN[i]%2;
@@ -1568,12 +1568,14 @@ void READ_MAIN(Tribe *T, ANN *R, PRS *P, Cell *C, int J, int ARGC)
       T->TES[8]  = 0;
     }
   }      
-  if( T->JOBT == 1 )
+  if( T->JOBT/10 == 1 )
     for(n=0; n < 11;n++)
       if( T->TES[n] > 0 )
-        printf("EVLV %3d %s %3d %3d %3d\n",n,T->NES[n],T->TES[n],T->SES[n],T->FES[n]);
-
-  if( T->ND == 0 && T->JOBT == 1 && T->FES[10] != 2*T->N )
+      {    
+        sprintf(buf,"EVLV %3d %s %3d %3d %3d\n",n,T->NES[n],T->TES[n],T->SES[n],T->FES[n]);
+        Print_LOG(buf);
+      }    
+  if( T->ND == 0 && T->JOBT/10 == 1 && T->FES[10] != 2*T->N )
   {
     printf("Please make sure that the sum of all operations for nanoparticles is 1\n");
     fprintf(stderr,"Please make sure that the sum of all operations for nanoparticles is 1\n");

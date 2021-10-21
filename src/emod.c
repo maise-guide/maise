@@ -23,19 +23,39 @@ void INIT_TR(Tribe *T)
     SES[n] = T->SES[n];
     FES[n] = T->FES[n];
   }
-  if(FES[3]==T->N)    
-    T->FES[0] = T->SES[1] = T->FES[1] = T->SES[2] = T->FES[2] = T->SES[3] = T->FES[3] = 2*T->N; // generate random NPs with NANO_TETR by default
-  else
+
+  if( T->ND==0)
   {
-    T->FES[0] = T->SES[1] = T->N      + (int)((double)(FES[0]-SES[0])/(double)(FES[3]-SES[0])*(double)T->N);
-    T->FES[1] = T->SES[2] = T->SES[1] + (int)((double)(FES[1]-SES[1])/(double)(FES[3]-SES[0])*(double)T->N);
-    T->FES[2] = T->SES[3] = T->SES[2] + (int)((double)(FES[2]-SES[2])/(double)(FES[3]-SES[0])*(double)T->N);
-    T->FES[3] =             T->SES[3] + (int)((double)(FES[3]-SES[3])/(double)(FES[3]-SES[0])*(double)T->N);
-    if( T->FES[3] != 2*T->N )
+    if( FES[3]==T->N )
+      T->FES[0] = T->SES[1] = T->FES[1] = T->SES[2] = T->FES[2] = T->SES[3] = T->FES[3] = 2*T->N; // generate random NPs with NANO_TETR by default
+    else
     {
-      printf("Please make sure that the sum of TETR, PLNT, PACK, and BLOB operations for nanoparticles is a proper fraction of NPOP\n");
-      fprintf(stderr,"Please make sure that the sum of TETR, PLNT, PACK, and BLOB operations for nanoparticles is a proper fraction of NPOP\n");
-      exit(1);
+      T->FES[0] = T->SES[1] = T->N      + (int)((double)(FES[0]-SES[0])/(double)(FES[3]-SES[0])*(double)T->N);
+      T->FES[1] = T->SES[2] = T->SES[1] + (int)((double)(FES[1]-SES[1])/(double)(FES[3]-SES[0])*(double)T->N);
+      T->FES[2] = T->SES[3] = T->SES[2] + (int)((double)(FES[2]-SES[2])/(double)(FES[3]-SES[0])*(double)T->N);
+      T->FES[3] =             T->SES[3] + (int)((double)(FES[3]-SES[3])/(double)(FES[3]-SES[0])*(double)T->N);
+      if( T->FES[3] != 2*T->N )
+      {
+	printf("Please make sure that the sum of TETR, PLNT, PACK, and RAND operations for nanoparticles is a proper fraction of NPOP\n");
+	fprintf(stderr,"Please make sure that the sum of TETR, PLNT, PACK, and RAND operations for nanoparticles is a proper fraction of NPOP\n");
+	exit(1);
+      }
+    }
+  }
+  if( T->ND>0 )
+  {
+    if( FES[0]==T->N )
+      T->FES[3] = T->SES[1] = T->FES[1] = T->SES[2] = T->FES[2] = T->SES[0] = T->FES[0] = 2*T->N; // generate random clusters with BULK_RAND by default 
+    else
+    {
+      T->FES[0] = T->SES[3] = T->N      + (int)((double)(FES[0]-SES[0])/(double)(FES[3]-SES[0])*(double)T->N);
+      T->FES[3] =             T->SES[3] + (int)((double)(FES[3]-SES[3])/(double)(FES[3]-SES[0])*(double)T->N);
+      if( T->FES[3] != 2*T->N )
+      {
+        printf("Please make sure that the sum of RAND and TETR operations for crystals is a proper fraction of NPOP\n");
+        fprintf(stderr,"Please make sure that the sum of RAND and TETR operations for crystals is a proper fraction of NPOP\n");
+        exit(1);
+      }
     }
   }
 
@@ -117,41 +137,16 @@ void INIT_TR(Tribe *T)
   if(T->n<=0)                   // if T->n < 0 the particles will be re-generated for REFL and INVS
     for(p=T->N;p<2*T->N;p++)    //fill the second half of the array of cells (first half is for energy ordering)
     {
-      if(T->ND==3)              // generate crystals
+      //===== generate crystals or films =====
+      if(T->ND==3||T->ND==2)
       {
-	if(T->JS==0)            // start from random structures
-        {
-	  RAND_CL(T,&T->C[p],&T->C[N],0);
-	  SHRT_LV(&T->C[p]);
-	}
-	else if(T->JS==1)            // start from specified structures
-        {
-	  sprintf(buf,"INI/POSCAR%03d",0);
-	  READ_CELL(&T->C[N],buf);
-	  TEMP_CL(T,&T->C[N],p);
-	}
-	else if(T->JS==2 )            // start from random structures but keep LV constant - fixed atoms too
-        {
-	  sprintf(buf,"INI/POSCAR%03d",0);
-	  READ_CELL(&T->C[p],buf);
-	  RAND_CL(T,&T->C[p],&T->C[N],1);
-	}
+	if( p>=T->SES[0] && p< T->FES[0] )
+          BULK_TETR(T,0,&T->C[N],p);
+	if( p>=T->SES[3] && p< T->FES[3] )
+	  BULK_RAND(T,3,&T->C[N],p);	
       }
-      if(T->ND==2)              // generate films (beta version)
-      {
-	if(T->JS==0)            // start from random structures
-	{
-	  RAND_CL(T,&T->C[p],&T->C[N],0);
-	  SHRT_LV(&T->C[p]);
-	}
-        else if(T->JS==1)            // start from specified structures
-	{
-	  sprintf(buf,"INI/POSCAR%03d",0);
-	  READ_CELL(&T->C[N],buf);
-	  TEMP_CL(T,&T->C[N],p);
-	}
-      }
-      if(T->ND==0)              // generate particles, cubic lattice cell is always fixed
+      //===== generate clusters =====
+      if(T->ND==0)
       {
 	if( p>=T->SES[0] && p< T->FES[0] )
 	  NANO_TETR(T,0,&T->C[N],p);
@@ -160,7 +155,7 @@ void INIT_TR(Tribe *T)
 	if( p>=T->SES[2] && p< T->FES[2] )
 	  NANO_PACK(T,2,&T->C[N],p);
         if( p>=T->SES[3] && p< T->FES[3] )
-          NANO_BLOB(T,3,&T->C[N],p);
+          NANO_RAND(T,3,&T->C[N],p);
       }
       //      LIST(&T->C[p]);
       T->C[p].P=0.0;
@@ -226,8 +221,12 @@ void EXIT_TR(Tribe *T)
     exit(1);
   }
   while(fgets(buf,200,in))
+  {
     if(strncmp(buf,"JOBT",4)==0) 
       sscanf(buf+4,"%d" ,&T->JOBT);
+    if(strncmp(buf,"NITR",4)==0)
+      sscanf(buf+4,"%d" ,&T->NI);
+  }
   fclose(in);
 
   if(T->JOBT!=12)
@@ -725,7 +724,7 @@ void EVLV_TR(Tribe *T, int J)
       NANO_TETR(T, 0 ,&T->C[N],-1);  // tetris-type generation of random NPs
       NANO_PLNT(T, 1 ,-1);           // seeding NPs with INI/POSCAR000
       NANO_PACK(T, 2 ,&T->C[N],-1);  // seeding NPs with bcc, fcc, hcp
-      NANO_BLOB(T, 3 ,&T->C[N],-1);  // random generation of NPs
+      NANO_RAND(T, 3 ,&T->C[N],-1);  // random generation of NPs
       NANO_MATE(T, 4 );              // crossover using plane cuts
       NANO_SWAP(T, 5 );              // crossover using core-shells
       NANO_RUBE(T, 6 );              // Rubik's cube operation
@@ -737,6 +736,8 @@ void EVLV_TR(Tribe *T, int J)
     //=====  bulk structure evolution operations  =====
     else
     {
+      BULK_TETR(T, 0 ,&T->C[N],-1);  // tetris generation of crystals
+      BULK_RAND(T, 3 ,&T->C[N],-1);  // random generation of crystals      
       BULK_MATE(T, 4 );              // crossover using plance cuts
       BULK_MUTE(T,10 );              // distortion using random shifts
     }
@@ -986,8 +987,11 @@ void INIT_EVOS(Tribe *T, Cell *C)
     if( READ_CELL(&T->C[2*T->N+1],buf)==0 )
       break;
   }
-  sprintf(buf,"PLNT will plant %3d from %3d structures\n",T->TES[1],T->pos);
-  Print_LOG(buf);
+  if( T->TES[1]>0 )
+  {
+    sprintf(buf,"PLNT will plant %3d from %3d structures\n",T->TES[1],T->pos);
+    Print_LOG(buf);
+  }
 
   T->I  = make_i2D(T->NI,2*T->N);
   T->S  = make_i1D(2*T->N);

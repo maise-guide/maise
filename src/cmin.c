@@ -158,8 +158,8 @@ double CELL_MIN(ANN *R, PRS *P, PRS *W, Cell *C, LNK *L)
 {
   gsl_vector *p;
   void       *params;
-  double      E,O;
-  int         i,q,iter,N,status;
+  double      E,O,rmin,frac;
+  int         i,q,iter,N,status,ok,stat;
   char        min[200];
 
   RRC = R; PPC = P; CCC = C; LLC = L; WWW = W;
@@ -225,25 +225,23 @@ double CELL_MIN(ANN *R, PRS *P, PRS *W, Cell *C, LNK *L)
   {
     C->it++;
     iter++;
-    status = gsl_multimin_fdfminimizer_iterate (s);
 
-    if(status) 
+    stat = status = gsl_multimin_fdfminimizer_iterate (s);
+    
+    if(status && status!=27)
     {
-      sprintf(min,"echo >> OUTCAR;echo ERROR %s. Try a different MINT. >> OUTCAR",gsl_strerror(status));
+      printf("ERROR %s. Try a different MINT in setup.\n",gsl_strerror(status));
+      sprintf(min,"echo >> OUTCAR;echo ERROR %s. Try a different MINT in setup. >> OUTCAR",gsl_strerror(status));
       system(min);
-      printf("ERROR %s. Try a different MINT.\n",gsl_strerror(status));
       break;
     }
 
     status = gsl_multimin_test_size( fabs(C->H-E), RRC->ETOL);
 
-    //Real(C);
-    //LIST(C,0);
-    //Relative(C);
-    double worst_dist;
-    double cutoff_pct;
-    int ok = CELL_OK(R, C, &worst_dist, &cutoff_pct);
-    printf("%5d % 24.16lf % 24.16lf %3d %24.8lf %24.8lf \n",iter, C->H,C->H-E,ok, worst_dist, cutoff_pct);
+    Real(C);
+    ok = CELL_OK(R, C, &rmin, &frac);
+    Relative(C);
+    printf("%5d % 24.16lf % 24.16lf %3d %24.8lf \n",iter,C->H,C->H-E,ok,frac);
     E = C->H;
 
     if( C->OUT%10==2)
@@ -254,6 +252,14 @@ double CELL_MIN(ANN *R, PRS *P, PRS *W, Cell *C, LNK *L)
     }
   }
   while (status == GSL_CONTINUE && iter < RRC->MITR );
+
+  //===== TODO =====
+  if(0 && stat==27)
+  {
+    printf("WARNING %s. Try a different MINT in setup.\n",gsl_strerror(stat));
+    sprintf(min,"echo >> OUTCAR;echo WARNING %s. Try a different MINT in setup. >> OUTCAR",gsl_strerror(stat));
+    system(min);
+  }
 
   C->H=s->f;
   E = C->H;
@@ -268,12 +274,6 @@ double CELL_MIN(ANN *R, PRS *P, PRS *W, Cell *C, LNK *L)
 
   gsl_vector_free (p);
   gsl_multimin_fdfminimizer_free (s);
-/*
-  if(C->it>0)
-  {
-    CELL_ENE(R,P,W,C,L);
-    if( fabs(E-C->H)>1e-10)
-  }
-*/
+
   return 0.0;
 }
