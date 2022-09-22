@@ -583,7 +583,7 @@ void CELL_EXAM(Cell *C, Cell *D, int argc, char **argv)
   int    i,NM,N[3],m,M;
   char   input[200],input0[200],input1[200],ARGV[20][200];
 
-  NM = 500;
+  NM = 2000;
 
   //================   list available options  ===============
   if(argc<2)
