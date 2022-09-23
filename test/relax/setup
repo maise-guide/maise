@@ -2,7 +2,7 @@
                                      RELAXATION SETTINGS
 =============================================================================================================
 JOBT  20       job type: structure relaxation (20)
-NPAR  4        number of cores for parallel run
+NPAR  1        number of cores for parallel run
 NDIM  3        dimensionality of unit cell: crystal (3); cluster (0)
 MITR  100      maximum number of cell optimization steps
 RLXT  3        cell optimization type: force only (2); full cell (3); volume (7)
