@@ -575,6 +575,61 @@ void INIT_CELL(Cell *C, char filename[], int N, int NM, int J)
     READ_CELL(C,filename);
 }
 //==================================================================
+//    make supercell
+//==================================================================
+void MAKE_SUP(Cell *C, Cell *D, int argc, char ARGV[20][200], int NM, char input[])
+{
+  int    q,n,m,k,N[10],M[10];
+
+  if(argc!=5 && argc!=11)
+  {
+    printf("Please specify either 3 or 9 integers to generate a supercell\n");
+    exit(0);
+  }
+
+  for(n=0;n<argc-2;n++)
+    N[n] = M[n] = (int)atoi(ARGV[n+2]);
+
+  if(argc==11)
+  {
+    for(n=0;n<3;n++)
+    {
+      for(q=0,m=1000,k=-1000;q<3;q++)
+      {
+	if(M[n+q*3]>k) k = M[n+q*3];
+	if(M[n+q*3]<m) m = M[n+q*3];
+      }
+      N[n] = k-m;
+      if(N[n]<=0)
+      {
+	printf("The specified expansion has no component along axis %d\n",n);
+	exit(0);
+      }
+    }
+  }
+
+  INIT_CELL(C,input,N[0]*N[1]*N[2],NM,1);
+  INIT_CELL(D,input,1,NM,1);
+  Clone(C,D,N[0],N[1],N[2]);
+  C->POS = 0;
+
+  if(argc==11)
+  {    
+    for(n=0;n<3;n++)
+      for(q=0;q<3;q++)
+	for(m=0,C->L[n][q]=0.0;m<3;m++)
+	  C->L[n][q] += D->L[m][q]*(double)M[3*n+m];
+    JAR(C);
+    Relative(C);
+    KILL_DBL(C,1e-10);
+    Lat_Align(C);
+    Real(C);
+  }
+
+  SAVE_CELL(C,"CONTCAR",0);
+  exit(0);
+}
+//==================================================================
 //    run a job defined by FLAGs
 //==================================================================
 void CELL_EXAM(Cell *C, Cell *D, int argc, char **argv)
@@ -608,6 +663,12 @@ void CELL_EXAM(Cell *C, Cell *D, int argc, char **argv)
   strcpy(input,"POSCAR");
   strcpy(input0,"POSCAR0");
   strcpy(input1,"POSCAR1");
+
+  if(strncmp(ARGV[1],"-sym",4)==0)
+  {
+    strcpy(input0,"POSCAR");
+    strcpy(input1,"PRIM");    
+  }
 
   for(m=0;m<argc;m++)
     strcpy(ARGV[m],argv[m]);
@@ -656,7 +717,7 @@ void CELL_EXAM(Cell *C, Cell *D, int argc, char **argv)
     FIND_SPG(C,D,tol,NM,input);
     exit(0);
   }
-   //================  convert cif into CONV  ================
+  //================  convert cif into CONV  ================
   if(strncmp(ARGV[1],"-cif",4)==0)
   {
     tol = 0.01;
@@ -736,17 +797,7 @@ void CELL_EXAM(Cell *C, Cell *D, int argc, char **argv)
   //===================== make a supercell  ==================
   if(strncmp(ARGV[1],"-sup",4)==0)
   {
-    N[0] = N[1] = N[2] = 1;
-    if(argc>2)
-      N[0] = (int)atoi(ARGV[2]);
-    if(argc>3)
-      N[1] = (int)atoi(ARGV[3]);
-    if(argc>4)
-      N[2] = (int)atoi(ARGV[4]);
-    INIT_CELL(C,input,N[0]*N[1]*N[2],NM,1);
-    INIT_CELL(D,input,1,NM,1);
-    Clone(C,D,N[0],N[1],N[2]);
-    SAVE_CELL(C,"CONTCAR",0);
+    MAKE_SUP(C,D,argc,ARGV,NM,input);
     exit(0);
   }
   //================  compute volume per atom  ================
