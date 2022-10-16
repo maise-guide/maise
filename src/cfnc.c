@@ -1,5 +1,6 @@
 #include "user.h"
 #include "cfnc.h"
+#include "eutl.h"
 
 //==================================================================
 //  find the dimensionality of the structure: bulk (3) or nano (0)
@@ -630,6 +631,33 @@ void MAKE_SUP(Cell *C, Cell *D, int argc, char ARGV[20][200], int NM, char input
   exit(0);
 }
 //==================================================================
+//    randomize unit cell
+//==================================================================
+void RAND_CELL(Cell *C, int argc, char ARGV[20][200])
+{
+  long   S;
+  double dX,dL;
+
+  dX = 0.1;
+  dL = 0.1;
+  S  = 1;
+
+  if(argc>2)
+    dX = (double)atof(ARGV[2]);
+  if(argc>3)
+    dL = (double)atof(ARGV[3]);
+  if(argc>4)
+    S  = ( long )atol(ARGV[4]);
+
+  C->POS = 0;
+  PlantSeeds(S);
+  SHKE_CL(C,dL,dX);
+
+  SAVE_CELL(C,"CONTCAR",0);
+  printf("Generated a randomized CONTCAR with dX=%1.4lf dL=%1.4lf seed=%d\n",dX,dL,S);
+  exit(0);
+}
+//==================================================================
 //    run a job defined by FLAGs
 //==================================================================
 void CELL_EXAM(Cell *C, Cell *D, int argc, char **argv)
@@ -644,16 +672,17 @@ void CELL_EXAM(Cell *C, Cell *D, int argc, char **argv)
   if(argc<2)
   {
     printf("For specified JOBT = 0 you should provide a FLAG:\n\n");
-    printf("-rdf    compute and plot the RDF for POSCAR                             \n");
-    printf("-cxc    compute dot product for POSCAR0 and POSCAR1 using RDF           \n");
-    printf("-cmp    compare RDF, space group, and volume of POSCAR0 and POSCAR1     \n");
-    printf("-spg    convert POSCAR into str.cif, CONV, PRIM                         \n");
-    printf("-cif    convert str.cif into CONV and PRIM                              \n");
-    printf("-rot    rotate  a nanoparticle along eigenvectors of moments of inertia \n");
-    printf("-dim    find    whether POSCAR is periodic (3) or non-periodic (0)      \n");
-    printf("-box    reset   the box size for nanoparticles                          \n");
-    printf("-sup    make    a supercell specified by na x nb x nc                   \n");
-    printf("-vol    compute volume per atom for crystal or nano structures          \n");
+    printf("-rdf    compute   and plot the RDF for POSCAR                             \n");
+    printf("-cxc    compute   dot product for POSCAR0 and POSCAR1 using RDF           \n");
+    printf("-cmp    compare   RDF, space group, and volume of POSCAR0 and POSCAR1     \n");
+    printf("-spg    convert   POSCAR into str.cif, CONV, PRIM                         \n");
+    printf("-cif    convert   str.cif into CONV and PRIM                              \n");
+    printf("-rot    rotate    a nanoparticle along eigenvectors of moments of inertia \n");
+    printf("-dim    find      whether POSCAR is periodic (3) or non-periodic (0)      \n");
+    printf("-box    reset     the box size for nanoparticles                          \n");
+    printf("-sup    make      a supercell specified by na x nb x nc                   \n");
+    printf("-vol    compute   volume per atom for crystal or nano structures          \n");
+    printf("-rnd    randomize unit cell in POSCAR                                     \n");
     exit(0);
   }
 
@@ -808,6 +837,13 @@ void CELL_EXAM(Cell *C, Cell *D, int argc, char **argv)
     printf("% lf\n",CELL_VOL(C)/(double)C->N);
     exit(0);
   }
+  //==================  randomize unit cell  ==================
+  if(strncmp(ARGV[1],"-rnd",4)==0)
+  {
+    INIT_CELL(C,input,1,NM,1);
+    RAND_CELL(C,argc,ARGV);
+    exit(0);
+  }
   //================  run user-defined functions   ==========
   if(strncmp(ARGV[1],"-usr",4)==0)  
   {
@@ -833,24 +869,27 @@ void CELL_EXAM(Cell *C, Cell *D, int argc, char **argv)
     printf("-box    reset   the box size for nanoparticles                          \n");
     printf("-sup    make    a supercell specified by na x nb x nc                   \n");
     printf("-vol    compute volume per atom for crystal or nano structures          \n");
+    printf("-rdf    randomize unit cell in POSCAR                                   \n");
+    printf("        options: [ at disortions, uc distortions, seed ]                \n");
     printf("-usr    run user-defined functions                                      \n");
     exit(0);    
   }
 
   //================   list available options  ===============
   if(strncmp(ARGV[1],"-man",4)!=0)
-    printf("\nThe FLAG is not recognized. Allowed FLAGS are:\n\n");
-  printf("-rdf    compute and plot the RDF for POSCAR                             \n");
-  printf("-cxc    compute dot product for POSCAR0 and POSCAR1 using RDF           \n");
-  printf("-cmp    compare RDF, space group, and volume of POSCAR0 and POSCAR1     \n");
-  printf("-spg    convert POSCAR into str.cif, CONV, PRIM                         \n");
-  printf("-cif    convert str.cif into CONV and PRIM                              \n");
-  printf("-rot    rotate  a nanoparticle along eigenvectors of moments of inertia \n");
-  printf("-dim    find    whether POSCAR is periodic (3) or non-periodic (0)      \n");
-  printf("-box    reset   the box size for nanoparticles                          \n");
-  printf("-sup    make    a supercell specified by na x nb x nc                   \n");
-  printf("-vol    compute volume per atom for crystal or nano structures          \n");
-  printf("-usr    run user-defined functions                                      \n");
+    printf("\nThe FLAG is   not recognized. Allowed FLAGS are:\n\n");
+  printf("-rdf    compute   and plot the RDF for POSCAR                             \n");
+  printf("-cxc    compute   dot product for POSCAR0 and POSCAR1 using RDF           \n");
+  printf("-cmp    compare   RDF, space group, and volume of POSCAR0 and POSCAR1     \n");
+  printf("-spg    convert   POSCAR into str.cif, CONV, PRIM                         \n");
+  printf("-cif    convert   str.cif into CONV and PRIM                              \n");
+  printf("-rot    rotate    a nanoparticle along eigenvectors of moments of inertia \n");
+  printf("-dim    find      whether POSCAR is periodic (3) or non-periodic (0)      \n");
+  printf("-box    reset     the box size for nanoparticles                          \n");
+  printf("-sup    make      a supercell specified by na x nb x nc                   \n");
+  printf("-vol    compute   volume per atom for crystal or nano structures          \n");
+  printf("-rnd    randomize unit cell in POSCAR                                   \n");
+  printf("-usr    run       user-defined fun   ctions                                      \n");
   exit(0);
 }
 //==================================================================

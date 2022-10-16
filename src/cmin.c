@@ -31,6 +31,13 @@ void STR_BUF(gsl_vector *x)
 	set(x,j++,CCC->X[i][q]);
   if(CCC->RLXT==2)
     return;
+
+  if(CCC->RLXT>7)
+  {
+    set(x,j++,CCC->L[2][2]);
+    return;
+  }
+
   set(x,j++,CCC->L[0][0]);
   set(x,j++,CCC->L[1][1]);
   set(x,j++,CCC->L[2][2]);
@@ -59,6 +66,14 @@ void BUF_STR(const gsl_vector *x)
     Real(CCC);
     return;
   }
+
+  if(CCC->RLXT>7)
+  {
+    CCC->L[2][2] = x(j++);
+    Real(CCC);
+    return;
+  }
+
   CCC->L[0][0] = x(j++);
   CCC->L[1][1] = x(j++);
   CCC->L[2][2] = x(j++);
@@ -121,17 +136,22 @@ void cdfunc_gsl(const gsl_vector *x, void* params, gsl_vector *d)
     CCC->U[q] -= CCC->p*V;
   }
 
-  set(d,j++,-( CCC->U[0]*CCC->R[0][0] + CCC->U[3]*CCC->R[0][1] + CCC->U[5]*CCC->R[0][2] ) );
-  set(d,j++,-( CCC->U[3]*CCC->R[1][0] + CCC->U[1]*CCC->R[1][1] + CCC->U[4]*CCC->R[1][2] ) );
-  set(d,j++,-( CCC->U[5]*CCC->R[2][0] + CCC->U[4]*CCC->R[2][1] + CCC->U[2]*CCC->R[2][2] ) );
-
-  set(d,j++,-( CCC->U[3]*CCC->R[0][0] + CCC->U[1]*CCC->R[0][1] + CCC->U[4]*CCC->R[0][2] ) );
-  set(d,j++,-( CCC->U[5]*CCC->R[1][0] + CCC->U[4]*CCC->R[1][1] + CCC->U[2]*CCC->R[1][2] ) );
-  set(d,j++,-( CCC->U[0]*CCC->R[2][0] + CCC->U[3]*CCC->R[2][1] + CCC->U[5]*CCC->R[2][2] ) );
-
-  set(d,j++,-( CCC->U[0]*CCC->R[1][0] + CCC->U[3]*CCC->R[1][1] + CCC->U[5]*CCC->R[1][2] ) );
-  set(d,j++,-( CCC->U[3]*CCC->R[2][0] + CCC->U[1]*CCC->R[2][1] + CCC->U[4]*CCC->R[2][2] ) );
-  set(d,j++,-( CCC->U[5]*CCC->R[0][0] + CCC->U[4]*CCC->R[0][1] + CCC->U[2]*CCC->R[0][2] ) );
+  if(CCC->RLXT>7)
+    set(d,j++,-( CCC->U[2]*CCC->R[2][2] ) );    
+  else
+  {
+    set(d,j++,-( CCC->U[0]*CCC->R[0][0] + CCC->U[3]*CCC->R[0][1] + CCC->U[5]*CCC->R[0][2] ) );
+    set(d,j++,-( CCC->U[3]*CCC->R[1][0] + CCC->U[1]*CCC->R[1][1] + CCC->U[4]*CCC->R[1][2] ) );
+    set(d,j++,-( CCC->U[5]*CCC->R[2][0] + CCC->U[4]*CCC->R[2][1] + CCC->U[2]*CCC->R[2][2] ) );
+    
+    set(d,j++,-( CCC->U[3]*CCC->R[0][0] + CCC->U[1]*CCC->R[0][1] + CCC->U[4]*CCC->R[0][2] ) );
+    set(d,j++,-( CCC->U[5]*CCC->R[1][0] + CCC->U[4]*CCC->R[1][1] + CCC->U[2]*CCC->R[1][2] ) );
+    set(d,j++,-( CCC->U[0]*CCC->R[2][0] + CCC->U[3]*CCC->R[2][1] + CCC->U[5]*CCC->R[2][2] ) );
+    
+    set(d,j++,-( CCC->U[0]*CCC->R[1][0] + CCC->U[3]*CCC->R[1][1] + CCC->U[5]*CCC->R[1][2] ) );
+    set(d,j++,-( CCC->U[3]*CCC->R[2][0] + CCC->U[1]*CCC->R[2][1] + CCC->U[4]*CCC->R[2][2] ) );
+    set(d,j++,-( CCC->U[5]*CCC->R[0][0] + CCC->U[4]*CCC->R[0][1] + CCC->U[2]*CCC->R[0][2] ) );
+  }
 
   for(q=0;q<3;q++)
     CCC->U[q] = s[q];
@@ -174,9 +194,11 @@ double CELL_MIN(ANN *R, PRS *P, PRS *W, Cell *C, LNK *L)
   for(i=0;i<CCC->N;i++)
     for(q=0;q<3;q++)
       if(CCC->FF[i][q]==1)
-	N++;
+	N++;  
   if(CCC->RLXT==3||CCC->RLXT==7)
     N += 9;
+  if(CCC->RLXT==8)
+    N += 1;
 
   if(RRC->MINT==0)
     sprintf(min,"%s","BFGS2");
