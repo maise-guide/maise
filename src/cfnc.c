@@ -95,7 +95,7 @@ void APPL_SG(Cell *C, double tol)
 //==================================================================
 void READ_CIF(Cell *C, char file[], double tol, int NM, char input[])    
 { 
-  int i,j,n,q,k; 
+  int i,j,n,q,k,p; 
 
   FILE *in; 
   char buf[200],s[200],t[200],r[200],s0[200],s1[200],s2[200]; 
@@ -233,10 +233,12 @@ void READ_CIF(Cell *C, char file[], double tol, int NM, char input[])
 
         fgets(buf,200,in); 
 
+        p = 1;
+        if(s[1] >=97 && s[1] <=122)
+          p++;
 	for(i=0;i<C->NTE;i++)
-	  if(strncmp(s,C->ES[i],C->SL[i])==0)
+	  if(p==C->SL[i]&&strncmp(s,C->ES[i],C->SL[i])==0)
 	    C->ATMN[C->NS] = i;
-	
       }
     }
   }
