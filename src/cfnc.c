@@ -255,7 +255,7 @@ int FIND_MTY(Cell *C, double tol)
   int i,j,M;
 
   JAR(C);
-  LIST(C,0);
+  LIST(C,1);
   for(i=0,M=1;i<C->N;i++)
   {
     for(j=0;j<C->Nn[i];j++)
