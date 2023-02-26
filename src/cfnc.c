@@ -632,6 +632,46 @@ void MAKE_SUP(Cell *C, Cell *D, int argc, char ARGV[20][200], int NM, char input
   SAVE_CELL(C,"CONTCAR",0);
   exit(0);
 }
+//======================================================================
+// Order atoms by type given an array
+//======================================================================
+void SWAP_Z(Cell *C, Cell *D, int *Z, int N)
+{
+  int    i,j,q,n,z[10];
+  double O[10];
+
+  //===== order by actual Z =====
+  if(N==0)
+  {
+    for(n=0;n<C->NSPC;n++)
+      O[n] = (double)C->SPCZ[n];
+    Sort(O,z,C->NSPC);
+    for(n=0;n<C->NSPC;n++)
+      Z[z[n]] = n;
+  }
+  //===== order as specified in Z =====
+  for(n=0;n<C->NSPC;n++)
+    z[n] = 0;
+  for(n=0;n<C->NSPC;n++)
+    z[Z[n]] = 1;
+  for(n=0;n<C->NSPC;n++)
+    if( z[n]==0 )
+    {
+      printf("Please provide %d different numbers between 0 and %d\n",C->NSPC,C->NSPC-1);
+      exit(0);
+    }
+  
+  for(n=0;n<C->NSPC;n++)
+  {
+    C->SPCZ[Z[n]] = D->SPCZ[n];
+    C->SPCN[Z[n]] = D->SPCN[n];
+  }
+  for(i=0;i<C->N;i++)
+    C->ATMN[i] = Z[D->ATMN[i]];
+  ORDER(C);
+  C->POS = 0;
+  SAVE_CELL(C,"CONTCAR",0);
+}
 //==================================================================
 //    randomize unit cell
 //==================================================================
@@ -665,7 +705,7 @@ void RAND_CELL(Cell *C, int argc, char ARGV[20][200])
 void CELL_EXAM(Cell *C, Cell *D, int argc, char **argv)
 {
   double tol,L;
-  int    i,NM,N[3],m,M;
+  int    i,NM,N[3],m,M,Z[10];
   char   input[200],input0[200],input1[200],ARGV[20][200];
 
   NM = 2000;
@@ -680,6 +720,8 @@ void CELL_EXAM(Cell *C, Cell *D, int argc, char **argv)
     printf("-spg    convert   POSCAR into str.cif, CONV, PRIM                         \n");
     printf("-cif    convert   str.cif into CONV and PRIM                              \n");
     printf("-rot    rotate    a nanoparticle along eigenvectors of moments of inertia \n");
+    printf("-mov    move      atoms along one direction by a constant shift           \n");
+    printf("-ord    order     atoms by species                                        \n");
     printf("-dim    find      whether POSCAR is periodic (3) or non-periodic (0)      \n");
     printf("-box    reset     the box size for nanoparticles                          \n");
     printf("-sup    make      a supercell specified by na x nb x nc                   \n");
@@ -797,6 +839,38 @@ void CELL_EXAM(Cell *C, Cell *D, int argc, char **argv)
     NANO_ROT(C,1);
     exit(0);
   }
+  //================ move atoms by a shift   ================
+  if(strncmp(ARGV[1],"-mov",4)==0)
+  {
+    INIT_CELL(C,input,1,NM,1);
+    if(argc>2)
+      m  = (int)atoi(ARGV[2]);
+    if(argc>3)
+      L = (double)atof(ARGV[3]);
+    Relative(C);
+    for(i=0;i<C->N;i++)
+      C->X[i][m] += L;
+    Real(C);
+    JAR(C);
+    C->POS = 0;
+    SAVE_CELL(C,"CONTCAR",0);
+    exit(0);
+  }
+  //================ order atoms by species  ================
+  if(strncmp(ARGV[1],"-ord",4)==0)
+  {
+    INIT_CELL(C,input,1,NM,1);
+    INIT_CELL(D,input,1,NM,1);
+    if( argc != 2 && ((argc-2) != C->NSPC) )
+    {
+      printf("Please provide %d numbers between 0 and %d to reorder species in %s\n",C->NSPC,C->NSPC-1,input);
+      exit(0);
+    }
+    for(i=0;i<C->NSPC;i++)
+      Z[i] = (int)atoi(ARGV[i+2]);
+    SWAP_Z(C,D,Z,argc-2);
+    exit(0);
+  }
   //================  determine dimensionality  =============
   if(strncmp(ARGV[1],"-dim",4)==0)
   {
@@ -867,13 +941,15 @@ void CELL_EXAM(Cell *C, Cell *D, int argc, char **argv)
     printf("-cif    convert str.cif into CONV and PRIM                              \n");
     printf("        options: [ tolerance, max near. neigh. ]                        \n");
     printf("-rot    rotate  a nanoparticle along eigenvectors of moments of inertia \n");
+    printf("-mov    move atoms along one direction by a constant shift              \n");
+    printf("-ord    order atoms by species                                          \n");
     printf("-dim    find    whether POSCAR is periodic (3) or non-periodic (0)      \n");
     printf("-box    reset   the box size for nanoparticles                          \n");
     printf("-sup    make    a supercell specified by na x nb x nc                   \n");
     printf("-vol    compute volume per atom for crystal or nano structures          \n");
     printf("-rdf    randomize unit cell in POSCAR                                   \n");
     printf("        options: [ at disortions, uc distortions, seed ]                \n");
-    printf("-usr    run user-defined functions                                      \n");
+    printf("-usr    run user-defined functions                                      \n");    
     exit(0);    
   }
 
@@ -886,6 +962,8 @@ void CELL_EXAM(Cell *C, Cell *D, int argc, char **argv)
   printf("-spg    convert   POSCAR into str.cif, CONV, PRIM                         \n");
   printf("-cif    convert   str.cif into CONV and PRIM                              \n");
   printf("-rot    rotate    a nanoparticle along eigenvectors of moments of inertia \n");
+  printf("-mov    move      atoms along one direction by a constant shift           \n");
+  printf("-ord    order     atoms by species                                        \n");
   printf("-dim    find      whether POSCAR is periodic (3) or non-periodic (0)      \n");
   printf("-box    reset     the box size for nanoparticles                          \n");
   printf("-sup    make      a supercell specified by na x nb x nc                   \n");
