@@ -700,6 +700,57 @@ void RAND_CELL(Cell *C, int argc, char ARGV[20][200])
   exit(0);
 }
 //==================================================================
+//    shift unit cell along a phonon eigenmode
+//==================================================================
+void EIGM_CELL(Cell *C, int argc, char ARGV[20][200])
+{
+  int    i,j,q;
+  FILE   *in;
+  double dX;
+
+  dX = 0.1;
+
+  if(argc>2)
+    dX = (double)atof(ARGV[2]);
+
+  C->POS = 0;
+
+  if( !(in=fopen("EV","r")))
+  {
+    printf("File EV is not found\n");
+    exit(0);
+  }
+  for(i=0;i<C->N;i++)
+  {
+    fscanf(in,"%lf %lf %lf %lf %lf %lf\n",&C->F[i][0],&C->F[i][1],&C->F[i][2],&C->V[i][0],&C->V[i][1],&C->V[i][2]);
+    for(q=0;q<3;q++)
+      if( fabs(C->X[i][q]-C->F[i][q])>1e-5)
+      {
+        printf("EV file is inconsistent with POSCAR");
+        exit(0);
+      }
+    for(q=0;q<3;q++)
+      if( fabs(C->V[i][q])<0.05 )
+        C->V[i][q] = 0.0;
+    if( fabs(C->V[i][0])>1e-5 || fabs(C->V[i][1])>1e-5 ||fabs(C->V[i][2])>1e-5 )
+      printf("%3d % lf % lf % lf\n",i,C->V[i][1],C->V[i][1],C->V[i][2]);
+
+  }
+  printf("\n");
+  fclose(in);
+
+  Relative(C);
+  for(i=0;i<C->N;i++)
+    for(q=0;q<3;q++)
+      C->X[i][q] += C->V[i][q]*dX;
+
+  Real(C);
+  JAR(C);
+
+  SAVE_CELL(C,"CONTCAR",0);
+  exit(0);
+}
+//==================================================================
 //    run a job defined by FLAGs
 //==================================================================
 void CELL_EXAM(Cell *C, Cell *D, int argc, char **argv)
@@ -727,6 +778,7 @@ void CELL_EXAM(Cell *C, Cell *D, int argc, char **argv)
     printf("-sup    make      a supercell specified by na x nb x nc                   \n");
     printf("-vol    compute   volume per atom for crystal or nano structures          \n");
     printf("-rnd    randomize unit cell in POSCAR                                     \n");
+    printf("-eig    shift     unit cell in POSCAR along eigenmode in EV               \n");
     exit(0);
   }
 
@@ -920,7 +972,14 @@ void CELL_EXAM(Cell *C, Cell *D, int argc, char **argv)
     RAND_CELL(C,argc,ARGV);
     exit(0);
   }
-  //================  run user-defined functions   ==========
+  //==================  randomize unit cell  ==================
+  if(strncmp(ARGV[1],"-eig",4)==0)
+  {
+    INIT_CELL(C,input,1,NM,1);
+    EIGM_CELL(C,argc,ARGV);
+    exit(0);
+  }
+  //================  run user-defined functions   ============
   if(strncmp(ARGV[1],"-usr",4)==0)  
   {
     USER_CELL(C,D,argc,argv);
@@ -949,6 +1008,8 @@ void CELL_EXAM(Cell *C, Cell *D, int argc, char **argv)
     printf("-vol    compute volume per atom for crystal or nano structures          \n");
     printf("-rdf    randomize unit cell in POSCAR                                   \n");
     printf("        options: [ at disortions, uc distortions, seed ]                \n");
+    printf("-eig    shift unit cell in POSCAR along eigenmode in EV                 \n");
+    printf("        options: [ distortion strength ]                                \n");
     printf("-usr    run user-defined functions                                      \n");    
     exit(0);    
   }
@@ -968,8 +1029,9 @@ void CELL_EXAM(Cell *C, Cell *D, int argc, char **argv)
   printf("-box    reset     the box size for nanoparticles                          \n");
   printf("-sup    make      a supercell specified by na x nb x nc                   \n");
   printf("-vol    compute   volume per atom for crystal or nano structures          \n");
-  printf("-rnd    randomize unit cell in POSCAR                                   \n");
-  printf("-usr    run       user-defined fun   ctions                                      \n");
+  printf("-rnd    randomize unit cell in POSCAR                                     \n");
+  printf("-eig    shift     unit cell in POSCAR along eigenmode in EV               \n");
+  printf("-usr    run       user-defined functions                                  \n");
   exit(0);
 }
 //==================================================================
