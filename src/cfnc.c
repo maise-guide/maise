@@ -726,7 +726,7 @@ void EIGM_CELL(Cell *C, int argc, char ARGV[20][200])
     for(q=0;q<3;q++)
       if( fabs(C->X[i][q]-C->F[i][q])>1e-5)
       {
-        printf("EV file is inconsistent with POSCAR");
+        printf("EV file is inconsistent with POSCAR\n");
         exit(0);
       }
     for(q=0;q<3;q++)
