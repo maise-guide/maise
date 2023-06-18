@@ -464,17 +464,22 @@ void PRS_BP(PRS *P, PRS *W, Cell *C, LNK *L, int o, char *path)
     powz[z] = pow(2.0,1.0-P->GP[5][z]);
   LIST(C,0);  
 
-  //===== symmetry functions by species  =====
-  //-----ij-ijk-------------------------------
+  //============= symmetry functions by species  =============
+  //-----ij-ijk-----------------------------------------------
   //    |AA|AAA|
-  //------------------------------------------
+  //----------------------------------------------------------
   //    |AA|AAA|AB|AAB|ABB|
   //    |BB|BBB|BA|BBA|BAA|
-  //------------------------------------------
+  //----------------------------------------------------------
   //    |AA|AAA|AB|AAB|ABB|AC|AAC|ACC|ABC|
   //    |BB|BBB|BC|BBC|BCC|BA|BBA|BAA|BCA|
   //    |CC|CCC|CA|CCA|CAA|CB|CCB|CBB|CAB|
-  //==========================================
+  //----------------------------------------------------------
+  //    |AA|AAA|AB|AAB|ABB|AC|AAC|ACC|ABC|AD|AAD|ADD|ABD|ACD|
+  //    |BB|BBB|BC|BBC|BCC|BA|BBA|BAA|BCA|BD|BBD|BDD|BCD|BAD|
+  //    |CC|CCC|CA|CCA|CAA|CB|CCB|CBB|CAB|CD|CCD|CDD|CAD|CBD|
+  //    |DD|DDD|DB|DDB|DBB|AC|AAC|ACC|ABC|AD|AAD|ADD|ABD|ACD|
+  //==========================================================
 
   ind2[0] = 0;
   ind2[1] = 1*P->NG2 + 1*P->NG4;
