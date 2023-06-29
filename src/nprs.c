@@ -487,14 +487,11 @@ void PRS_BP(PRS *P, PRS *W, Cell *C, LNK *L, int o, char *path)
   ind2[ 3] = 3*P->NG2 + 6*P->NG4;
 
   ind4[ 0] = 1*P->NG2;
-
   ind4[ 1] = 2*P->NG2 + 1*P->NG4;
   ind4[ 2] = 2*P->NG2 + 2*P->NG4;
-
   ind4[ 4] = 3*P->NG2 + 3*P->NG4;
   ind4[ 8] = 3*P->NG2 + 4*P->NG4;
   ind4[ 5] = 3*P->NG2 + 5*P->NG4;
-
   ind4[ 9] = 4*P->NG2 + 6*P->NG4;
   ind4[18] = 4*P->NG2 + 7*P->NG4; 
   ind4[10] = 4*P->NG2 + 8*P->NG4;
