@@ -450,7 +450,7 @@ void PRS_BP(PRS *P, PRS *W, Cell *C, LNK *L, int o, char *path)
   double dxij[3],dxik[3],dxji[3],dxjk[3],dqij[3],dqik[3];
   int    l,z,n2,n4,n6,n7; 
 
-  int    ind2[10],ind4[10];
+  int    ind2[20],ind4[20];
   int    m,s0,s1,s2,s01,s02,s12,ds1,ds2,ds,g2,g4;
 
   L->N   = C->N;
@@ -476,21 +476,29 @@ void PRS_BP(PRS *P, PRS *W, Cell *C, LNK *L, int o, char *path)
   //    |CC|CCC|CA|CCA|CAA|CB|CCB|CBB|CAB|
   //----------------------------------------------------------
   //    |AA|AAA|AB|AAB|ABB|AC|AAC|ACC|ABC|AD|AAD|ADD|ABD|ACD|
-  //    |BB|BBB|BC|BBC|BCC|BA|BBA|BAA|BCA|BD|BBD|BDD|BCD|BAD|
-  //    |CC|CCC|CA|CCA|CAA|CB|CCB|CBB|CAB|CD|CCD|CDD|CAD|CBD|
-  //    |DD|DDD|DB|DDB|DBB|AC|AAC|ACC|ABC|AD|AAD|ADD|ABD|ACD|
+  //    |BB|BBB|BC|BBC|BCC|BD|BBD|BDD|BCD|BA|BBA|BAA|BCA|BDA|
+  //    |CC|CCC|CD|CCD|CDD|CA|CCA|CAA|CDA|CB|CCB|CBB|CDB|CAB|
+  //    |DD|DDD|DA|DDA|DAA|DB|DDB|DBB|DAB|DC|DDC|DCC|DAC|DBC|
   //==========================================================
 
-  ind2[0] = 0;
-  ind2[1] = 1*P->NG2 + 1*P->NG4;
-  ind2[2] = 2*P->NG2 + 3*P->NG4;
+  ind2[ 0] = 0;
+  ind2[ 1] = 1*P->NG2 + 1*P->NG4;
+  ind2[ 2] = 2*P->NG2 + 3*P->NG4;
+  ind2[ 3] = 3*P->NG2 + 6*P->NG4;
 
-  ind4[0] = 1*P->NG2;
-  ind4[1] = 2*P->NG2 + 1*P->NG4;
-  ind4[2] = 2*P->NG2 + 2*P->NG4;
-  ind4[4] = 3*P->NG2 + 3*P->NG4;
-  ind4[8] = 3*P->NG2 + 4*P->NG4;
-  ind4[5] = 3*P->NG2 + 5*P->NG4;
+  ind4[ 0] = 1*P->NG2;
+
+  ind4[ 1] = 2*P->NG2 + 1*P->NG4;
+  ind4[ 2] = 2*P->NG2 + 2*P->NG4;
+
+  ind4[ 4] = 3*P->NG2 + 3*P->NG4;
+  ind4[ 8] = 3*P->NG2 + 4*P->NG4;
+  ind4[ 5] = 3*P->NG2 + 5*P->NG4;
+
+  ind4[ 9] = 4*P->NG2 + 6*P->NG4;
+  ind4[18] = 4*P->NG2 + 7*P->NG4; 
+  ind4[10] = 4*P->NG2 + 8*P->NG4;
+  ind4[13] = 4*P->NG2 + 9*P->NG4; 
 
   for(i=0;i<C->N;i++) 
     for(n=0;n<P->D;n++)   
