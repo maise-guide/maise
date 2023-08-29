@@ -314,6 +314,21 @@ void FIND_PRS(Cell *C, Cell *D, double tol)
   sprintf(C->PRS+1,"P");  
   M = 1;
 
+  if( ( 15 < C->SGN && C->SGN <  75)|| (194 < C->SGN && C->SGN < 231) )  // oF or cF
+  {
+    Copy_C(C,D);
+    for(q=0;q<3;q++)
+    {
+      D->L[0][q] = 0.5*(C->L[1][q]+C->L[2][q]);
+      D->L[1][q] = 0.5*(C->L[2][q]+C->L[0][q]);
+      D->L[2][q] = 0.5*(C->L[0][q]+C->L[1][q]);
+    }
+    M = FIND_MTY(D,tol);
+    if(M>1)
+      sprintf(C->PRS+1,"F");
+  }
+  
+  if(M==1)
   if( (  2 < C->SGN && C->SGN <  16)|| ( 15 < C->SGN && C->SGN <  75) )  // mS or oS
   {
     for(k=0;k<3;k++)
@@ -333,21 +348,6 @@ void FIND_PRS(Cell *C, Cell *D, double tol)
     if(M>1)
       sprintf(C->PRS+1,"S");
   }  
-
-  if(M==1)
-  if( ( 15 < C->SGN && C->SGN <  75)|| (194 < C->SGN && C->SGN < 231) )  // oF or cF
-  {
-    Copy_C(C,D);
-    for(q=0;q<3;q++)
-    {
-      D->L[0][q] = 0.5*(C->L[1][q]+C->L[2][q]);
-      D->L[1][q] = 0.5*(C->L[2][q]+C->L[0][q]);
-      D->L[2][q] = 0.5*(C->L[0][q]+C->L[1][q]);
-    }
-    M = FIND_MTY(D,tol);
-    if(M>1)
-      sprintf(C->PRS+1,"F");
-  }
 
   if(M==1)
   if( ( 15 < C->SGN && C->SGN < 143)|| (194 < C->SGN && C->SGN < 231) )  // oI, tI, or cI
@@ -751,6 +751,94 @@ void EIGM_CELL(Cell *C, int argc, char ARGV[20][200])
   exit(0);
 }
 //==================================================================
+//  extract snapshots from OUTCAR
+//==================================================================
+void SNAP_SHOT(Cell *C, int argc, char ARGV[20][200])
+{
+  int    i,j,q,n,NS,NSW;
+  FILE   *in;
+  char   buf[200],s[200];
+
+  NS = 100;
+  if(argc>2)
+    NS = (double)atof(ARGV[2]);
+
+  C->POS = 1;
+
+  if( !(in=fopen("OUTCAR","r")))
+  {
+    printf("File OUTCAR is not found\n");
+    exit(0);
+  }
+
+  NSW = -1;
+  while(fgets(buf,200,in))
+  {
+    sscanf(buf,"%s",s);
+    if( strncmp(s,"NSW",3) == 0 )
+      sscanf(buf,"%s %s %d",s,s,&NSW);
+    if( strncmp(s,"direct",6) == 0 )
+      break;
+  }
+
+  n = j = 0;
+  while(fgets(buf,200,in))
+  {
+    sscanf(buf,"%s",s);
+    if( strncmp(s,"direct",6) == 0 )
+    {
+      sprintf(s,"0");
+      for(i=0;i<3;i++)
+      {
+	fgets(buf,200,in);
+	sscanf(buf,"%lf %lf %lf",&C->L[i][0],&C->L[i][1],&C->L[i][2]);
+      }
+      n++;
+      if( n==1 || n%NS==0 || n==NSW )
+      {
+	j++;
+	while(fgets(buf,200,in))
+	{
+	  sscanf(buf,"%s",s);
+	  if( strncmp(s,"POSITION",8) == 0 )
+	  {
+	    sprintf(s,"0");
+	    fgets(buf,200,in);
+	    for(i=0;i<C->N;i++)
+	    {
+	      fgets(buf,200,in);
+	      sscanf(buf,"%lf %lf %lf %lf %lf %lf\n",&C->X[i][0],&C->X[i][1],&C->X[i][2],&C->V[i][0],&C->V[i][1],&C->V[i][2]);
+	    }
+	    break;
+	  }
+	}
+        while(fgets(buf,200,in))
+        {
+          sscanf(buf,"%s",s);
+          if( strncmp(s,"FREE",4) == 0 )
+          {
+            sprintf(s,"0");
+            for(i=0;i<4;i++)
+              fgets(buf,200,in);
+            sscanf(buf+65,"%lf\n",&C->E);
+	    // printf("% 12.8lf\n",C->E);
+	    break;
+	  }
+        }
+	sprintf(C->TAG,"%6d % 12.8lf",n,C->E);
+	sprintf(buf,"POSCAR%03d",j);
+	SAVE_CELL(C,buf,0);
+      }
+    }
+  }
+
+  fclose(in);
+
+  printf("%6d %6d %6d\n",NS,NSW,n);
+
+  exit(0);
+}
+//==================================================================
 //    run a job defined by FLAGs
 //==================================================================
 void CELL_EXAM(Cell *C, Cell *D, int argc, char **argv)
@@ -779,6 +867,7 @@ void CELL_EXAM(Cell *C, Cell *D, int argc, char **argv)
     printf("-vol    compute   volume per atom for crystal or nano structures          \n");
     printf("-rnd    randomize unit cell in POSCAR                                     \n");
     printf("-eig    shift     unit cell in POSCAR along eigenmode in EV               \n");
+    printf("-out    extract   snapshots from OUTCAR                                   \n");
     exit(0);
   }
 
@@ -979,6 +1068,13 @@ void CELL_EXAM(Cell *C, Cell *D, int argc, char **argv)
     EIGM_CELL(C,argc,ARGV);
     exit(0);
   }
+  //==================   extract snapshots   ==================
+  if(strncmp(ARGV[1],"-out",4)==0)
+  {
+    INIT_CELL(C,input,1,NM,1);
+    SNAP_SHOT(C,argc,ARGV);
+    exit(0);
+  }
   //================  run user-defined functions   ============
   if(strncmp(ARGV[1],"-usr",4)==0)  
   {
@@ -1010,6 +1106,8 @@ void CELL_EXAM(Cell *C, Cell *D, int argc, char **argv)
     printf("        options: [ at disortions, uc distortions, seed ]                \n");
     printf("-eig    shift unit cell in POSCAR along eigenmode in EV                 \n");
     printf("        options: [ distortion strength ]                                \n");
+    printf("-out    extract snapshots from OUTCAR given POSCAR                      \n");
+    printf("        options: [ number of iterations between snapshots ]             \n");
     printf("-usr    run user-defined functions                                      \n");    
     exit(0);    
   }
@@ -1031,6 +1129,7 @@ void CELL_EXAM(Cell *C, Cell *D, int argc, char **argv)
   printf("-vol    compute   volume per atom for crystal or nano structures          \n");
   printf("-rnd    randomize unit cell in POSCAR                                     \n");
   printf("-eig    shift     unit cell in POSCAR along eigenmode in EV               \n");
+  printf("-out    extract   snapshots from OUTCAR                                   \n");
   printf("-usr    run       user-defined functions                                  \n");
   exit(0);
 }
