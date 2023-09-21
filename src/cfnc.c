@@ -704,14 +704,17 @@ void RAND_CELL(Cell *C, int argc, char ARGV[20][200])
 //==================================================================
 void EIGM_CELL(Cell *C, int argc, char ARGV[20][200])
 {
-  int    i,j,q;
+  int    i,j,q,FF;
   FILE   *in;
   double dX;
 
   dX = 0.1;
+  FF = 0;
 
   if(argc>2)
     dX = (double)atof(ARGV[2]);
+  if(argc>3)
+    FF =    (int)atoi(ARGV[3]);
 
   C->POS = 0;
 
@@ -733,8 +736,13 @@ void EIGM_CELL(Cell *C, int argc, char ARGV[20][200])
       if( fabs(C->V[i][q])<0.05 )
         C->V[i][q] = 0.0;
     if( fabs(C->V[i][0])>1e-5 || fabs(C->V[i][1])>1e-5 ||fabs(C->V[i][2])>1e-5 )
-      printf("%3d % lf % lf % lf\n",i,C->V[i][1],C->V[i][1],C->V[i][2]);
-
+      if( FF == 0 )
+	printf("%3d % lf % lf % lf\n",i,C->V[i][1],C->V[i][1],C->V[i][2]);
+      else
+      {
+	printf("%3d % lf % lf % lf F F F\n",i,C->V[i][1],C->V[i][1],C->V[i][2]);
+	C->FF[i][0] = C->FF[i][1] = C->FF[i][2] = 0;
+      }
   }
   printf("\n");
   fclose(in);
@@ -747,7 +755,7 @@ void EIGM_CELL(Cell *C, int argc, char ARGV[20][200])
   Real(C);
   JAR(C);
 
-  SAVE_CELL(C,"CONTCAR",0);
+  SAVE_CELL(C,"CONTCAR",FF);
   exit(0);
 }
 //==================================================================

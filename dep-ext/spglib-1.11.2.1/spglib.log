@@ -1,0 +1,146 @@
+-- The C compiler identification is GNU 4.8.5
+-- Check for working C compiler: /usr/bin/cc
+-- Check for working C compiler: /usr/bin/cc -- works
+-- Detecting C compiler ABI info
+-- Detecting C compiler ABI info - done
+-- Detecting C compile features
+-- Detecting C compile features - done
+-- Build type: Release
+-- Configuring done
+-- Generating done
+-- Build files have been written to: /mnt/Storage/home/al/GITHUB/maise.2.9.01/dep-ext/spglib-1.11.2.1/_build
+make[1]: Entering directory `/mnt/Storage/home/al/GITHUB/maise.2.9.01/dep-ext/spglib-1.11.2.1/_build'
+make[2]: Entering directory `/mnt/Storage/home/al/GITHUB/maise.2.9.01/dep-ext/spglib-1.11.2.1/_build'
+make[3]: Entering directory `/mnt/Storage/home/al/GITHUB/maise.2.9.01/dep-ext/spglib-1.11.2.1/_build'
+make[3]: Entering directory `/mnt/Storage/home/al/GITHUB/maise.2.9.01/dep-ext/spglib-1.11.2.1/_build'
+Scanning dependencies of target symspg_static
+make[3]: Leaving directory `/mnt/Storage/home/al/GITHUB/maise.2.9.01/dep-ext/spglib-1.11.2.1/_build'
+make[3]: Entering directory `/mnt/Storage/home/al/GITHUB/maise.2.9.01/dep-ext/spglib-1.11.2.1/_build'
+Scanning dependencies of target symspg
+make[3]: Leaving directory `/mnt/Storage/home/al/GITHUB/maise.2.9.01/dep-ext/spglib-1.11.2.1/_build'
+make[3]: Entering directory `/mnt/Storage/home/al/GITHUB/maise.2.9.01/dep-ext/spglib-1.11.2.1/_build'
+[  2%] Building C object CMakeFiles/symspg_static.dir/src/arithmetic.o
+[  4%] Building C object CMakeFiles/symspg_static.dir/src/delaunay.o
+[  6%] Building C object CMakeFiles/symspg_static.dir/src/determination.o
+[  9%] Building C object CMakeFiles/symspg_static.dir/src/cell.o
+[ 11%] Building C object CMakeFiles/symspg_static.dir/src/kpoint.o
+[ 13%] Building C object CMakeFiles/symspg_static.dir/src/debug.o
+[ 15%] Building C object CMakeFiles/symspg_static.dir/src/pointgroup.o
+[ 18%] Building C object CMakeFiles/symspg_static.dir/src/hall_symbol.o
+[ 20%] Building C object CMakeFiles/symspg_static.dir/src/overlap.o
+[ 22%] Building C object CMakeFiles/symspg.dir/src/arithmetic.o
+[ 27%] Building C object CMakeFiles/symspg.dir/src/cell.o
+[ 27%] Building C object CMakeFiles/symspg_static.dir/src/mathfunc.o
+[ 29%] Building C object CMakeFiles/symspg_static.dir/src/refinement.o
+[ 31%] Building C object CMakeFiles/symspg_static.dir/src/spg_database.o
+[ 34%] Building C object CMakeFiles/symspg_static.dir/src/spacegroup.o
+[ 38%] Building C object CMakeFiles/symspg.dir/src/delaunay.o
+[ 38%] Building C object CMakeFiles/symspg.dir/src/determination.o
+[ 40%] Building C object CMakeFiles/symspg.dir/src/debug.o
+[ 43%] Building C object CMakeFiles/symspg_static.dir/src/symmetry.o
+[ 45%] Building C object CMakeFiles/symspg_static.dir/src/spin.o
+[ 47%] Building C object CMakeFiles/symspg_static.dir/src/niggli.o
+[ 50%] Building C object CMakeFiles/symspg.dir/src/kgrid.o
+[ 54%] Building C object CMakeFiles/symspg_static.dir/src/spglib.o
+[ 54%] Building C object CMakeFiles/symspg_static.dir/src/kgrid.o
+[ 56%] Building C object CMakeFiles/symspg.dir/src/kpoint.o
+[ 59%] Building C object CMakeFiles/symspg_static.dir/src/primitive.o
+[ 61%] Building C object CMakeFiles/symspg.dir/src/niggli.o
+[ 63%] Building C object CMakeFiles/symspg_static.dir/src/sitesym_database.o
+[ 65%] Building C object CMakeFiles/symspg.dir/src/pointgroup.o
+[ 70%] Building C object CMakeFiles/symspg.dir/src/overlap.o
+[ 72%] Building C object CMakeFiles/symspg_static.dir/src/site_symmetry.o
+[ 72%] Building C object CMakeFiles/symspg.dir/src/primitive.o
+[ 75%] Building C object CMakeFiles/symspg.dir/src/hall_symbol.o
+[ 77%] Building C object CMakeFiles/symspg.dir/src/mathfunc.o
+[ 79%] Building C object CMakeFiles/symspg.dir/src/refinement.o
+[ 81%] Building C object CMakeFiles/symspg.dir/src/site_symmetry.o
+/mnt/Storage/home/al/GITHUB/maise.2.9.01/dep-ext/spglib-1.11.2.1/src/kpoint.c: In function ‘get_ir_reciprocal_mesh_normal’:
+/mnt/Storage/home/al/GITHUB/maise.2.9.01/dep-ext/spglib-1.11.2.1/src/kpoint.c:690:0: warning: ignoring #pragma omp parallel [-Wunknown-pragmas]
+ #pragma omp parallel for private(j, grid_point_rot, address_double, address_double_rot)
+ ^
+/mnt/Storage/home/al/GITHUB/maise.2.9.01/dep-ext/spglib-1.11.2.1/src/kpoint.c: In function ‘get_long_ir_reciprocal_mesh_normal’:
+/mnt/Storage/home/al/GITHUB/maise.2.9.01/dep-ext/spglib-1.11.2.1/src/kpoint.c:735:0: warning: ignoring #pragma omp parallel [-Wunknown-pragmas]
+ #pragma omp parallel for private(j, grid_point_rot, address_double, address_double_rot)
+ ^
+/mnt/Storage/home/al/GITHUB/maise.2.9.01/dep-ext/spglib-1.11.2.1/src/kpoint.c: In function ‘get_ir_reciprocal_mesh_distortion’:
+/mnt/Storage/home/al/GITHUB/maise.2.9.01/dep-ext/spglib-1.11.2.1/src/kpoint.c:776:0: warning: ignoring #pragma omp parallel [-Wunknown-pragmas]
+ #pragma omp parallel for private(j, k, grid_point_rot, address_double, address_double_rot)
+ ^
+/mnt/Storage/home/al/GITHUB/maise.2.9.01/dep-ext/spglib-1.11.2.1/src/kpoint.c: In function ‘get_long_ir_reciprocal_mesh_distortion’:
+/mnt/Storage/home/al/GITHUB/maise.2.9.01/dep-ext/spglib-1.11.2.1/src/kpoint.c:832:0: warning: ignoring #pragma omp parallel [-Wunknown-pragmas]
+ #pragma omp parallel for private(j, k, grid_point_rot, address_double, address_double_rot)
+ ^
+/mnt/Storage/home/al/GITHUB/maise.2.9.01/dep-ext/spglib-1.11.2.1/src/kpoint.c: In function ‘get_num_ir’:
+/mnt/Storage/home/al/GITHUB/maise.2.9.01/dep-ext/spglib-1.11.2.1/src/kpoint.c:878:0: warning: ignoring #pragma omp parallel [-Wunknown-pragmas]
+ #pragma omp parallel for reduction(+:num_ir)
+ ^
+/mnt/Storage/home/al/GITHUB/maise.2.9.01/dep-ext/spglib-1.11.2.1/src/kpoint.c: In function ‘get_long_num_ir’:
+/mnt/Storage/home/al/GITHUB/maise.2.9.01/dep-ext/spglib-1.11.2.1/src/kpoint.c:900:0: warning: ignoring #pragma omp parallel [-Wunknown-pragmas]
+ #pragma omp parallel for reduction(+:num_ir)
+ ^
+/mnt/Storage/home/al/GITHUB/maise.2.9.01/dep-ext/spglib-1.11.2.1/src/kpoint.c: In function ‘get_ir_reciprocal_mesh_normal’:
+/mnt/Storage/home/al/GITHUB/maise.2.9.01/dep-ext/spglib-1.11.2.1/src/kpoint.c:690:0: warning: ignoring #pragma omp parallel [-Wunknown-pragmas]
+ #pragma omp parallel for private(j, grid_point_rot, address_double, address_double_rot)
+ ^
+/mnt/Storage/home/al/GITHUB/maise.2.9.01/dep-ext/spglib-1.11.2.1/src/kpoint.c: In function ‘get_long_ir_reciprocal_mesh_normal’:
+/mnt/Storage/home/al/GITHUB/maise.2.9.01/dep-ext/spglib-1.11.2.1/src/kpoint.c:735:0: warning: ignoring #pragma omp parallel [-Wunknown-pragmas]
+ #pragma omp parallel for private(j, grid_point_rot, address_double, address_double_rot)
+ ^
+/mnt/Storage/home/al/GITHUB/maise.2.9.01/dep-ext/spglib-1.11.2.1/src/kpoint.c: In function ‘get_ir_reciprocal_mesh_distortion’:
+/mnt/Storage/home/al/GITHUB/maise.2.9.01/dep-ext/spglib-1.11.2.1/src/kpoint.c:776:0: warning: ignoring #pragma omp parallel [-Wunknown-pragmas]
+ #pragma omp parallel for private(j, k, grid_point_rot, address_double, address_double_rot)
+ ^
+/mnt/Storage/home/al/GITHUB/maise.2.9.01/dep-ext/spglib-1.11.2.1/src/kpoint.c: In function ‘get_long_ir_reciprocal_mesh_distortion’:
+/mnt/Storage/home/al/GITHUB/maise.2.9.01/dep-ext/spglib-1.11.2.1/src/kpoint.c:832:0: warning: ignoring #pragma omp parallel [-Wunknown-pragmas]
+ #pragma omp parallel for private(j, k, grid_point_rot, address_double, address_double_rot)
+ ^
+/mnt/Storage/home/al/GITHUB/maise.2.9.01/dep-ext/spglib-1.11.2.1/src/kpoint.c: In function ‘get_num_ir’:
+/mnt/Storage/home/al/GITHUB/maise.2.9.01/dep-ext/spglib-1.11.2.1/src/kpoint.c:878:0: warning: ignoring #pragma omp parallel [-Wunknown-pragmas]
+ #pragma omp parallel for reduction(+:num_ir)
+ ^
+/mnt/Storage/home/al/GITHUB/maise.2.9.01/dep-ext/spglib-1.11.2.1/src/kpoint.c: In function ‘get_long_num_ir’:
+/mnt/Storage/home/al/GITHUB/maise.2.9.01/dep-ext/spglib-1.11.2.1/src/kpoint.c:900:0: warning: ignoring #pragma omp parallel [-Wunknown-pragmas]
+ #pragma omp parallel for reduction(+:num_ir)
+ ^
+[ 84%] Building C object CMakeFiles/symspg.dir/src/sitesym_database.o
+[ 86%] Building C object CMakeFiles/symspg.dir/src/spacegroup.o
+[ 88%] Building C object CMakeFiles/symspg.dir/src/spg_database.o
+[ 90%] Building C object CMakeFiles/symspg.dir/src/spin.o
+[ 93%] Building C object CMakeFiles/symspg.dir/src/spglib.o
+[ 95%] Building C object CMakeFiles/symspg.dir/src/symmetry.o
+[ 97%] Linking C static library libsymspg.a
+make[3]: Leaving directory `/mnt/Storage/home/al/GITHUB/maise.2.9.01/dep-ext/spglib-1.11.2.1/_build'
+[100%] Linking C shared library libsymspg.so
+[100%] Built target symspg_static
+make[3]: Leaving directory `/mnt/Storage/home/al/GITHUB/maise.2.9.01/dep-ext/spglib-1.11.2.1/_build'
+[100%] Built target symspg
+make[2]: Leaving directory `/mnt/Storage/home/al/GITHUB/maise.2.9.01/dep-ext/spglib-1.11.2.1/_build'
+make[1]: Leaving directory `/mnt/Storage/home/al/GITHUB/maise.2.9.01/dep-ext/spglib-1.11.2.1/_build'
+make[1]: Entering directory `/mnt/Storage/home/al/GITHUB/maise.2.9.01/dep-ext/spglib-1.11.2.1/_build'
+make[2]: Entering directory `/mnt/Storage/home/al/GITHUB/maise.2.9.01/dep-ext/spglib-1.11.2.1/_build'
+make[3]: Entering directory `/mnt/Storage/home/al/GITHUB/maise.2.9.01/dep-ext/spglib-1.11.2.1/_build'
+make[3]: Entering directory `/mnt/Storage/home/al/GITHUB/maise.2.9.01/dep-ext/spglib-1.11.2.1/_build'
+make[3]: Leaving directory `/mnt/Storage/home/al/GITHUB/maise.2.9.01/dep-ext/spglib-1.11.2.1/_build'
+make[3]: Leaving directory `/mnt/Storage/home/al/GITHUB/maise.2.9.01/dep-ext/spglib-1.11.2.1/_build'
+[ 50%] Built target symspg_static
+[100%] Built target symspg
+make[2]: Leaving directory `/mnt/Storage/home/al/GITHUB/maise.2.9.01/dep-ext/spglib-1.11.2.1/_build'
+make[1]: Leaving directory `/mnt/Storage/home/al/GITHUB/maise.2.9.01/dep-ext/spglib-1.11.2.1/_build'
+make[1]: Entering directory `/mnt/Storage/home/al/GITHUB/maise.2.9.01/dep-ext/spglib-1.11.2.1/_build'
+make[2]: Entering directory `/mnt/Storage/home/al/GITHUB/maise.2.9.01/dep-ext/spglib-1.11.2.1/_build'
+make[3]: Entering directory `/mnt/Storage/home/al/GITHUB/maise.2.9.01/dep-ext/spglib-1.11.2.1/_build'
+make[3]: Entering directory `/mnt/Storage/home/al/GITHUB/maise.2.9.01/dep-ext/spglib-1.11.2.1/_build'
+make[3]: Leaving directory `/mnt/Storage/home/al/GITHUB/maise.2.9.01/dep-ext/spglib-1.11.2.1/_build'
+make[3]: Leaving directory `/mnt/Storage/home/al/GITHUB/maise.2.9.01/dep-ext/spglib-1.11.2.1/_build'
+[ 59%] Built target symspg_static
+[100%] Built target symspg
+make[2]: Leaving directory `/mnt/Storage/home/al/GITHUB/maise.2.9.01/dep-ext/spglib-1.11.2.1/_build'
+Install the project...
+-- Install configuration: "Release"
+-- Installing: /mnt/Storage/home/al/GITHUB/maise.2.9.01/dep-ext/spglib-1.11.2.1/_build/../usr/local/lib/libsymspg.so.1.11.2
+-- Installing: /mnt/Storage/home/al/GITHUB/maise.2.9.01/dep-ext/spglib-1.11.2.1/_build/../usr/local/lib/libsymspg.so.1
+-- Installing: /mnt/Storage/home/al/GITHUB/maise.2.9.01/dep-ext/spglib-1.11.2.1/_build/../usr/local/lib/libsymspg.so
+-- Installing: /mnt/Storage/home/al/GITHUB/maise.2.9.01/dep-ext/spglib-1.11.2.1/_build/../usr/local/lib/libsymspg.a
+-- Installing: /mnt/Storage/home/al/GITHUB/maise.2.9.01/dep-ext/spglib-1.11.2.1/_build/../usr/local/include/spglib.h
+make[1]: Leaving directory `/mnt/Storage/home/al/GITHUB/maise.2.9.01/dep-ext/spglib-1.11.2.1/_build'
