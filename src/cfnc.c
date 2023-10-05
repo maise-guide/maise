@@ -324,8 +324,10 @@ void FIND_PRS(Cell *C, Cell *D, double tol)
       D->L[2][q] = 0.5*(C->L[0][q]+C->L[1][q]);
     }
     M = FIND_MTY(D,tol);
-    if(M>1)
+    if(M==4)
       sprintf(C->PRS+1,"F");
+    else
+      M = 1;
   }
   
   if(M==1)
