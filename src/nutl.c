@@ -725,7 +725,7 @@ int symb_atom(char *s)
   if ( strcmp(s,"Ac") == 0 || strcmp(s,"ac") == 0 ) return 89  ;
   if ( strcmp(s,"Th") == 0 || strcmp(s,"th") == 0 ) return 90  ;
   if ( strcmp(s,"Pa") == 0 || strcmp(s,"pa") == 0 ) return 91  ;
-  if ( strcmp(s,"Ul") == 0 || strcmp(s,"ul") == 0 ) return 92  ;
+  if ( strcmp(s,"U" ) == 0 || strcmp(s,"u" ) == 0 ) return 92  ;
   if ( strcmp(s,"Np") == 0 || strcmp(s,"np") == 0 ) return 93  ;
   if ( strcmp(s,"Pu") == 0 || strcmp(s,"pu") == 0 ) return 94  ;
   if ( strcmp(s,"Am") == 0 || strcmp(s,"am") == 0 ) return 95  ;
@@ -832,7 +832,7 @@ void  atom_symb(int i, char *s)
   if ( i == 89 ) strcpy(s,"Ac" );
   if ( i == 90 ) strcpy(s,"Th" );
   if ( i == 91 ) strcpy(s,"Pa" );
-  if ( i == 92 ) strcpy(s,"Ul" );
+  if ( i == 92 ) strcpy(s,"U"  );
   if ( i == 93 ) strcpy(s,"Np" );
   if ( i == 94 ) strcpy(s,"Pu" );
   if ( i == 95 ) strcpy(s,"Am" );

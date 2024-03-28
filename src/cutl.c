@@ -231,7 +231,7 @@ void Lat_Align(Cell *C) // aligns 1st along x, 2nd in x-y
   for(i=0;i<3;i++)
     L[i] = VectorLen(C->L[i],3);
   a = 0.0;
-  if(r[0]>1e-10)
+  if(L[0]>1e-10)
     a = acos( C->L[0][0]/L[0] );
   if( C->L[0][1]<0.0 )
     a *= -1.0;
@@ -247,7 +247,7 @@ void Lat_Align(Cell *C) // aligns 1st along x, 2nd in x-y
   for(i=1;i<3;i++)
     r[i] = sqrt( C->L[i][1]*C->L[i][1] + C->L[i][2]*C->L[i][2] );
   a = 0.0;
-  if(r[0]>1e-10)
+  if(r[1]>1e-10)
     a = acos( C->L[1][1]/r[1] );
   if( C->L[1][2]<0.0 )
     a *= -1.0;
