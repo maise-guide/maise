@@ -380,8 +380,8 @@ void Build_LNK(LNK *L, int N, int NM, int D, int EFS)
   {
     L->Fn  = make_d4D(N,NM+1,D,3);
     L->Sn  = make_d3D(N,D,6);
-    L->DNi = make_i2D(N,NM);
-    L->DNs = make_i2D(N,NM);
+    L->DNi = make_i2D(N,NM+1);
+    L->DNs = make_i2D(N,NM+1);
     for(i=0;i<N;i++)
       L->MRK[i] = L->Fi[i] = L->DNn[i] = 0;
   }
