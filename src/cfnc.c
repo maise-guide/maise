@@ -504,8 +504,9 @@ void COMP_STR(Cell *C, Cell *D, int argc, char argv[20][200])
 //==================================================================
 void FIND_SPG(Cell *C, Cell *D, double tol, int NM, char input[])
 {
-  int    n,k,N,M;
+  int    n,k,N,M,A;
   double o;
+  char   PRS[10];
 
   if( fabs(tol)>0.5 )
   {
@@ -525,22 +526,26 @@ void FIND_SPG(Cell *C, Cell *D, double tol, int NM, char input[])
 
   tol = fabs(tol);
   
-  N = 0;
+  N = A = 0;
   M = FIND_WYC(C,D,1e-12,0);
+  sprintf(PRS,"%s",C->PRS);
+  A = C->N;
   for(n=0;n>-13;n--)
     for(k=10;k>0;k--)
     {
       o = (double)k*pow(10.0,(double)n)-1e-12;
-      if( o < tol && N!= M)
+      if( o < tol )
       {
 	READ_CELL(C,input);
 	FIND_WYC(C,D,o,1);
 	READ_CIF(C,"str.cif",o,NM,input);
 	FIND_PRS(C,D,o);
 	READ_CELL(D,input); 
-	if( N!= C->SGN )
+	if( (N!= C->SGN || strcmp(C->PRS,PRS)!=0 || A!=C->N) )
 	  printf("%-6d %s%-6d %-6s   %6.1E  % 8.4lf\n",C->SGN,C->PRS,C->N,C->SGS,o,CxC(C,D));
 	N = C->SGN;
+	A = C->N;
+	sprintf(PRS,"%s",C->PRS);
       }
     }
 }
@@ -739,10 +744,10 @@ void EIGM_CELL(Cell *C, int argc, char ARGV[20][200])
         C->V[i][q] = 0.0;
     if( fabs(C->V[i][0])>1e-5 || fabs(C->V[i][1])>1e-5 ||fabs(C->V[i][2])>1e-5 )
       if( FF == 0 )
-	printf("%3d % lf % lf % lf\n",i,C->V[i][1],C->V[i][1],C->V[i][2]);
+	printf("%3d % lf % lf % lf\n",i,C->V[i][0],C->V[i][1],C->V[i][2]);
       else
       {
-	printf("%3d % lf % lf % lf F F F\n",i,C->V[i][1],C->V[i][1],C->V[i][2]);
+	printf("%3d % lf % lf % lf F F F\n",i,C->V[i][0],C->V[i][1],C->V[i][2]);
 	C->FF[i][0] = C->FF[i][1] = C->FF[i][2] = 0;
       }
   }
