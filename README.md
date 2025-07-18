@@ -3,9 +3,9 @@ Module for Ab Initio Structure Evolution (MAISE) features
 
 Hyper version MAISE has been developed by
 
-<bra /> Alexey Kolmogorov <kolmogorov@binghamton.edu>
-<bra /> Maxwell Meyers <mtm6098@psu.edu>
-<bra /> Daviti Gochitashvili <dgochit1@binghamton.edu>
+<br /> Alexey Kolmogorov <kolmogorov@binghamton.edu>
+<br /> Maxwell Meyers <mtm6098@psu.edu>
+<br /> Daviti Gochitashvili <dgochit1@binghamton.edu>
 
 ---
 ## General info
