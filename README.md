@@ -1,7 +1,7 @@
 Module for Ab Initio Structure Evolution (MAISE) features
 
 
-Hyper version MAISE has been developed by
+Hyperdimensional optimization version of MAISE has been developed by
 
 <br /> Alexey Kolmogorov <kolmogorov@binghamton.edu>
 <br /> Maxwell Meyers <mtm6098@psu.edu>
