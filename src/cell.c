@@ -17,10 +17,10 @@ void Build_Cell(Cell *C, int J)
   C->ATMZ = make_i1D(C->N);
   C->L    = make_d2D(D3,D3);                 // lattice vectors
   C->R    = make_d2D(D3,D3);                 // lattice vectors 
-  C->X    = make_d2D(C->N,D3);               // coordinates
+  C->X    = make_d2D(C->N,DN);               // coordinates
   C->W    = make_d2D(C->N,D3);               // Wyckoff positions
-  C->V    = make_d2D(C->N+3,D3);             // velocities
-  C->F    = make_d2D(C->N+3,D3);             // forces: atoms + lattice vectors
+  C->V    = make_d2D(C->N+3,DN);             // velocities
+  C->F    = make_d2D(C->N+3,DN);             // forces: atoms + lattice vectors
   C->U    = make_d1D(6);                     // stresses
   C->Nn   = make_i1D(C->N);                  // number of neighbors for C->Rc
   C->nn   = make_i1D(C->N);                  // number of neighbors for C->rc 
@@ -28,7 +28,7 @@ void Build_Cell(Cell *C, int J)
   C->EA   = make_d1D(C->N);
   C->MM   = make_i1D(C->N);                  // initial magnetic moment
   C->FRC  = make_i1D(C->N);                  // mask for training/testing NN
-  C->FF   = make_i2D(C->N,D3);               // fixed: atoms + lattice vectors
+  C->FF   = make_i2D(C->N,DN);               // fixed: atoms + lattice vectors
   C->min  = make_d1D(D3);
 
   C->max  = make_d1D(D3);
@@ -37,7 +37,7 @@ void Build_Cell(Cell *C, int J)
   C->MNT  = 9;
   C->NRDF = 3000;
   C->RDF  = make_d3D(C->NRDF,C->MNT,C->MNT); // max number of species
-  C->S    = make_d3D(C->N,C->NM,D3);
+  C->S    = make_d3D(C->N,C->NM,DN);
   C->SG   = make_d2D(200,12);
   C->SL   = make_i1D(2);
   C->NDX  = make_d2D(C->N,C->NM);
@@ -56,14 +56,18 @@ void Build_Cell(Cell *C, int J)
   for(i=0;i<C->N;i++)
     C->ATMN[i] = 1;
   for(i=0;i<C->N;i++) 
-    for(q=0;q<D3;q++) 
+    for(q=0;q<DN;q++) 
       C->FF[i][q] = 1; 
   for(i=0;i<C->N;i++)
-    for(q=0;q<D3;q++)
+    for(q=0;q<DN;q++)
       C->X[i][q] = C->V[i][q] = C->F[i][q] = 0.0;
   for(i=0;i<D3;i++) 
     for(q=0;q<D3;q++) 
       C->L[i][q] = 0.0; 
+
+  //justsetting for experiment
+//  for(i=0;i<C->N;i++)
+//    C->X[0][3] = 1.0;
 
   C->N -= 2;
 
@@ -82,8 +86,8 @@ void Build_Cell(Cell *C, int J)
 void LIST(Cell *C, int O)
 {
   int i,j,k,q,q1,j1;
-  int ic[3],N[3];
-  double r,x,*R,a[3],RC;
+  int ic[D3],N[D3];
+  double r,x,*R,a[DN],RC;
 
   RC = C->Rc*C->Rc;
 
@@ -92,7 +96,7 @@ void LIST(Cell *C, int O)
   N[0] = N[1] = N[2] = 0;
   Reciprocal(C);
   for(q=0;q<C->ND;q++)
-    N[q] = ceil( C->Rc*VectorLen(C->R[q],3) );
+    N[q] = ceil( C->Rc*VectorLen(C->R[q],D3) );
   #pragma omp parallel private(j1,R,j,ic,q,r,q1,x,k,a) num_threads(C->NP)
   {
     R  = make_d1D(C->NM);
@@ -112,10 +116,12 @@ void LIST(Cell *C, int O)
         for(ic[2]=-N[2];ic[2]<=N[2];ic[2]++)
           if(! (i==j&&ic[0]==0&&ic[1]==0&&ic[2]==0) )
           {
-            for(q=0,r=0.0;q<D3;q++)
+            for(q=0,r=0.0;q<DN;q++)
             {
-              for(q1=0,x=0.0;q1<D3;q1++) 
-                x += (double)(ic[q1]) *C->L[q1][q]; 
+	      x = 0.0;
+	      if(q<D3)
+		for(q1=0;q1<D3;q1++) 
+		  x += (double)(ic[q1]) *C->L[q1][q]; 
               x += C->X[j][q]-C->X[i][q]; 
               r += x*x; 
             }
@@ -124,10 +130,12 @@ void LIST(Cell *C, int O)
             {
               R[C->Nn[i]] = r;
               C->Ni[i][C->Nn[i]] = j;
-              for(q=0;q<D3;q++)
+              for(q=0;q<DN;q++)
               {
-                for(q1=0,x=0.0;q1<D3;q1++)
-                  x += (double)( ic[q1] ) *C->L[q1][q];
+		x = 0.0;
+	        if(q<D3)
+		  for(q1=0;q1<D3;q1++)
+		    x += (double)( ic[q1] ) *C->L[q1][q];
                 C->S[i][C->Nn[i]][q] = x;
               }
 	      C->Nn[i]++;
@@ -172,12 +180,12 @@ void LIST(Cell *C, int O)
       for(j=0;j<C->Nn[i];j++)
         for(k=0;k<C->Nn[i];k++)
         {
-          for(q=0,r=0.0;q<D3;q++)
+          for(q=0,r=0.0;q<DN;q++)
             r += DX(C,i,j,q)*DX(C,i,k,q);
           C->cos[i][j][k] = r/(C->NDX[i][j]*C->NDX[i][k]);
-          for(q=0;q<3;q++)
+          for(q=0;q<DN;q++)
             a[q] = DX(C,i,j,q)-DX(C,i,k,q);
-          C->ndx[i][j][k] = sqrt(DotProd(a,a,3));
+          C->ndx[i][j][k] = sqrt(DotProd(a,a,DN));
         }
     }
     free_d1D(R);
@@ -191,7 +199,7 @@ double NDR(Cell *C, int i, int j)
   int q;
   double x,r;
 
-  for(r=0.0,q=0;q<D3;q++)
+  for(r=0.0,q=0;q<DN;q++)
   {
     x = C->X[j][q] - C->X[i][q];
     r += x*x;
@@ -212,11 +220,11 @@ double DX(Cell *C, int i, int n, int q)
 double ndx(Cell *C, int i, int j, int k)
 {
   int q;
-  double r[3];
+  double r[DN];
 
-  for(q=0;q<3;q++)
+  for(q=0;q<DN;q++)
     r[q] = DX(C,i,j,q)-DX(C,i,k,q);
-  return sqrt(DotProd(r,r,3));
+  return sqrt(DotProd(r,r,DN));
 }
 //=========================================================================
 // Gives distance between atom i and its .n.'th nearest neighbor: Ri.n.
@@ -226,7 +234,7 @@ double NDX(Cell *C, int i, int n)
   int q;
   double r,x;
 
-  for(r=0.0,x=0.0,q=0;q<D3;q++)
+  for(r=0.0,x=0.0,q=0;q<DN;q++)
   {
     x  = C->X[C->Ni[i][n]][q] - C->X[i][q] + C->S[i][n][q];
     r += x*x;
@@ -251,7 +259,7 @@ double Cos(Cell *C, int i, int j, int k)
   int q;
 
   t = 0;
-  for(q=0;q<D3;q++)
+  for(q=0;q<DN;q++)
     t += DX(C,i,j,q)*DX(C,i,k,q);
 
   t /= ( NDX(C,i,j)*NDX(C,i,k) );
@@ -438,8 +446,8 @@ void Reciprocal(Cell *C)
   VectorProd(C->L[1],C->L[2],C->R[0]);
   VectorProd(C->L[2],C->L[0],C->R[1]);
   t = 1.0/CrossProd(C->L[0],C->L[1],C->L[2]);
-  for(i=0;i<3;i++)
-    for(q=0;q<3;q++)
+  for(i=0;i<D3;i++)
+    for(q=0;q<D3;q++)
       C->R[i][q] *= t;
 }
 //==================================================================
@@ -469,7 +477,7 @@ void Relative(Cell *C)
 void Real(Cell *C)
 {
   int i,j,q;
-  double x[3];
+  double x[D3];
 
   if(C->XT==1)
   {
@@ -608,7 +616,6 @@ void ADD(Cell *C, Cell *D, double x, double y, double z)
     C->X[i+C->N][2] = D->X[i][2] + z;
     C->ATMN[i+C->N] = D->ATMN[i];
     C->Nn[i+C->N]   = D->Nn[i];
-    C->ATMZ[i+C->N] = D->ATMZ[i];
     for(q=0;q<3;q++)
       C->FF[i+C->N][q] = D->FF[i][q];
   }

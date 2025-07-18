@@ -23,7 +23,7 @@ void   Maxwell(Cell *C, double T, int therm);
 void   Dynamics(ANN *R, PRS *P, PRS *W, Cell *C, LNK *L, double T, int PIPE, char *fname);
 void   CELL_MD(ANN *R, PRS *P, PRS *W, Cell *C, LNK *L);
 void   CELL_OUT(Cell *C);
-int    CELL_OK(ANN *R, Cell *C, double *rmin, double *frac);
+int    CELL_OK(Cell *C);
 void   CELL_RELX(ANN *R, PRS *P, PRS *W, Cell *C, LNK *L);
 void   CELL_PHON(ANN *R, PRS *P, PRS *W, Cell *C, LNK *L);
 void   CELL_MAIN(ANN *R, PRS *P, Cell *C);

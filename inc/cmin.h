@@ -18,4 +18,7 @@ double cfunc_gsl(const gsl_vector *x, void *params);
 void   cdfunc_gsl(const gsl_vector *x, void* params, gsl_vector *d);
 void   cfdfunc_gsl(const gsl_vector *x, void *params, double *f, gsl_vector *df);
 double CELL_MIN(ANN *R, PRS *P, PRS *W, Cell *C, LNK *L);
+extern double mu0;
+extern double beta;
+
 #endif

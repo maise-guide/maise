@@ -48,7 +48,7 @@ double COS(double *x1, double *x2, int D);
 double DiffLen(double *x1, double *x2, int D);
 double DotProd(double *x1, double *x2, int D);
 double sign(double a);
-long   TIME(char file[200]);
+long   TIME(const char *file);
 int    TIME_DIF(int t1, int t2);
 void   Sort(double *x, int *I, int N);
 int    FIXED(int *vec);

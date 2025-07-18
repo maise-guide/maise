@@ -17,5 +17,4 @@ void   RAND_LV(Cell *C);
 void   RAND_CL(Tribe *T, Cell *C, Cell *D, int J);
 double COMP_CL(Cell *C, Cell *D);
 void   TEMP_CL(Tribe *T, Cell *C, int p);
-void   RAND_SYMM(Tribe *T, Cell *C, int p);
 #endif

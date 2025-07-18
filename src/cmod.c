@@ -57,15 +57,17 @@ double Lindemann(Cell *C, int J)
 
   return -1.0;
 }
+
 //=========================================================================
-void CELL_UREP(Cell *C, int J, double U)
+void CELL_UREP(Cell *C, int J)
 {
   int    i,j,q,nth;
-  double R,e,E,t,**us,**hs;
+  double R,e,E,U,t,**us,**hs;
 
   hs = make_d2D(C->NP,C->N);
   us = make_d2D(C->NP,6);
 
+  U = 100.0;
   E = 0.0;
 #pragma omp parallel private(R,e,j) num_threads(C->NP)
   {
@@ -104,7 +106,7 @@ void CELL_UREP(Cell *C, int J, double U)
 	if(C->NDX[i][j]<R)
 	{
           t = -2.0 * U * R/(C->NDX[i][j]*C->NDX[i][j]) * ( -FC(0.0,R,C->NDX[i][j])/C->NDX[i][j] + dFC(0.0,R,C->NDX[i][j]) );
-	  for(q=0;q<3;q++)
+	  for(q=0;q<DN;q++)
 	    C->F[i][q] -= t*DX(C,i,j,q);
 	  for(q=0;q<3;q++)
 	    us[nth][q]   += 0.5*t*DX(C,i,j,q)*DX(C,i,j,q);
@@ -136,8 +138,8 @@ double CELL_ENE(ANN *R, PRS *P, PRS *W, Cell *C, LNK *L)
     C->E = ENE_ANN(R,L);
 
     if(R->UREP > 0.0)
-      CELL_UREP(C,0,R->UREP);
-
+      CELL_UREP(C,0);
+    
     for(i=0;i<C->N;i++)
       C->EA[i] = L->EA[i];
   }
@@ -163,20 +165,20 @@ double CELL_FRC(ANN *R, PRS *P, PRS *W, Cell *C, LNK *L)
     for(i=0;i<C->N;i++)
       C->EA[i] = L->EA[i];
     for(i=0;i<C->N;i++)
-      for(q=0;q<3;q++)
+      for(q=0;q<DN;q++)
 	C->F[i][q] = L->f[i][q];
     for(q=0;q<6;q++)
       C->U[q] = L->s[q];
 
     if(R->UREP > 0.0)
-      CELL_UREP(C,1,R->UREP);
+      CELL_UREP(C,1);
   }
   if( R->MODT>1 )
     C->E = FRC_POT(C);
 
   //=====  remove noise to preserve symmetry in some cases =====
   for(i=0;i<C->N;i++)
-    for(q=0;q<3;q++)
+    for(q=0;q<DN;q++)
       if( fabs(C->F[i][q])<1e-8 )
 	C->F[i][q] = 0.0;
   for(q=0;q<6;q++)
@@ -686,29 +688,15 @@ void CELL_OUT(Cell *C)
   fclose(out);
 }
 //======================================================
-int CELL_OK(ANN *R, Cell *C, double *rmin, double *frac)
+int CELL_OK(Cell *C)
 {
   int i;
-  int ok = 1;
-  double dist;
-  double rcut;
-
-  *rmin = 1e+10;
-  for(i=0;i<C->N;i++) 
-  {
-    dist = NDX(C,i,0);
-    rcut = C->Rm[C->ATMZ[i]] + C->Rm[C->ATMZ[C->Ni[i][0]]];
-    if(dist < rcut * R->FRAC) 
-      ok = 0;
-
-    if(dist < *rmin) 
-    {
-      *rmin = dist;
-      *frac = dist / rcut;
-    }
-  }
   
-  return ok;
+  for(i=0;i<C->N;i++)
+    if(NDX(C,i,0)<C->Rm[C->ATMZ[i]]+C->Rm[C->ATMZ[C->Ni[i][0]]])
+      return 0;
+  
+  return 1;
 }
 //======================================================
 double TOPK(double *x, int N, int K)
@@ -900,8 +888,6 @@ void CELL_PHON(ANN *R, PRS *P, PRS *W, Cell *C, LNK *L)
 //======================================================
 void CELL_RELX(ANN *R, PRS *P, PRS *W, Cell *C, LNK *L)
 {
-  double rmin;
-  double frac;
   double H;
   FILE  *out;
   struct timeval t1, t2;
@@ -947,14 +933,8 @@ void CELL_RELX(ANN *R, PRS *P, PRS *W, Cell *C, LNK *L)
     CELL_OUT(C);
   LIST(C,0);
 
-  if(!CELL_OK(R, C, &rmin, &frac)) 
-  {
-    char errstr[200];
-    sprintf(errstr, "ERROR distances are too short %14.8lf %14.8lf", rmin, frac);
-    char sysout[200];
-    sprintf(sysout, "echo >> OUTCAR; echo %s >> OUTCAR", errstr);
-    system(sysout);
-  }
+  if(!CELL_OK(C))
+    system("echo >> OUTCAR;echo ERROR distances are too short >> OUTCAR");
   
   // compute wall and cpu time
   getrusage(RUSAGE_SELF, &t3);
@@ -988,11 +968,13 @@ void CELL_TEST(ANN *R, PRS *P, PRS *W, Cell *C, LNK *L)
   printf("=======================================================================\n\n");
 
   dx = 0.00001;
-  F  = make_d2D(C->N,3);
+  F  = make_d2D(C->N,DN);
+
+  C->X[0][3] = 1.0;
 
   OK = 1;
   for(i=0;i<C->N;i++)
-    for(q=0;q<3;q++)
+    for(q=0;q<DN;q++)
     {
       t = C->X[i][q];
       C->X[i][q] += dx;
@@ -1006,16 +988,16 @@ void CELL_TEST(ANN *R, PRS *P, PRS *W, Cell *C, LNK *L)
 
   for(i=0;i<C->N;i++,printf("\n"))
   {
-    for(q=0,printf("NUM  ");q<3;q++)
+    for(q=0,printf("NUM  ");q<DN;q++)
       printf("% 24.12lf ",F[i][q]);
     printf("\n");
-    for(q=0,printf("ANA  ");q<3;q++)
+    for(q=0,printf("ANA  ");q<DN;q++)
       printf("% 24.12lf ",C->F[i][q]);
     printf("\n");
-    for(q=0,printf("DIF  ");q<3;q++)
+    for(q=0,printf("DIF  ");q<DN;q++)
       printf("% 24.12lf ",C->F[i][q]-F[i][q]);
     printf("\n");
-    for(q=0;q<3;q++)
+    for(q=0;q<DN;q++)
       if( fabs(C->F[i][q]-F[i][q])>1e-6 )
       	OK = 0;
   }
@@ -1107,6 +1089,7 @@ int CAST_CELL(Cell *C,  int *ATMN, double *LAT, double *X)
 
     for(q=0;q<D3;q++)
       C->X[i][q] = X[3*i+q];
+    C->X[i][3] = 0;
 
     //===== convert to Cartesian if in fractional =====
     if(C->XT==0)

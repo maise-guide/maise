@@ -447,10 +447,10 @@ void PRS_BP(PRS *P, PRS *W, Cell *C, LNK *L, int o, char *path)
   int    i,j,k,n,q,*I,ii,jj;
   double t,A0,A1,A2,A3,A4,A5,A6,A7,B1,B2,B3,T0,F0,F1,F2,R01,R02,R12,n01,n02,n12;
   double fcijk,lzijk[10][10],a2ijk[10][10],a3ijk[10][10],n2ijk[10],a52,a53,a62,a63,ndxjk,fcij,dfcij,powz[10];
-  double dxij[3],dxik[3],dxji[3],dxjk[3],dqij[3],dqik[3];
+  double dxij[DN],dxik[DN],dxji[DN],dxjk[DN],dqij[D3],dqik[D3];
   int    l,z,n2,n4,n6,n7; 
 
-  int    ind2[20],ind4[20];
+  int    ind2[10],ind4[10];
   int    m,s0,s1,s2,s01,s02,s12,ds1,ds2,ds,g2,g4;
 
   L->N   = C->N;
@@ -464,38 +464,28 @@ void PRS_BP(PRS *P, PRS *W, Cell *C, LNK *L, int o, char *path)
     powz[z] = pow(2.0,1.0-P->GP[5][z]);
   LIST(C,0);  
 
-  //============= symmetry functions by species  =============
-  //-----ij-ijk-----------------------------------------------
+  //===== symmetry functions by species  =====
+  //-----ij-ijk-------------------------------
   //    |AA|AAA|
-  //----------------------------------------------------------
+  //------------------------------------------
   //    |AA|AAA|AB|AAB|ABB|
   //    |BB|BBB|BA|BBA|BAA|
-  //----------------------------------------------------------
+  //------------------------------------------
   //    |AA|AAA|AB|AAB|ABB|AC|AAC|ACC|ABC|
   //    |BB|BBB|BC|BBC|BCC|BA|BBA|BAA|BCA|
   //    |CC|CCC|CA|CCA|CAA|CB|CCB|CBB|CAB|
-  //----------------------------------------------------------
-  //    |AA|AAA|AB|AAB|ABB|AC|AAC|ACC|ABC|AD|AAD|ADD|ABD|ACD|
-  //    |BB|BBB|BC|BBC|BCC|BD|BBD|BDD|BCD|BA|BBA|BAA|BCA|BDA|
-  //    |CC|CCC|CD|CCD|CDD|CA|CCA|CAA|CDA|CB|CCB|CBB|CDB|CAB|
-  //    |DD|DDD|DA|DDA|DAA|DB|DDB|DBB|DAB|DC|DDC|DCC|DAC|DBC|
-  //==========================================================
+  //==========================================
 
-  ind2[ 0] = 0;
-  ind2[ 1] = 1*P->NG2 + 1*P->NG4;
-  ind2[ 2] = 2*P->NG2 + 3*P->NG4;
-  ind2[ 3] = 3*P->NG2 + 6*P->NG4;
+  ind2[0] = 0;
+  ind2[1] = 1*P->NG2 + 1*P->NG4;
+  ind2[2] = 2*P->NG2 + 3*P->NG4;
 
-  ind4[ 0] = 1*P->NG2;
-  ind4[ 1] = 2*P->NG2 + 1*P->NG4;
-  ind4[ 2] = 2*P->NG2 + 2*P->NG4;
-  ind4[ 4] = 3*P->NG2 + 3*P->NG4;
-  ind4[ 8] = 3*P->NG2 + 4*P->NG4;
-  ind4[ 5] = 3*P->NG2 + 5*P->NG4;
-  ind4[ 9] = 4*P->NG2 + 6*P->NG4;
-  ind4[18] = 4*P->NG2 + 7*P->NG4; 
-  ind4[10] = 4*P->NG2 + 8*P->NG4;
-  ind4[13] = 4*P->NG2 + 9*P->NG4; 
+  ind4[0] = 1*P->NG2;
+  ind4[1] = 2*P->NG2 + 1*P->NG4;
+  ind4[2] = 2*P->NG2 + 2*P->NG4;
+  ind4[4] = 3*P->NG2 + 3*P->NG4;
+  ind4[8] = 3*P->NG2 + 4*P->NG4;
+  ind4[5] = 3*P->NG2 + 5*P->NG4;
 
   for(i=0;i<C->N;i++) 
     for(n=0;n<P->D;n++)   
@@ -576,7 +566,7 @@ void PRS_BP(PRS *P, PRS *W, Cell *C, LNK *L, int o, char *path)
   	s0 = C->ATMN[i];
         for(j=0;j<=L->DNn[i];j++)
 	  for(n=0;n<P->D;n++)
-	    for(q=0;q<3;q++)
+	    for(q=0;q<DN;q++)
 	      L->Fn[i][j][n][q] = 0.0;
         // this dG/dxj needs to be done before dG/dxi so that dG/dxi are stored in Fn[i][L->DNn[i]]...
         if(P->EFS!=2 && L->MRK[i]==1)
@@ -596,7 +586,7 @@ void PRS_BP(PRS *P, PRS *W, Cell *C, LNK *L, int o, char *path)
 	        {
 		  fcij  =  fc(P->GP[0][P->GF[0][1]],C->NDX[j][ii]);
 		  dfcij = dfc(P->GP[0][P->GF[0][1]],C->NDX[j][ii]);
-                  for(q=0;q<3;q++)
+                  for(q=0;q<DN;q++)
                     dxji[q] = DX(C,j,ii,q);
 		  for(n=0,g2=0;n<P->NSYM;n++)
 		    if(P->GF[n][0]==2)
@@ -605,7 +595,7 @@ void PRS_BP(PRS *P, PRS *W, Cell *C, LNK *L, int o, char *path)
                       L->DNs[i][L->DNn[i]] = C->ATMN[j];
 		      ds1 = (s0-s1+P->NSPC)%P->NSPC;
 		      m  = g2 + ind2[ds1];
-		      for(q=0;q<3;q++)
+		      for(q=0;q<DN;q++)
 		        L->Fn[i][L->DNn[i]][m][q] += t*dxji[q]; // the sign is correct!
 		      // for the pair function in stress calculation only the part on atom i is needed
 		      g2++;
@@ -615,7 +605,7 @@ void PRS_BP(PRS *P, PRS *W, Cell *C, LNK *L, int o, char *path)
 		    if( k!=ii && C->ndx[j][ii][k]<P->GP[0][P->GF[g2][1]] && C->NDX[j][k]<P->GP[0][P->GF[g2][1]] )
 		    {
 		      A0 = fc(P->GP[0][P->GF[g2][1]],C->NDX[j][ii])*fc(P->GP[0][P->GF[g2][1]],C->ndx[j][ii][k]);
-		      for(q=0;q<3;q++)
+		      for(q=0;q<DN;q++)
 		        dxjk[q] = DX(C,j,k,q);
 		      // works only for the same Rc for all species
 		      for(n2=0;n2<W[0].GT[3];n2++)
@@ -649,7 +639,7 @@ void PRS_BP(PRS *P, PRS *W, Cell *C, LNK *L, int o, char *path)
 			  A5 =  A2*a52 + A3*(a53+A4);
 			  A6 =           A3*(a63+A4);
 			  A7 =  A2*ndxjk;
-			  for(q=0;q<3;q++)
+			  for(q=0;q<DN;q++)
 			    L->Fn[i][L->DNn[i]][m][q] += n2ijk[n4]*((A5+A6)*dxji[q] + (A7-A6)*dxjk[q]);
 			  g4++;
 		        }
@@ -664,10 +654,10 @@ void PRS_BP(PRS *P, PRS *W, Cell *C, LNK *L, int o, char *path)
 	  L->Sn[i][n][q] = 0.0;
         for(j=0;j<C->Nn[i];j++)
         {
-          for(q=0;q<3;q++)
+          for(q=0;q<DN;q++)
             dxij[q] = DX(C,i,j,q);
-          for(q=0;q<3;q++)              
-            dqij[q] = DX(C,i,j,(q+1)%3);
+          for(q=0;q<D3;q++)              
+            dqij[q] = DX(C,i,j,(q+1)%D3);
 	  fcij  =  fc(P->GP[0][P->GF[0][1]],C->NDX[i][j]);
 	  dfcij = dfc(P->GP[0][P->GF[0][1]],C->NDX[i][j]);
 	  s1 = C->ATMN[C->Ni[i][j]];
@@ -680,15 +670,15 @@ void PRS_BP(PRS *P, PRS *W, Cell *C, LNK *L, int o, char *path)
 	      m  = g2 + ind2[ds1];
 
 	      if(P->EFS!=2 && L->MRK[i]==1)
-	        for(q=0;q<3;q++)
+	        for(q=0;q<DN;q++)
 		  L->Fn[i][L->DNn[i]][m][q] -= t*dxij[q];  // note that DX = -( Xi - Xj )
 	      // for the pair function in stress calculation only the part on atom i is needed
 	      if(P->EFS!=1)
 	      {
-	        for(q=0;q<3;q++)
+	        for(q=0;q<D3;q++)
 		  L->Sn[i][m][q]   += t*dxij[q]*dxij[q];
-	        for(q=0;q<3;q++)
-		  L->Sn[i][m][q+3] += t*dxij[q]*dqij[q];
+	        for(q=0;q<D3;q++)
+		  L->Sn[i][m][q+3] += t*dxij[q]*dqij[q]; // CHECK THIS ONE PLEASE <-- DON'T FORGET TO ASK ABOUT THIS DN
 	      }
 	      g2++;
 	    }
@@ -696,10 +686,10 @@ void PRS_BP(PRS *P, PRS *W, Cell *C, LNK *L, int o, char *path)
 	  for(k=j+1;k<C->Nn[i];k++)
 	    if( C->ndx[i][j][k]<P->GP[0][P->GF[g2][1]] && C->NDX[i][k]<P->GP[0][P->GF[g2][1]] )
 	    {
-	      for(q=0;q<3;q++)
+	      for(q=0;q<DN;q++)
 	        dxik[q] = DX(C,i,k,q);
-              for(q=0;q<3;q++)
-                dqik[q] = DX(C,i,k,(q+1)%3);
+              for(q=0;q<D3;q++)
+                dqik[q] = DX(C,i,k,(q+1)%D3);
 
 	      s2    = C->ATMN[C->Ni[i][k]];
 	      ds1   = (s1-s0+P->NSPC)%P->NSPC;
@@ -741,20 +731,20 @@ void PRS_BP(PRS *P, PRS *W, Cell *C, LNK *L, int o, char *path)
 		  A5 = A1*( A2*a52 + A3*(a53+A4) );
 		  A6 = A1*( A2*a62 + A3*(a63+A4) );		
 		  if(P->EFS!=2 && L->MRK[i]==1)
-		    for(q=0;q<3;q++)
+		    for(q=0;q<DN;q++)
 		      L->Fn[i][L->DNn[i]][m][q] -= 2.0*(A5*dxij[q] + A6*dxik[q]);
 		  if(P->EFS!=1)
 		  {
-		    for(q=0;q<3;q++)
+		    for(q=0;q<D3;q++)
 		    {
 		      L->Sn[i][m][q] -= -2.0*B1*(B2-C->cos[i][j][k]*B3/(C->NDX[i][j]*C->NDX[i][j])+A3*F0/C->NDX[i][j]   )* dxij[q]*dxij[q];
 		      L->Sn[i][m][q] -= -2.0*B1*(B2-C->cos[i][j][k]*B3/(C->NDX[i][k]*C->NDX[i][k])+A3*F1/C->NDX[i][k]   )* dxik[q]*dxik[q];
 		      L->Sn[i][m][q] -= -2.0*B1*(B2                                               +A3*F2/C->ndx[i][j][k])*(dxij[q]-dxik[q])*(dxij[q]-dxik[q]);
 		      L->Sn[i][m][q] -= -2.0*B1*(B3/(C->NDX[i][j]*C->NDX[i][k]))*2.0*(dxij[q]*dxik[q]);
 		    }
-		    for(q=0;q<3;q++)
+		    for(q=0;q<D3;q++)
 		    {
-		      L->Sn[i][m][q+3] -= -2.0*B1*(B2-C->cos[i][j][k]*B3/(C->NDX[i][j]*C->NDX[i][j])+A3*F0/C->NDX[i][j]   )* dxij[q]*dqij[q];
+		      L->Sn[i][m][q+3] -= -2.0*B1*(B2-C->cos[i][j][k]*B3/(C->NDX[i][j]*C->NDX[i][j])+A3*F0/C->NDX[i][j]   )* dxij[q]*dqij[q]; // SHOULD THESE BE DN <--- ALL THE PLUS 3'S??
 		      L->Sn[i][m][q+3] -= -2.0*B1*(B2-C->cos[i][j][k]*B3/(C->NDX[i][k]*C->NDX[i][k])+A3*F1/C->NDX[i][k]   )* dxik[q]*dqik[q];
 		      L->Sn[i][m][q+3] -= -2.0*B1*(B2                                               +A3*F2/C->ndx[i][j][k])*(dxij[q]-dxik[q])*(dqij[q]-dqik[q]);
 		      L->Sn[i][m][q+3] -= -2.0*B1*(B3/(C->NDX[i][j]*C->NDX[i][k]))*(dxij[q]*dqik[q]+dxik[q]*dqij[q]);
