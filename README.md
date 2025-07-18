@@ -18,13 +18,8 @@ Behler–Parrinello symmetry functions map atomic environments into machine lear
 The source code for MAISE can be obtained from the commandline by running:
 
 ```
-git clone git://github.com/maise-guide/maise/tree/hyper-maise.git
-```
-
-or
-
-```
-git clone https://github.com/maise-guide/maise/tree/hyper-maise.git
+git clone --branch hyper.maise --single-branch https://github.com/maise-guide/maise.git hyper.maise
+cd hyper.maise
 ```
 
 ## Installation
