@@ -26,7 +26,6 @@ or
 ```
 git clone https://github.com/maise-guide/maise/tree/hyper-maise.git
 ```
-```
 
 ## Installation
 
