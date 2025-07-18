@@ -11,7 +11,7 @@ Hyperdimensional optimization version of MAISE has been developed by
 ## General info
 
 This version of MAISE works on Linux platforms and was designed to optimize structures in higher (3D+) dimensionsions.
-Behler–Parrinello symmetry functions map atomic environments into machine learning input of constant length. The functions can be naturally extended into higher-dimensional spaces with N coordinates by calculating distances and angles.
+Behler–Parrinello symmetry functions map atomic environments into machine learning input of constant length. The functions can be naturally extended into higher-dimensional spaces.
 
 ## Download
 
