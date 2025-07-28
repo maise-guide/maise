@@ -1,6 +1,5 @@
 #include "user.h"
 #include "cfnc.h"
-#include "eutl.h"
 
 //==================================================================
 //  find the dimensionality of the structure: bulk (3) or nano (0)
@@ -95,7 +94,7 @@ void APPL_SG(Cell *C, double tol)
 //==================================================================
 void READ_CIF(Cell *C, char file[], double tol, int NM, char input[])    
 { 
-  int i,j,n,q,k,p; 
+  int i,j,n,q,k; 
 
   FILE *in; 
   char buf[200],s[200],t[200],r[200],s0[200],s1[200],s2[200]; 
@@ -233,12 +232,10 @@ void READ_CIF(Cell *C, char file[], double tol, int NM, char input[])
 
         fgets(buf,200,in); 
 
-        p = 1;
-        if(s[1] >=97 && s[1] <=122)
-          p++;
 	for(i=0;i<C->NTE;i++)
-	  if(p==C->SL[i]&&strncmp(s,C->ES[i],C->SL[i])==0)
+	  if(strncmp(s,C->ES[i],C->SL[i])==0)
 	    C->ATMN[C->NS] = i;
+	
       }
     }
   }
@@ -255,7 +252,7 @@ int FIND_MTY(Cell *C, double tol)
   int i,j,M;
 
   JAR(C);
-  LIST(C,1);
+  LIST(C,0);
   for(i=0,M=1;i<C->N;i++)
   {
     for(j=0;j<C->Nn[i];j++)
@@ -314,23 +311,6 @@ void FIND_PRS(Cell *C, Cell *D, double tol)
   sprintf(C->PRS+1,"P");  
   M = 1;
 
-  if( ( 15 < C->SGN && C->SGN <  75)|| (194 < C->SGN && C->SGN < 231) )  // oF or cF
-  {
-    Copy_C(C,D);
-    for(q=0;q<3;q++)
-    {
-      D->L[0][q] = 0.5*(C->L[1][q]+C->L[2][q]);
-      D->L[1][q] = 0.5*(C->L[2][q]+C->L[0][q]);
-      D->L[2][q] = 0.5*(C->L[0][q]+C->L[1][q]);
-    }
-    M = FIND_MTY(D,tol);
-    if(M==4)
-      sprintf(C->PRS+1,"F");
-    else
-      M = 1;
-  }
-  
-  if(M==1)
   if( (  2 < C->SGN && C->SGN <  16)|| ( 15 < C->SGN && C->SGN <  75) )  // mS or oS
   {
     for(k=0;k<3;k++)
@@ -350,6 +330,21 @@ void FIND_PRS(Cell *C, Cell *D, double tol)
     if(M>1)
       sprintf(C->PRS+1,"S");
   }  
+
+  if(M==1)
+  if( ( 15 < C->SGN && C->SGN <  75)|| (194 < C->SGN && C->SGN < 231) )  // oF or cF
+  {
+    Copy_C(C,D);
+    for(q=0;q<3;q++)
+    {
+      D->L[0][q] = 0.5*(C->L[1][q]+C->L[2][q]);
+      D->L[1][q] = 0.5*(C->L[2][q]+C->L[0][q]);
+      D->L[2][q] = 0.5*(C->L[0][q]+C->L[1][q]);
+    }
+    M = FIND_MTY(D,tol);
+    if(M>1)
+      sprintf(C->PRS+1,"F");
+  }
 
   if(M==1)
   if( ( 15 < C->SGN && C->SGN < 143)|| (194 < C->SGN && C->SGN < 231) )  // oI, tI, or cI
@@ -504,9 +499,8 @@ void COMP_STR(Cell *C, Cell *D, int argc, char argv[20][200])
 //==================================================================
 void FIND_SPG(Cell *C, Cell *D, double tol, int NM, char input[])
 {
-  int    n,k,N,M,A;
+  int    n,k,N,M;
   double o;
-  char   PRS[10];
 
   if( fabs(tol)>0.5 )
   {
@@ -526,26 +520,22 @@ void FIND_SPG(Cell *C, Cell *D, double tol, int NM, char input[])
 
   tol = fabs(tol);
   
-  N = A = 0;
+  N = 0;
   M = FIND_WYC(C,D,1e-12,0);
-  sprintf(PRS,"%s",C->PRS);
-  A = C->N;
   for(n=0;n>-13;n--)
     for(k=10;k>0;k--)
     {
       o = (double)k*pow(10.0,(double)n)-1e-12;
-      if( o < tol )
+      if( o < tol && N!= M)
       {
 	READ_CELL(C,input);
 	FIND_WYC(C,D,o,1);
 	READ_CIF(C,"str.cif",o,NM,input);
 	FIND_PRS(C,D,o);
 	READ_CELL(D,input); 
-	if( (N!= C->SGN || strcmp(C->PRS,PRS)!=0 || A!=C->N) )
+	if( N!= C->SGN )
 	  printf("%-6d %s%-6d %-6s   %6.1E  % 8.4lf\n",C->SGN,C->PRS,C->N,C->SGS,o,CxC(C,D));
 	N = C->SGN;
-	A = C->N;
-	sprintf(PRS,"%s",C->PRS);
       }
     }
 }
@@ -585,304 +575,30 @@ void INIT_CELL(Cell *C, char filename[], int N, int NM, int J)
     READ_CELL(C,filename);
 }
 //==================================================================
-//    make supercell
-//==================================================================
-void MAKE_SUP(Cell *C, Cell *D, int argc, char ARGV[20][200], int NM, char input[])
-{
-  int    q,n,m,k,N[10],M[10];
-
-  if(argc!=5 && argc!=11)
-  {
-    printf("Please specify either 3 or 9 integers to generate a supercell\n");
-    exit(0);
-  }
-
-  for(n=0;n<argc-2;n++)
-    N[n] = M[n] = (int)atoi(ARGV[n+2]);
-
-  if(argc==11)
-  {
-    for(n=0;n<3;n++)
-    {
-      for(q=0,m=1000,k=-1000;q<3;q++)
-      {
-	if(M[n+q*3]>k) k = M[n+q*3];
-	if(M[n+q*3]<m) m = M[n+q*3];
-      }
-      N[n] = k-m;
-      if(N[n]<=0)
-      {
-	printf("The specified expansion has no component along axis %d\n",n);
-	exit(0);
-      }
-    }
-  }
-
-  INIT_CELL(C,input,N[0]*N[1]*N[2],NM,1);
-  INIT_CELL(D,input,1,NM,1);
-  Clone(C,D,N[0],N[1],N[2]);
-  C->POS = 0;
-
-  if(argc==11)
-  {    
-    for(n=0;n<3;n++)
-      for(q=0;q<3;q++)
-	for(m=0,C->L[n][q]=0.0;m<3;m++)
-	  C->L[n][q] += D->L[m][q]*(double)M[3*n+m];
-    JAR(C);
-    Relative(C);
-    KILL_DBL(C,1e-10);
-    Lat_Align(C);
-    Real(C);
-  }
-
-  SAVE_CELL(C,"CONTCAR",0);
-  exit(0);
-}
-//======================================================================
-// Order atoms by type given an array
-//======================================================================
-void SWAP_Z(Cell *C, Cell *D, int *Z, int N)
-{
-  int    i,j,q,n,z[10];
-  double O[10];
-
-  //===== order by actual Z =====
-  if(N==0)
-  {
-    for(n=0;n<C->NSPC;n++)
-      O[n] = (double)C->SPCZ[n];
-    Sort(O,z,C->NSPC);
-    for(n=0;n<C->NSPC;n++)
-      Z[z[n]] = n;
-  }
-  //===== order as specified in Z =====
-  for(n=0;n<C->NSPC;n++)
-    z[n] = 0;
-  for(n=0;n<C->NSPC;n++)
-    z[Z[n]] = 1;
-  for(n=0;n<C->NSPC;n++)
-    if( z[n]==0 )
-    {
-      printf("Please provide %d different numbers between 0 and %d\n",C->NSPC,C->NSPC-1);
-      exit(0);
-    }
-  
-  for(n=0;n<C->NSPC;n++)
-  {
-    C->SPCZ[Z[n]] = D->SPCZ[n];
-    C->SPCN[Z[n]] = D->SPCN[n];
-  }
-  for(i=0;i<C->N;i++)
-    C->ATMN[i] = Z[D->ATMN[i]];
-  ORDER(C);
-  C->POS = 0;
-  SAVE_CELL(C,"CONTCAR",0);
-}
-//==================================================================
-//    randomize unit cell
-//==================================================================
-void RAND_CELL(Cell *C, int argc, char ARGV[20][200])
-{
-  long   S;
-  double dX,dL;
-
-  dX = 0.1;
-  dL = 0.1;
-  S  = 1;
-
-  if(argc>2)
-    dX = (double)atof(ARGV[2]);
-  if(argc>3)
-    dL = (double)atof(ARGV[3]);
-  if(argc>4)
-    S  = ( long )atol(ARGV[4]);
-
-  C->POS = 0;
-  PlantSeeds(S);
-  SHKE_CL(C,dL,dX);
-
-  SAVE_CELL(C,"CONTCAR",0);
-  printf("Generated a randomized CONTCAR with dX=%1.4lf dL=%1.4lf seed=%d\n",dX,dL,S);
-  exit(0);
-}
-//==================================================================
-//    shift unit cell along a phonon eigenmode
-//==================================================================
-void EIGM_CELL(Cell *C, int argc, char ARGV[20][200])
-{
-  int    i,j,q,FF;
-  FILE   *in;
-  double dX;
-
-  dX = 0.1;
-  FF = 0;
-
-  if(argc>2)
-    dX = (double)atof(ARGV[2]);
-  if(argc>3)
-    FF =    (int)atoi(ARGV[3]);
-
-  C->POS = 0;
-
-  if( !(in=fopen("EV","r")))
-  {
-    printf("File EV is not found\n");
-    exit(0);
-  }
-  for(i=0;i<C->N;i++)
-  {
-    fscanf(in,"%lf %lf %lf %lf %lf %lf\n",&C->F[i][0],&C->F[i][1],&C->F[i][2],&C->V[i][0],&C->V[i][1],&C->V[i][2]);
-    for(q=0;q<3;q++)
-      if( fabs(C->X[i][q]-C->F[i][q])>1e-5)
-      {
-        printf("EV file is inconsistent with POSCAR\n");
-        exit(0);
-      }
-    for(q=0;q<3;q++)
-      if( fabs(C->V[i][q])<0.05 )
-        C->V[i][q] = 0.0;
-    if( fabs(C->V[i][0])>1e-5 || fabs(C->V[i][1])>1e-5 ||fabs(C->V[i][2])>1e-5 )
-      if( FF == 0 )
-	printf("%3d % lf % lf % lf\n",i,C->V[i][0],C->V[i][1],C->V[i][2]);
-      else
-      {
-	printf("%3d % lf % lf % lf F F F\n",i,C->V[i][0],C->V[i][1],C->V[i][2]);
-	C->FF[i][0] = C->FF[i][1] = C->FF[i][2] = 0;
-      }
-  }
-  printf("\n");
-  fclose(in);
-
-  Relative(C);
-  for(i=0;i<C->N;i++)
-    for(q=0;q<3;q++)
-      C->X[i][q] += C->V[i][q]*dX;
-
-  Real(C);
-  JAR(C);
-
-  SAVE_CELL(C,"CONTCAR",FF);
-  exit(0);
-}
-//==================================================================
-//  extract snapshots from OUTCAR
-//==================================================================
-void SNAP_SHOT(Cell *C, int argc, char ARGV[20][200])
-{
-  int    i,j,q,n,NS,NSW;
-  FILE   *in;
-  char   buf[200],s[200];
-
-  NS = 100;
-  if(argc>2)
-    NS = (double)atof(ARGV[2]);
-
-  C->POS = 1;
-
-  if( !(in=fopen("OUTCAR","r")))
-  {
-    printf("File OUTCAR is not found\n");
-    exit(0);
-  }
-
-  NSW = -1;
-  while(fgets(buf,200,in))
-  {
-    sscanf(buf,"%s",s);
-    if( strncmp(s,"NSW",3) == 0 )
-      sscanf(buf,"%s %s %d",s,s,&NSW);
-    if( strncmp(s,"direct",6) == 0 )
-      break;
-  }
-
-  n = j = 0;
-  while(fgets(buf,200,in))
-  {
-    sscanf(buf,"%s",s);
-    if( strncmp(s,"direct",6) == 0 )
-    {
-      sprintf(s,"0");
-      for(i=0;i<3;i++)
-      {
-	fgets(buf,200,in);
-	sscanf(buf,"%lf %lf %lf",&C->L[i][0],&C->L[i][1],&C->L[i][2]);
-      }
-      n++;
-      if( n==1 || n%NS==0 || n==NSW )
-      {
-	j++;
-	while(fgets(buf,200,in))
-	{
-	  sscanf(buf,"%s",s);
-	  if( strncmp(s,"POSITION",8) == 0 )
-	  {
-	    sprintf(s,"0");
-	    fgets(buf,200,in);
-	    for(i=0;i<C->N;i++)
-	    {
-	      fgets(buf,200,in);
-	      sscanf(buf,"%lf %lf %lf %lf %lf %lf\n",&C->X[i][0],&C->X[i][1],&C->X[i][2],&C->V[i][0],&C->V[i][1],&C->V[i][2]);
-	    }
-	    break;
-	  }
-	}
-        while(fgets(buf,200,in))
-        {
-          sscanf(buf,"%s",s);
-          if( strncmp(s,"FREE",4) == 0 )
-          {
-            sprintf(s,"0");
-            for(i=0;i<4;i++)
-              fgets(buf,200,in);
-            sscanf(buf+65,"%lf\n",&C->E);
-	    // printf("% 12.8lf\n",C->E);
-	    break;
-	  }
-        }
-	sprintf(C->TAG,"%6d % 12.8lf",n,C->E);
-	sprintf(buf,"POSCAR%03d",j);
-	SAVE_CELL(C,buf,0);
-      }
-    }
-  }
-
-  fclose(in);
-
-  printf("%6d %6d %6d\n",NS,NSW,n);
-
-  exit(0);
-}
-//==================================================================
 //    run a job defined by FLAGs
 //==================================================================
 void CELL_EXAM(Cell *C, Cell *D, int argc, char **argv)
 {
   double tol,L;
-  int    i,NM,N[3],m,M,Z[10];
+  int    i,NM,N[3],m,M;
   char   input[200],input0[200],input1[200],ARGV[20][200];
 
-  NM = 2000;
+  NM = 500;
 
   //================   list available options  ===============
   if(argc<2)
   {
     printf("For specified JOBT = 0 you should provide a FLAG:\n\n");
-    printf("-rdf    compute   and plot the RDF for POSCAR                             \n");
-    printf("-cxc    compute   dot product for POSCAR0 and POSCAR1 using RDF           \n");
-    printf("-cmp    compare   RDF, space group, and volume of POSCAR0 and POSCAR1     \n");
-    printf("-spg    convert   POSCAR into str.cif, CONV, PRIM                         \n");
-    printf("-cif    convert   str.cif into CONV and PRIM                              \n");
-    printf("-rot    rotate    a nanoparticle along eigenvectors of moments of inertia \n");
-    printf("-mov    move      atoms along one direction by a constant shift           \n");
-    printf("-ord    order     atoms by species                                        \n");
-    printf("-dim    find      whether POSCAR is periodic (3) or non-periodic (0)      \n");
-    printf("-box    reset     the box size for nanoparticles                          \n");
-    printf("-sup    make      a supercell specified by na x nb x nc                   \n");
-    printf("-vol    compute   volume per atom for crystal or nano structures          \n");
-    printf("-rnd    randomize unit cell in POSCAR                                     \n");
-    printf("-eig    shift     unit cell in POSCAR along eigenmode in EV               \n");
-    printf("-out    extract   snapshots from OUTCAR                                   \n");
+    printf("-rdf    compute and plot the RDF for POSCAR                             \n");
+    printf("-cxc    compute dot product for POSCAR0 and POSCAR1 using RDF           \n");
+    printf("-cmp    compare RDF, space group, and volume of POSCAR0 and POSCAR1     \n");
+    printf("-spg    convert POSCAR into str.cif, CONV, PRIM                         \n");
+    printf("-cif    convert str.cif into CONV and PRIM                              \n");
+    printf("-rot    rotate  a nanoparticle along eigenvectors of moments of inertia \n");
+    printf("-dim    find    whether POSCAR is periodic (3) or non-periodic (0)      \n");
+    printf("-box    reset   the box size for nanoparticles                          \n");
+    printf("-sup    make    a supercell specified by na x nb x nc                   \n");
+    printf("-vol    compute volume per atom for crystal or nano structures          \n");
     exit(0);
   }
 
@@ -892,12 +608,6 @@ void CELL_EXAM(Cell *C, Cell *D, int argc, char **argv)
   strcpy(input,"POSCAR");
   strcpy(input0,"POSCAR0");
   strcpy(input1,"POSCAR1");
-
-  if(strncmp(ARGV[1],"-sym",4)==0)
-  {
-    strcpy(input0,"POSCAR");
-    strcpy(input1,"PRIM");    
-  }
 
   for(m=0;m<argc;m++)
     strcpy(ARGV[m],argv[m]);
@@ -946,7 +656,7 @@ void CELL_EXAM(Cell *C, Cell *D, int argc, char **argv)
     FIND_SPG(C,D,tol,NM,input);
     exit(0);
   }
-  //================  convert cif into CONV  ================
+   //================  convert cif into CONV  ================
   if(strncmp(ARGV[1],"-cif",4)==0)
   {
     tol = 0.01;
@@ -995,38 +705,6 @@ void CELL_EXAM(Cell *C, Cell *D, int argc, char **argv)
     NANO_ROT(C,1);
     exit(0);
   }
-  //================ move atoms by a shift   ================
-  if(strncmp(ARGV[1],"-mov",4)==0)
-  {
-    INIT_CELL(C,input,1,NM,1);
-    if(argc>2)
-      m  = (int)atoi(ARGV[2]);
-    if(argc>3)
-      L = (double)atof(ARGV[3]);
-    Relative(C);
-    for(i=0;i<C->N;i++)
-      C->X[i][m] += L;
-    Real(C);
-    JAR(C);
-    C->POS = 0;
-    SAVE_CELL(C,"CONTCAR",0);
-    exit(0);
-  }
-  //================ order atoms by species  ================
-  if(strncmp(ARGV[1],"-ord",4)==0)
-  {
-    INIT_CELL(C,input,1,NM,1);
-    INIT_CELL(D,input,1,NM,1);
-    if( argc != 2 && ((argc-2) != C->NSPC) )
-    {
-      printf("Please provide %d numbers between 0 and %d to reorder species in %s\n",C->NSPC,C->NSPC-1,input);
-      exit(0);
-    }
-    for(i=0;i<C->NSPC;i++)
-      Z[i] = (int)atoi(ARGV[i+2]);
-    SWAP_Z(C,D,Z,argc-2);
-    exit(0);
-  }
   //================  determine dimensionality  =============
   if(strncmp(ARGV[1],"-dim",4)==0)
   {
@@ -1058,7 +736,17 @@ void CELL_EXAM(Cell *C, Cell *D, int argc, char **argv)
   //===================== make a supercell  ==================
   if(strncmp(ARGV[1],"-sup",4)==0)
   {
-    MAKE_SUP(C,D,argc,ARGV,NM,input);
+    N[0] = N[1] = N[2] = 1;
+    if(argc>2)
+      N[0] = (int)atoi(ARGV[2]);
+    if(argc>3)
+      N[1] = (int)atoi(ARGV[3]);
+    if(argc>4)
+      N[2] = (int)atoi(ARGV[4]);
+    INIT_CELL(C,input,N[0]*N[1]*N[2],NM,1);
+    INIT_CELL(D,input,1,NM,1);
+    Clone(C,D,N[0],N[1],N[2]);
+    SAVE_CELL(C,"CONTCAR",0);
     exit(0);
   }
   //================  compute volume per atom  ================
@@ -1069,28 +757,7 @@ void CELL_EXAM(Cell *C, Cell *D, int argc, char **argv)
     printf("% lf\n",CELL_VOL(C)/(double)C->N);
     exit(0);
   }
-  //==================  randomize unit cell  ==================
-  if(strncmp(ARGV[1],"-rnd",4)==0)
-  {
-    INIT_CELL(C,input,1,NM,1);
-    RAND_CELL(C,argc,ARGV);
-    exit(0);
-  }
-  //==================  randomize unit cell  ==================
-  if(strncmp(ARGV[1],"-eig",4)==0)
-  {
-    INIT_CELL(C,input,1,NM,1);
-    EIGM_CELL(C,argc,ARGV);
-    exit(0);
-  }
-  //==================   extract snapshots   ==================
-  if(strncmp(ARGV[1],"-out",4)==0)
-  {
-    INIT_CELL(C,input,1,NM,1);
-    SNAP_SHOT(C,argc,ARGV);
-    exit(0);
-  }
-  //================  run user-defined functions   ============
+  //================  run user-defined functions   ==========
   if(strncmp(ARGV[1],"-usr",4)==0)  
   {
     USER_CELL(C,D,argc,argv);
@@ -1111,41 +778,28 @@ void CELL_EXAM(Cell *C, Cell *D, int argc, char **argv)
     printf("-cif    convert str.cif into CONV and PRIM                              \n");
     printf("        options: [ tolerance, max near. neigh. ]                        \n");
     printf("-rot    rotate  a nanoparticle along eigenvectors of moments of inertia \n");
-    printf("-mov    move atoms along one direction by a constant shift              \n");
-    printf("-ord    order atoms by species                                          \n");
     printf("-dim    find    whether POSCAR is periodic (3) or non-periodic (0)      \n");
     printf("-box    reset   the box size for nanoparticles                          \n");
     printf("-sup    make    a supercell specified by na x nb x nc                   \n");
     printf("-vol    compute volume per atom for crystal or nano structures          \n");
-    printf("-rdf    randomize unit cell in POSCAR                                   \n");
-    printf("        options: [ at disortions, uc distortions, seed ]                \n");
-    printf("-eig    shift unit cell in POSCAR along eigenmode in EV                 \n");
-    printf("        options: [ distortion strength ]                                \n");
-    printf("-out    extract snapshots from OUTCAR given POSCAR                      \n");
-    printf("        options: [ number of iterations between snapshots ]             \n");
-    printf("-usr    run user-defined functions                                      \n");    
+    printf("-usr    run user-defined functions                                      \n");
     exit(0);    
   }
 
   //================   list available options  ===============
   if(strncmp(ARGV[1],"-man",4)!=0)
-    printf("\nThe FLAG is   not recognized. Allowed FLAGS are:\n\n");
-  printf("-rdf    compute   and plot the RDF for POSCAR                             \n");
-  printf("-cxc    compute   dot product for POSCAR0 and POSCAR1 using RDF           \n");
-  printf("-cmp    compare   RDF, space group, and volume of POSCAR0 and POSCAR1     \n");
-  printf("-spg    convert   POSCAR into str.cif, CONV, PRIM                         \n");
-  printf("-cif    convert   str.cif into CONV and PRIM                              \n");
-  printf("-rot    rotate    a nanoparticle along eigenvectors of moments of inertia \n");
-  printf("-mov    move      atoms along one direction by a constant shift           \n");
-  printf("-ord    order     atoms by species                                        \n");
-  printf("-dim    find      whether POSCAR is periodic (3) or non-periodic (0)      \n");
-  printf("-box    reset     the box size for nanoparticles                          \n");
-  printf("-sup    make      a supercell specified by na x nb x nc                   \n");
-  printf("-vol    compute   volume per atom for crystal or nano structures          \n");
-  printf("-rnd    randomize unit cell in POSCAR                                     \n");
-  printf("-eig    shift     unit cell in POSCAR along eigenmode in EV               \n");
-  printf("-out    extract   snapshots from OUTCAR                                   \n");
-  printf("-usr    run       user-defined functions                                  \n");
+    printf("\nThe FLAG is not recognized. Allowed FLAGS are:\n\n");
+  printf("-rdf    compute and plot the RDF for POSCAR                             \n");
+  printf("-cxc    compute dot product for POSCAR0 and POSCAR1 using RDF           \n");
+  printf("-cmp    compare RDF, space group, and volume of POSCAR0 and POSCAR1     \n");
+  printf("-spg    convert POSCAR into str.cif, CONV, PRIM                         \n");
+  printf("-cif    convert str.cif into CONV and PRIM                              \n");
+  printf("-rot    rotate  a nanoparticle along eigenvectors of moments of inertia \n");
+  printf("-dim    find    whether POSCAR is periodic (3) or non-periodic (0)      \n");
+  printf("-box    reset   the box size for nanoparticles                          \n");
+  printf("-sup    make    a supercell specified by na x nb x nc                   \n");
+  printf("-vol    compute volume per atom for crystal or nano structures          \n");
+  printf("-usr    run user-defined functions                                      \n");
   exit(0);
 }
 //==================================================================

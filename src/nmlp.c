@@ -437,7 +437,7 @@ double FRC_ANN(ANN *R, LNK *L)
     for(i=0;i<L->N;i++)
     {
       spc = L->ATMN[i];
-      for(q=0;q<3;q++)
+      for(q=0;q<DN;q++)
         L->f[i][q] = 0.0;
       // for 3-layer MLP
       // =======  dGni/dxi  ========
@@ -450,7 +450,7 @@ double FRC_ANN(ANN *R, LNK *L)
 	      for(l=0;l<R->NU[0];l++)
 	      {
 	        if(L->MRK[i]==1)
-	          for(q=0;q<3;q++)
+	          for(q=0;q<DN;q++)
 	            L->f[i][q] -= L->Fn[i][L->DNn[i]][l][q]*tn*R->W[spc][0][n][l];
 	        for(q=0;q<6;q++)
 	          s[nth][q] -= L->Sn[i][l][q]*tn*R->W[spc][0][n][l];
@@ -471,7 +471,7 @@ double FRC_ANN(ANN *R, LNK *L)
   	        {
 	          tn = tm*R->W[sij][1][m][n]*R->d[sij][nij][1][n];
 	          for(l=0;l<R->NU[0];l++)
-	          for(q=0;q<3;q++)
+	          for(q=0;q<DN;q++)
 		        L->f[i][q] -= L->Fn[i][j][l][q]*tn*R->W[sij][0][n][l];;
 	        }      
 	      }

@@ -1,0 +1,1522 @@
+src/efnc.c:  if(T->JS==0)
+src/efnc.c:  if(T->JS==1)
+src/efnc.c:  for(p=T->N;p<2*T->N;p++)
+src/efnc.c:    if( p>=T->SES[J] && p<T->FES[J] )
+src/efnc.c:    for(qq=i=0;qq<T->NSPC-1;qq++)
+src/efnc.c:      for(j=0;j<T->C[p].SPCN[qq];j++)
+src/efnc.c:	for(k=i;k<T->C[p].N;k++)
+src/efnc.c:	  if(T->C[p].ATMN[k]==qq)
+src/efnc.c:	if(k==T->C[p].N)
+src/efnc.c:	  dSwap(&T->C[p].X[i][q],&T->C[p].X[k][q]);
+src/efnc.c:	iSwap(&T->C[p].ATMN[i],&T->C[p].ATMN[k]);
+src/efnc.c:	iSwap(&T->C[p].ATMZ[i],&T->C[p].ATMZ[k]);
+src/efnc.c:  for(p=T->N;p<2*T->N;p++)
+src/efnc.c:  if( p==P || ( (P<0) && (p>=T->SES[J]) && (p<T->FES[J] ) ) )
+src/efnc.c:      k = (int)(Random()*(double)T->N);
+src/efnc.c:      Copy_C(&T->C[k],C);
+src/efnc.c:    for(s=0,t=1.0;s<T->Nm;s++)
+src/efnc.c:      if(s%(T->Nm/10)==0)
+src/efnc.c:    if(s==T->Nm)
+src/efnc.c:      sprintf(buf,"exit in CHOP_NP 1: exceeded %3d\n",T->Nm);
+src/efnc.c:      fprintf(stderr,"exit in CHOP_NP 1: exceeded %3d\n",T->Nm);
+src/efnc.c:    for(s=0;s<T->Nm;s++)
+src/efnc.c:            C->X[i][q] = a[q]*(R+4.0*T->Rm[C->ATMN[i]])*(1.0+dr*Random());
+src/efnc.c:                if( t < 1.5*(T->Rm[C->ATMN[i]]+T->Rm[C->ATMN[j]]) )
+src/efnc.c:                  if( t < 1.0*(T->Rm[C->ATMN[i]]+T->Rm[C->ATMN[j]]) )
+src/efnc.c:    if(s==T->Nm)
+src/efnc.c:      sprintf(buf,"EXIT in %s: exceeded %3d tries\n",T->NES[J],T->Nm);
+src/efnc.c:      fprintf(stderr,"EXIT in %s: exceeded %3d tries\n",T->NES[J],T->Nm);
+src/efnc.c:    LIST(&T->C[k],0);
+src/efnc.c:    RDF(&T->C[k],1);
+src/efnc.c:    if( 1.0-CxC(C,&T->C[k])<1e-6 )
+src/efnc.c:    Copy_C(C,&T->C[p]);
+src/efnc.c:      T->P1[p] = T->P2[p] = T->C[k].P;
+src/efnc.c:      sprintf(buf,"%3d %3d %s %3d %3d\n",T->n,p,T->NES[J],k,k);
+src/efnc.c:  for(i=0,V=0.0;i<T->NSPC;i++)    
+src/efnc.c:    V += pow(T->Rm[i],3.0)*(double)T->SPCN[i];
+src/efnc.c:    C->L[i][i] = T->B;
+src/efnc.c:  for(p=T->N;p<2*T->N;p++)
+src/efnc.c:  if( p==P || ( (P<0) && (p>=T->SES[J]) && (p<T->FES[J] ) ) )
+src/efnc.c:    printf("%s %3d\n",T->NES[J],p);
+src/efnc.c:    t = 1.0 + 2.0*T->te*(0.5-Random());
+src/efnc.c:    for(s=0;s<T->Nm;s++)
+src/efnc.c:	    T->C[p].X[n][q] = 1.0-2.0*Random();
+src/efnc.c:	    c[q] = T->C[p].X[n][q]*b[q];
+src/efnc.c:      for(i=0;i<T->C[p].N;i++)
+src/efnc.c:	D[i] = VectorLen(T->C[p].X[i],3);
+src/efnc.c:      Sort(D,I,T->C[p].N);      
+src/efnc.c:      for(i=0;i<T->C[p].N;i++)
+src/efnc.c:	  C->X[i][q] = R*T->C[p].X[I[i]][q];
+src/efnc.c:      if(ADJT_NP(C,T->Rm,R,b,(int)(sqrt(C->N))))
+src/efnc.c:    if(s==T->Nm)
+src/efnc.c:      sprintf(buf,"EXIT in %s: exceeded %3d tries\n",T->NES[J],T->Nm);
+src/efnc.c:      fprintf(stderr,"EXIT in %s: exceeded %3d tries\n",T->NES[J],T->Nm);
+src/efnc.c:    Copy_C(C,&T->C[p]);
+src/efnc.c:    sprintf(buf,"%3d %3d %s %3d %3d\n",T->n,p,T->NES[J],-1,-1);
+src/efnc.c:  for(i=0,V=0.0;i<T->NSPC;i++)    
+src/efnc.c:    V += pow(T->Rm[i],3.0)*(double)T->SPCN[i];
+src/efnc.c:    C->L[i][i] = T->B;
+src/efnc.c:  for(p=T->N;p<2*T->N;p++)
+src/efnc.c:  if( p==P || ( (P<0) && (p>=T->SES[J]) && (p<T->FES[J] ) ) )
+src/efnc.c:    printf("%s %3d\n",T->NES[J],p);
+src/efnc.c:    b[(int)(Random()*3.0)] = 1.0 + 2.0*T->te*(0.5-Random());
+src/efnc.c:    for(s=0;s<T->Nm;s++)
+src/efnc.c:              if( NDR(C,i,I[j]) < 1.5*(T->Rm[C->ATMN[i]]+T->Rm[C->ATMN[I[j]]]) )
+src/efnc.c:              if( NDR(C,i,I[j]) < 1.0*(T->Rm[C->ATMN[i]]+T->Rm[C->ATMN[I[j]]]) )
+src/efnc.c:      if( CHCK_Rm(C,T->Rm,1.0)==1 )
+src/efnc.c:    if(s==T->Nm)
+src/efnc.c:      sprintf(buf,"EXIT in %s: exceeded %3d tries\n",T->NES[J],T->Nm);
+src/efnc.c:      fprintf(stderr,"EXIT in %s: exceeded %3d tries\n",T->NES[J],T->Nm);
+src/efnc.c:    Copy_C(C,&T->C[p]);
+src/efnc.c:    sprintf(buf,"%3d %3d %s %3d %3d\n",T->n,p,T->NES[J],-1,-1);
+src/efnc.c:  N  = 2*T->N;
+src/efnc.c:  for(p=T->N;p<2*T->N;p++)
+src/efnc.c:  if( p==P || ( (P<0) && (p>=T->SES[J]) && (p<T->FES[J] ) ) )
+src/efnc.c:    k = (int)((double)T->pos*Random());
+src/efnc.c:    if( p==T->SES[J] && T->n==0 )
+src/efnc.c:    if( READ_CELL(&T->C[N],buf)==0 )
+src/efnc.c:      NANO_TETR(T,0,&T->C[N],p);      
+src/efnc.c:    printf("%s %3d\n",T->NES[J],p);
+src/efnc.c:        T->C[p].L[i][q] = 0.0;
+src/efnc.c:      T->C[p].L[i][i] = T->B;
+src/efnc.c:    A  = T->C[p].N;
+src/efnc.c:    I  = make_i1D(T->C[N].N);
+src/efnc.c:    D  = make_d1D(T->C[N].N);
+src/efnc.c:    for(i=0,R0=0.0;i<T->NSPC;i++)
+src/efnc.c:      R0 += T->Rm[i]*(double)T->SPCN[i]/(double)T->C[p].N;
+src/efnc.c:    for(i=0,V=0.0;i<T->NSPC;i++)
+src/efnc.c:      V += pow(T->Rm[i],3.0)*(double)T->SPCN[i];
+src/efnc.c:    if(T->n>0)
+src/efnc.c:    for(i=0;i<T->C[N].N;i++)
+src/efnc.c:        T->C[N].X[i][q] += d[q]*R0 + T->ca*RANG();
+src/efnc.c:    for(i=0;i<T->C[N].N;i++)
+src/efnc.c:      D[i] = VectorLen(T->C[N].X[i],3);
+src/efnc.c:    Sort(D,I,T->C[N].N);
+src/efnc.c:    for(i=0;i<T->C[N].N;i++)
+src/efnc.c:        T->C[p].X[i][q] = T->C[N].X[I[i]][q];
+src/efnc.c:    if(T->n==0)
+src/efnc.c:    if( A - T->C[N].N > N0 )
+src/efnc.c:      N0 = A - T->C[N].N;
+src/efnc.c:    Copy_C(&T->C[p],&T->C[N]);
+src/efnc.c:    for(s=0;s<T->Nm;s++)
+src/efnc.c:      b[(int)(Random()*3.0)] = 1.0 + 2.0*T->te*(0.5-Random());
+src/efnc.c:            T->C[p].X[i][q] = a[q]*R*(1.0+dr*Random());
+src/efnc.c:              T->C[p].X[i][q] *= (1.0-dr);
+src/efnc.c:              t = NDR(&T->C[p],i,j);
+src/efnc.c:              if( t < 1.5*(T->Rm[T->C[p].ATMN[i]]+T->Rm[T->C[p].ATMN[j]]) )
+src/efnc.c:                j = T->C[p].N;
+src/efnc.c:                if( t < 1.0*(T->Rm[T->C[p].ATMN[i]]+T->Rm[T->C[p].ATMN[j]]) )
+src/efnc.c:            c[q] = T->C[p].X[i][q]*b[q];
+src/efnc.c:              r[q] = T->C[p].X[i][q];
+src/efnc.c:          T->C[p].X[i][q] = r[q];
+src/efnc.c:    if(s==T->Nm)
+src/efnc.c:      sprintf(buf,"EXIT in %s: exceeded %3d tries\n",T->NES[J],T->Nm);
+src/efnc.c:      fprintf(stderr,"EXIT in %s: exceeded %3d tries\n",T->NES[J],T->Nm);
+src/efnc.c:    sprintf(buf,"%3d %3d %s %3d %3d\n",T->n,p,T->NES[J],k,k);
+src/efnc.c:  for(i=0,R=0.0;i<T->NSPC;i++)
+src/efnc.c:    R += T->Rm[i]*(double)T->SPCN[i]/(double)C->N;
+src/efnc.c:  for(p=T->N;p<2*T->N;p++)
+src/efnc.c:  if( p==P || ( (P<0) && (p>=T->SES[J]) && (p<T->FES[J] ) ) )
+src/efnc.c:    C->L[i][i] = T->B;
+src/efnc.c:    b[(int)(Random()*3.0)] = 1.0 + 2.0*T->te*(0.5-Random());
+src/efnc.c:	C->X[i][q] += T->ca*RANG();
+src/efnc.c:    Copy_C(C,&T->C[p]);
+src/efnc.c:    sprintf(buf,"%3d %3d %s %3d %3d\n",T->n,p,T->NES[J],S,S);
+src/efnc.c:  N  = 2*T->N;
+src/efnc.c:  TN1 = make_i1D(T->NSPC);
+src/efnc.c:  TN2 = make_i1D(T->NSPC);
+src/efnc.c:  PM  = make_i1D(2*T->N);
+src/efnc.c:  SM  = make_i1D(2*T->N);
+src/efnc.c:  R   = make_d2D(T->N,T->C[0].N);
+src/efnc.c:  I   = make_i2D(T->N,T->C[0].N);
+src/efnc.c:  for(p=0;p<T->N;p++)
+src/efnc.c:    PM[p+T->N] = 0;
+src/efnc.c:    if(Random()<T->pm)
+src/efnc.c:      PM[p+T->N] = 1;
+src/efnc.c:  for(m=0,p=po=T->N;p<2*T->N&&m<T->Nm;p++,m++)
+src/efnc.c:  if( p>=T->SES[J] && p<T->FES[J] )
+src/efnc.c:    //   select two parents and mate at least T->Nc times
+src/efnc.c:    if( m%T->Nc==0 || p>po )
+src/efnc.c:      k1 = (int)(Random()*(double)T->N);
+src/efnc.c:      k2 = (k1+1+(int)(Random()*(double)(T->N-1)))%T->N;
+src/efnc.c:	for(i=0;i<T->C[k1].N;i++)
+src/efnc.c:	  R[k1][i] = VectorLen(T->C[k1].X[i],3);
+src/efnc.c:	Sort(R[k1],I[k1],T->C[k1].N);
+src/efnc.c:	for(i=0;i<T->C[k2].N;i++)
+src/efnc.c:	  R[k2][i] = VectorLen(T->C[k2].X[i],3);
+src/efnc.c:	Sort(R[k2],I[k2],T->C[k2].N);
+src/efnc.c:    for(qq=0;qq<T->NSPC;qq++)
+src/efnc.c:    N1 = (int)((0.4+0.2*Random())*(double)T->C[k1].N);
+src/efnc.c:	T->C[p].X[i][q] = T->C[k1].X[I[k1][i]][q];
+src/efnc.c:      TN1[T->C[k1].ATMN[I[k1][i]]]++;
+src/efnc.c:      T->C[p].ATMN[i] =  T->C[k1].ATMN[I[k1][i]];
+src/efnc.c:      T->C[p].ATMZ[i] =  T->C[k1].ATMZ[I[k1][i]];
+src/efnc.c:    for(qq=0;qq<T->NSPC;qq++)
+src/efnc.c:    for(i=N1;i<T->C[k2].N;i++)
+src/efnc.c:      TN2[T->C[k2].ATMN[I[k2][i]]]++;
+src/efnc.c:    for(qq=0;qq<T->NSPC;qq++)
+src/efnc.c:      if( TN1[qq]+TN2[qq] != T->C[k1].SPCN[qq] )
+src/efnc.c:    if( qq==T->NSPC )
+src/efnc.c:      for(i=N1;i<T->C[k2].N;i++)
+src/efnc.c:	r = t*( R[k2][I[k2][i]]+T->C[k2].R0 ) / R[k2][I[k2][i]];
+src/efnc.c:	  T->C[p].X[i][q] = T->C[k2].X[I[k2][i]][q]*r;
+src/efnc.c:	T->C[p].ATMN[i] =  T->C[k2].ATMN[I[k2][i]];
+src/efnc.c:        T->C[p].ATMZ[i] =  T->C[k2].ATMZ[I[k2][i]];
+src/efnc.c:      T->C[p].N = T->C[k1].N;
+src/efnc.c:      Copy_C(&T->C[p],&T->C[N]);      
+src/efnc.c:      for(s=0;s<T->Ns;s++)
+src/efnc.c:	for(i=N1;i<T->C[p].N;i++)
+src/efnc.c:	  x = T->C[p].X[i][(qr+1)%3];
+src/efnc.c:	  y = T->C[p].X[i][(qr+2)%3];
+src/efnc.c:	  T->C[p].X[i][(qr+1)%3] =  x*cos(ar) + y*sin(ar);
+src/efnc.c:	  T->C[p].X[i][(qr+2)%3] = -x*sin(ar) + y*cos(ar);
+src/efnc.c:	if(CHCK_Rm(&T->C[p],T->Rm,1.0)==1)
+src/efnc.c:	  for(i=N1;i<T->C[p].N;i++)
+src/efnc.c:		T->C[p].X[i][q] *= (1.0-dr);
+src/efnc.c:	      if(CHCK_Rm(&T->C[p],T->Rm,1.0)==0)
+src/efnc.c:		  T->C[p].X[i][q] /= (1.0-dr);
+src/efnc.c:	Copy_C(&T->C[N],&T->C[p]);
+src/efnc.c:      if(CHCK_Rm(&T->C[p],T->Rm,1.0)==1) 
+src/efnc.c:	T->P1[p] = T->C[k1].P;
+src/efnc.c:	T->P2[p] = T->C[k2].P;
+src/efnc.c:	sprintf(buf,"%3d %3d %s %3d %3d\n",T->n,p,T->NES[J],k1,k2);
+src/efnc.c:  if(m==T->Nm)
+src/efnc.c:    sprintf(buf,"EXIT in %s: exceeded %3d tries\n",T->NES[J],T->Nm);
+src/efnc.c:    fprintf(stderr,"EXIT in %s: exceeded %3d tries\n",T->NES[J],T->Nm);
+src/efnc.c:  free_d2D(R,T->N);
+src/efnc.c:  free_i2D(I,T->N);
+src/efnc.c:  N  = 2*T->N;
+src/efnc.c:  TN1 = make_i1D(T->NSPC);
+src/efnc.c:  TN2 = make_i1D(T->NSPC);
+src/efnc.c:  PM  = make_i1D(2*T->N);
+src/efnc.c:  for(p=T->N;p<2*T->N;p++)
+src/efnc.c:  if( p>=T->SES[J] && p<T->FES[J] )
+src/efnc.c:    if(Random()<T->pm)
+src/efnc.c:  for(m=0,p=po=T->N;p<2*T->N&&m<T->Nm;p++,m++)
+src/efnc.c:  if( p>=T->SES[J] && p<T->FES[J] )
+src/efnc.c:    //   select two parents and mate at least T->Nc times
+src/efnc.c:    if( m%T->Nc==0 || p>po )
+src/efnc.c:      k1 = (int)(Random()*(double)T->N);
+src/efnc.c:      k2 = (k1+1+(int)(Random()*(double)(T->N-1)))%T->N;
+src/efnc.c:    for(qq=0;qq<T->NSPC;qq++)
+src/efnc.c:      a[q] = a[q]*T->C[p].R0;
+src/efnc.c:    for(i=j=0;i<T->C[k1].N;i++)
+src/efnc.c:	c[q] = T->C[k1].X[i][ q] - a[q];
+src/efnc.c:	  T->C[p].X[j][ q] = T->C[k1].X[i][ q];
+src/efnc.c:	TN1[T->C[k1].ATMN[i]]++;
+src/efnc.c:	T->C[p].ATMN[j++] =  T->C[k1].ATMN[i];
+src/efnc.c:    T->C[p].N = j;
+src/efnc.c:      for(o=-T->No/2;o<=T->No/2;o++)
+src/efnc.c:	for(qq=0;qq<T->NSPC;qq++)
+src/efnc.c:	for(i=j=0;i<T->C[k2].N;i++)
+src/efnc.c:            c[q] = T->C[k2].X[i][q] - a[q] - b[q]*0.2*(double)o/(double)T->No;
+src/efnc.c:	    TN2[T->C[k2].ATMN[i]]++;
+src/efnc.c:	if( T->C[p].N+j==T->C[k2].N )
+src/efnc.c:	  for(qq=0;qq<T->NSPC;qq++)
+src/efnc.c:	    if( TN1[qq]+TN2[qq] != T->C[k1].SPCN[qq] )
+src/efnc.c:	  if( qq==T->NSPC )
+src/efnc.c:      if(j>0&&T->C[p].N+j==T->C[k2].N)
+src/efnc.c:	for(i=j=0;i<T->C[k2].N;i++)
+src/efnc.c:            c[q] = T->C[k2].X[i][q] - a[q] - b[q]*0.2*(double)o/(double)T->No;
+src/efnc.c:	      T->C[p].X[T->C[p].N+j][q] = T->C[k2].X[i][q];
+src/efnc.c:	    T->C[p].ATMN[T->C[p].N+j] =  T->C[k2].ATMN[i];
+src/efnc.c:	j = T->C[p].N;
+src/efnc.c:	T->C[p].N = T->C[k1].N;
+src/efnc.c:	Copy_C(&T->C[p],&T->C[N]);
+src/efnc.c:	for(s=0;s<T->Ns;s++)
+src/efnc.c:	  for(i=j;i<T->C[p].N;i++)
+src/efnc.c:	      T->C[p].X[i][q] += 0.7*a[q]*T->C[p].R0;
+src/efnc.c:	  if(CHCK_Rm(&T->C[p],T->Rm,1.0)==1)
+src/efnc.c:	  Copy_C(&T->C[N],&T->C[p]);
+src/efnc.c:	//   mutate with probability T->pm and swap with probability T->ps
+src/efnc.c:	  for(u=0;u<T->Nu;u++)
+src/efnc.c:	    Copy_C(&T->C[p],&T->C[N]);
+src/efnc.c:	    if( SHKE_CL(&T->C[N],T->ml,T->C[p].R0*T->ma)!=0 )  //SHKE_CL already made not to shift
+src/efnc.c:	      if(T->NSPC>1)
+src/efnc.c:		for(i=s=0;i<T->C[N].N;i++)
+src/efnc.c:		  if(Random()<T->ps)
+src/efnc.c:		    for(j=i;T->C[N].ATMN[i]==T->C[N].ATMN[j%T->C[N].N];j++);
+src/efnc.c:		    j = ( j + (int)(Random()*(double)(T->C[N].N-T->SPCN[T->C[N].ATMN[i]])) )%T->C[N].N;  // swap only different species
+src/efnc.c:                      dSwap(&T->C[N].X[i][q],&T->C[N].X[j][q]);
+src/efnc.c:	      if(CHCK_Rm(&T->C[N],T->Rm,1.0)==1)
+src/efnc.c:		Copy_C(&T->C[N],&T->C[p]);
+src/efnc.c:	if(CHCK_Rm(&T->C[p],T->Rm,1.0)==1) 
+src/efnc.c:	  T->P1[p] = T->C[k1].P;
+src/efnc.c:	  T->P2[p] = T->C[k2].P;
+src/efnc.c:          sprintf(buf,"%3d %3d %s %3d %3d\n",T->n,p,T->NES[J],k1,k2);
+src/efnc.c:  if(m==T->Nm)
+src/efnc.c:    sprintf(buf,"EXIT in %s: exceeded %3d tries\n",T->NES[J],T->Nm);
+src/efnc.c:    fprintf(stderr,"EXIT in %s: exceeded %3d tries\n",T->NES[J],T->Nm);
+src/efnc.c:  N  = 2*T->N;
+src/efnc.c:  TN1 = make_i1D(T->NSPC);
+src/efnc.c:  PM  = make_i1D(2*T->N);
+src/efnc.c:  for(p=T->N;p<2*T->N;p++)
+src/efnc.c:  if( p>=T->SES[J] && p<T->FES[J] )
+src/efnc.c:    if(Random()<T->pm)
+src/efnc.c:  for(m=0,Rm=0.0;m<T->NSPC;m++)
+src/efnc.c:    if( Rm < T->Rm[m] )
+src/efnc.c:      Rm = T->Rm[m];           //determing the minimum hard sphere radius
+src/efnc.c:  for(m=0,p=po=T->N;p<2*T->N&&m<T->Nm;p++,m++)
+src/efnc.c:  if( p>=T->SES[J] && p<T->FES[J] )
+src/efnc.c:    //   select one parent at least T->Nc times
+src/efnc.c:    if( m%T->Nc==0 || p>po )
+src/efnc.c:      k1 = k2 = (int)(Random()*(double)T->N);
+src/efnc.c:      for(i=0,R=0.0;i<T->C[k1].N;i++)
+src/efnc.c:	if( VectorLen(T->C[k1].X[i],3) > R )
+src/efnc.c:	  R = VectorLen(T->C[k1].X[i],3);
+src/efnc.c:    for(o=0;o<=T->No;o++)
+src/efnc.c:      Copy_C(&T->C[k1],&T->C[N]);
+src/efnc.c:      Copy_C(&T->C[k1],&T->C[p]);   //defining two C's one as the offspring and one for messing around
+src/efnc.c:      k = (int)(Random()*(double)T->C[p].N);
+src/efnc.c:      ROT_CELL(&T->C[p],k,2,1);
+src/efnc.c:      ROT_CELL(&T->C[p],k,0,2);
+src/efnc.c:      for(i=0;i<T->C[p].N;i++)
+src/efnc.c:      if(T->C[p].X[i][qr]>b[qr])
+src/efnc.c:	x = T->C[p].X[i][(qr+1)%3];
+src/efnc.c:	y = T->C[p].X[i][(qr+2)%3];
+src/efnc.c:	T->C[p].X[i][(qr+1)%3]  =  x*cos(ar) + y*sin(ar);
+src/efnc.c:	T->C[p].X[i][(qr+2)%3]  = -x*sin(ar) + y*cos(ar);
+src/efnc.c:	T->C[p].X[i][(qr+0)%3] += Rm;
+src/efnc.c:      Copy_C(&T->C[p],&T->C[N]);
+src/efnc.c:      for(s=0;s<T->Ns;s++)
+src/efnc.c:	for(i=0;i<T->C[p].N;i++)
+src/efnc.c:	  if(T->C[p].X[i][qr]>b[qr])
+src/efnc.c:	      T->C[p].X[i][q] += 0.5*a[q]*Rm;
+src/efnc.c:	if(CHCK_Rm(&T->C[p],T->Rm,1.0)==1)
+src/efnc.c:	Copy_C(&T->C[N],&T->C[p]);           //If distances are bad overwrite offspring with playing and re-try
+src/efnc.c:      //   mutate with probability T->pm and swap with probability T->ps
+src/efnc.c:	for(u=0;u<T->Nu;u++)
+src/efnc.c:	  Copy_C(&T->C[p],&T->C[N]);
+src/efnc.c:	  if( SHKE_CL(&T->C[N],T->ml,T->C[p].R0*T->ma)!=0 )       //This function changes the lattice vectors and positions of atoms randomly
+src/efnc.c:	    if(T->NSPC>1)
+src/efnc.c:	      for(i=s=0;i<T->C[N].N;i++)
+src/efnc.c:		if(Random()<T->ps)                            //if probability is met (and there is more than 1 atom type) then swap atoms
+src/efnc.c:		  for(j=i;T->C[N].ATMN[i]==T->C[N].ATMN[j%T->C[N].N];j++);
+src/efnc.c:		  j = ( j + (int)(Random()*(double)(T->C[N].N-T->SPCN[T->C[N].ATMN[i]])) )%T->C[N].N;  // swap only different species
+src/efnc.c:		    dSwap(&T->C[N].X[i][q],&T->C[N].X[j][q]);
+src/efnc.c:	    if(CHCK_Rm(&T->C[N],T->Rm,1.0)==1)                 //if distances are good copy plating to offspring and move on
+src/efnc.c:	      Copy_C(&T->C[N],&T->C[p]);
+src/efnc.c:      if(CHCK_Rm(&T->C[p],T->Rm,1.0)==1)
+src/efnc.c:	T->P1[p] = T->C[k1].P;
+src/efnc.c:	T->P2[p] = T->C[k2].P;
+src/efnc.c:	sprintf(buf,"%3d %3d %s %3d %3d\n",T->n,p,T->NES[J],k1,k2);
+src/efnc.c:    if(o==T->No+1)
+src/efnc.c:  if(m==T->Nm)
+src/efnc.c:    sprintf(buf,"EXIT in %s: exceeded %3d tries\n",T->NES[J],T->Nm);
+src/efnc.c:    fprintf(stderr,"EXIT in %s: exceeded %3d tries\n",T->NES[J],T->Nm);
+src/efnc.c:  N  = 2*T->N;                             //Set N to twice as many as C's in Tribe 
+src/efnc.c:  TN1 = make_i1D(T->NSPC);                //Vector of length = # of species
+src/efnc.c:  for(m=0,Rm=0.0;m<T->NSPC;m++)              //Sets minimum radius of the various atom types
+src/efnc.c:    if( Rm < T->Rm[m] )
+src/efnc.c:      Rm = T->Rm[m];
+src/efnc.c:  for(m=0,p=po=T->N;p<2*T->N&&m<T->Nm;p++,m++)
+src/efnc.c:  if( p>=T->SES[J] && p<T->FES[J] )
+src/efnc.c:    //   select one parent at least T->Nc times
+src/efnc.c:    if( m%T->Nc==0 || p>po )
+src/efnc.c:      k1 = k2 = (int)(Random()*(double)T->N);
+src/efnc.c:    for(o=0;o<=T->No;o++)  //loops over the number of tries to find a good slice
+src/efnc.c:      Copy_C(&T->C[k1],&T->C[N]);
+src/efnc.c:      Copy_C(&T->C[k1],&T->C[U]); // Generate two new C's from the parent one to be offspring and one to mess with
+src/efnc.c:      t = Random()*Rm;//(double)o/(double)T->No*Rm; //determine length of vector to shake atoms by
+src/efnc.c:      for(i=0;i<T->C[N].N;i++)                 //shake all atoms by |d|*t
+src/efnc.c:	  T->C[N].X[i][q] += d[q]*t;         // shake with increasing amplitude
+src/efnc.c:      for(qq=0;qq<T->NSPC;qq++)                  //Keeping track of number of each type of atom in the slice (initialize)
+src/efnc.c:      for(i=j=0;i<T->C[N].N;i++)               // for each atom in C[messing around] selects if atom is in slice
+src/efnc.c:	  c[q] = T->C[N].X[i][ q];
+src/efnc.c:	    T->C[U].X[j][ q] = T->C[N].X[i][ q];
+src/efnc.c:	  TN1[T->C[N].ATMN[i]]++;                //Keeping track of number of each type of atom in the slice
+src/efnc.c:	  T->C[U].ATMN[j  ] =  T->C[N].ATMN[i];    //sets C[U].ATMN[j] to C[U].ATMN[i] and then j++
+src/efnc.c:	  T->C[U].ATMZ[j++] =  T->C[N].ATMZ[i];
+src/efnc.c:      for(qq=0;qq<T->NSPC;qq++)
+src/efnc.c:	if( TN1[qq] < T->C[k1].SPCN[qq]/2 )      //checks if at least 1/2 of each type of atom is selected //SHOULD I WORRY ABOUT THE FIXED ATOMS THAT AREN"T DUPLICATING?
+src/efnc.c:      M = T->C[U].N = j;                       //Number of atoms is slice
+src/efnc.c:      if( T->C[U].N>=T->C[k1].N/2 && qq==T->NSPC )  // atoms may be merged, hence try >= N/2  //can only be merged if more than 1/2 of the atoms are here (can delete atoms not add)
+src/efnc.c:	      c[q] = T->C[U].X[i][q];
+src/efnc.c:	      T->C[U].X[T->C[U].N][q] = c[q] - 2.0*b[q]*t;	    
+src/efnc.c:	      T->C[U].X[T->C[U].N][q] = -T->C[U].X[i][q];      
+src/efnc.c:	  T->C[U].ATMN[T->C[U].N  ] = T->C[U].ATMN[i];
+src/efnc.c:	  T->C[U].ATMZ[T->C[U].N++] = T->C[U].ATMZ[i];
+src/efnc.c:	  for(j=jj=M,R=T->B;jj<T->C[U].N;jj++)
+src/efnc.c:	    t = NDR(&T->C[U],i,jj);
+src/efnc.c:	  t = R/(T->Rm[T->C[U].ATMN[i]]+T->Rm[T->C[U].ATMN[j]]);  //dist between i and j / (minimum distant between the two atoms)
+src/efnc.c:	  if( T->C[U].ATMN[i]==T->C[U].ATMN[j] && t<1.0 )                // merge the two atoms if they are too close together
+src/efnc.c:              T->C[U].X[i][q] = (T->C[U].X[i][q]+T->C[U].X[j][q])*0.5;
+src/efnc.c:            T->C[U].ATMN[j] = 99;
+src/efnc.c:	for(i=j=0;j<T->C[U].N;i++,j++)         //deletes atoms with type 99 and shifts array up
+src/efnc.c:	    T->C[U].X[i][q] = T->C[U].X[j][q];
+src/efnc.c:	  T->C[U].ATMN[i] = T->C[U].ATMN[j];
+src/efnc.c:	  T->C[U].ATMZ[i] = T->C[U].ATMZ[j];
+src/efnc.c:	  if( T->C[U].ATMN[j] == 99 )
+src/efnc.c:	T->C[U].N = i;                        //updates number of atoms
+src/efnc.c:        if( T->C[U].N==T->C[k1].N )
+src/efnc.c:	  for(qq=0;qq<T->NSPC;qq++)
+src/efnc.c:	  for(i=0;i<T->C[U].N;i++)
+src/efnc.c:	    TN1[T->C[U].ATMN[i]]++;
+src/efnc.c:          for(qq=0;qq<T->NSPC;qq++)
+src/efnc.c:            if( TN1[qq] != T->C[k1].SPCN[qq] )
+src/efnc.c:          if( qq<T->NSPC )
+src/efnc.c:      if(i>0&&T->C[U].N==T->C[k1].N)
+src/efnc.c:        if(CHCK_Rm(&T->C[U],T->Rm,1.0)==1)
+src/efnc.c:          T->P1[p] = T->C[k1].P;
+src/efnc.c:          T->P2[p] = T->C[k2].P;
+src/efnc.c:	  Copy_C(&T->C[U],&T->C[p]);
+src/efnc.c:	  printf("%s %3d\n",T->NES[J],p);
+src/efnc.c:	  sprintf(buf,"%3d %3d %s %3d %3d\n",T->n,p,T->NES[J],k1,k2);
+src/efnc.c:    if(o==T->No+1)
+src/efnc.c:  if(m==T->Nm)
+src/efnc.c:    sprintf(buf,"EXIT in %s: exceeded %3d tries\n",T->NES[J],T->Nm);
+src/efnc.c:    fprintf(stderr,"EXIT in %s: exceeded %3d tries\n",T->NES[J],T->Nm);
+src/efnc.c:  f = make_d1D(T->N+1);
+src/efnc.c:  D = make_d1D(T->C[0].N);
+src/efnc.c:  for(i=0,V=0.0;i<T->NSPC;i++)
+src/efnc.c:    V += pow(T->Rm[i],3.0)*(double)T->SPCN[i];
+src/efnc.c:  for(m=0,p=T->N;p<2*T->N&&m<T->Nm;p++,m++)
+src/efnc.c:  if( p>=T->SES[J] && p<T->FES[J] )
+src/efnc.c:    for(j=1,f[0]=0.0;j<T->N+1;j++)
+src/efnc.c:      f[j] = f[j-1] + T->f[j-1];
+src/efnc.c:    for(j=0;j<T->N+1;j++)
+src/efnc.c:      f[j] /= f[T->N];
+src/efnc.c:    for(k=0;k<T->N-1&&f[k+1]<r;k++); //selects random k
+src/efnc.c:    Copy_C(&T->C[k],&T->C[p]);
+src/efnc.c:    if( SHKE_CL(&T->C[p],T->cl,T->C[p].R0*T->ca)==0 )
+src/efnc.c:      if(T->NSPC>1)
+src/efnc.c:	for(i=0;i<T->C[p].N;i++)
+src/efnc.c:	  D[i] = VectorLen(T->C[p].X[i],3);
+src/efnc.c:	for(i=s=0;i<T->C[p].N;i++)
+src/efnc.c:	  if(Random()<T->cs)
+src/efnc.c:	    for(j=i;T->C[p].ATMN[i]==T->C[p].ATMN[j%T->C[p].N];j++);	    
+src/efnc.c:	    for(o=0;o<T->C[p].N;o++)
+src/efnc.c:	      j = ( j + (int)(Random()*(double)(T->C[p].N-T->SPCN[T->C[p].ATMN[i]])) )%T->C[p].N;
+src/efnc.c:	      if( fabs(D[i]-D[j]) < 0.5*(T->Rm[T->C[p].ATMN[i]]+T->Rm[T->C[p].ATMN[j]]) )
+src/efnc.c:		  dSwap(&T->C[p].X[i][q],&T->C[p].X[j][q]);
+src/efnc.c:      if(CHCK_Rm(&T->C[p],T->Rm,1.0)==1||ADJT_NP(&T->C[p],T->Rm,R,b,3))
+src/efnc.c:	T->P1[p] = T->P2[p] = T->C[k].P;
+src/efnc.c:	sprintf(buf,"%3d %3d %s %3d %3d %3d swaps\n",T->n,p,T->NES[J],k,k,s);
+src/efnc.c:    sprintf(T->C[p].TAG,"%3d %3d",T->n,p);
+src/efnc.c:  if(m==T->Nm)
+src/efnc.c:    sprintf(buf,"EXIT in %s: exceeded %3d tries\n",T->NES[J],T->Nm);
+src/efnc.c:    fprintf(stderr,"EXIT in %s: exceeded %3d tries\n",T->NES[J],T->Nm);
+src/efnc.c:  N  = 2*T->N;
+src/efnc.c:  TN1 = make_i1D(T->NSPC);
+src/efnc.c:  TN2 = make_i1D(T->NSPC);
+src/efnc.c:  PM  = make_i1D(2*T->N);
+src/efnc.c:  for(p=T->N;p<2*T->N;p++)
+src/efnc.c:  for(p=T->N;p<2*T->N;p++)
+src/efnc.c:    if(Random()<T->pm)
+src/efnc.c:  for(k=0;k<T->N;k++)
+src/efnc.c:    abc(&T->C[k]);
+src/efnc.c:  for(k=0;k<T->N;k++)
+src/efnc.c:    Relative(&T->C[k]);
+src/efnc.c:  for(m=0,p=po=T->N;p<2*T->N&&m<T->Nm;p++)
+src/efnc.c:  if( p>=T->SES[J] && p<T->FES[J] )
+src/efnc.c:    T->C[p].XT = 0;
+src/efnc.c:    //   select two parents and mate at least T->Nc times
+src/efnc.c:    if( m%T->Nc==0 || p>po )
+src/efnc.c:      k1 = (int)(Random()*(double)T->N);
+src/efnc.c:      k2 = (k1+1+(int)(Random()*(double)(T->N-1)))%T->N;
+src/efnc.c:    for(i=0;i<T->C[k1].N;i++)
+src/efnc.c:	T->C[k1].X[i][q] += a[q];
+src/efnc.c:	T->C[k2].X[i][q] += b[q];
+src/efnc.c:	if( T->C[k1].X[i][q]>1.0 )
+src/efnc.c:	  T->C[k1].X[i][q] -= 1.0;
+src/efnc.c:	if( T->C[k2].X[i][q]>1.0 )
+src/efnc.c:          T->C[k2].X[i][q] -= 1.0;
+src/efnc.c:    for(qq=0;qq<T->NSPC;qq++)
+src/efnc.c:    if(T->ND==3)     // for crystal select center near middle
+src/efnc.c:    if(T->ND==2)     // for film select center near middle
+src/efnc.c:    if(T->ND==2)
+src/efnc.c:    for(i=j=0;i<T->C[k1].N;i++)
+src/efnc.c:	c[q] = T->C[k1].X[i][ q] - a[q];
+src/efnc.c:	  T->C[p].X[j][ q] = T->C[k1].X[i][ q];
+src/efnc.c:	TN1[T->C[k1].ATMN[i]]++;
+src/efnc.c:	T->C[p].ATMN[j++] =  T->C[k1].ATMN[i];
+src/efnc.c:    T->C[p].N = j;
+src/efnc.c:    frac = (double)T->C[p].N/(double)T->C[k1].N;
+src/efnc.c:    MATE_LT(&T->C[k1],&T->C[k2],&T->C[p],frac);
+src/efnc.c:    V = (CELL_VOL(&T->C[k1])+CELL_VOL(&T->C[k2]))*0.5;
+src/efnc.c:    if( fabs(CELL_VOL(&T->C[p])-V)/V < 0.1 )
+src/efnc.c:      for(o=-T->No/2;o<=T->No/2;o++)
+src/efnc.c:	for(qq=0;qq<T->NSPC;qq++)
+src/efnc.c:	for(i=j=0;i<T->C[k2].N;i++)
+src/efnc.c:            c[q] = T->C[k2].X[i][q] - a[q] - b[q]*0.2*(double)o/(double)T->No;
+src/efnc.c:	    TN2[T->C[k2].ATMN[i]]++;
+src/efnc.c:	if( T->C[p].N+j==T->C[k2].N )
+src/efnc.c:	  for(qq=0;qq<T->NSPC;qq++)
+src/efnc.c:	    if( TN1[qq]+TN2[qq] != T->C[k1].SPCN[qq] )
+src/efnc.c:	  if( qq==T->NSPC )
+src/efnc.c:      if(j>0&&T->C[p].N+j==T->C[k2].N)
+src/efnc.c:	for(i=j=0;i<T->C[k2].N;i++)
+src/efnc.c:            c[q] = T->C[k2].X[i][q] - a[q] - b[q]*0.2*(double)o/(double)T->No;
+src/efnc.c:	      T->C[p].X[T->C[p].N+j][q] = T->C[k2].X[i][q];
+src/efnc.c:	    T->C[p].ATMN[T->C[p].N+j] =  T->C[k2].ATMN[i];
+src/efnc.c:	j = T->C[p].N;
+src/efnc.c:	T->C[p].N = T->C[k1].N;
+src/efnc.c:	abc(&T->C[p]);
+src/efnc.c:	Copy_C(&T->C[p],&T->C[N]);
+src/efnc.c:	for(s=0;s<T->Ns;s++)
+src/efnc.c:	  T->C[p].XT = 0;
+src/efnc.c:	  if(T->ND==2)   // because ND=2 the atoms are *constrained* within the plane
+src/efnc.c:	  for(i=j;i<T->C[p].N;i++)
+src/efnc.c:	      T->C[p].X[i][q] += 0.5*a[q]*T->C[p].R0/T->C[p].LAT[q];
+src/efnc.c:	  Real(&T->C[p]);
+src/efnc.c:	  if( CHCK_Rm(&T->C[p],T->Rm,1.0)==1 || ADJT_CL(&T->C[p],T->Rm,T->C[p].N/4)==1 )
+src/efnc.c:	    Relative(&T->C[p]);
+src/efnc.c:	  Relative(&T->C[p]);
+src/efnc.c:	  Copy_C(&T->C[N],&T->C[p]);
+src/efnc.c:	//   mutate with probability T->pm and swap with probability T->ps
+src/efnc.c:	  V = CELL_VOL(&T->C[p]);
+src/efnc.c:	  for(u=0;u<T->Nu;u++)
+src/efnc.c:	    Copy_C(&T->C[p],&T->C[N]);
+src/efnc.c:	    Real(&T->C[N]);
+src/efnc.c:	    if( SHKE_CL(&T->C[N],T->ml,T->C[p].R0*T->ma)!=0 )  //SHKE_CL already made not to shift
+src/efnc.c:	    if( SHRT_LV(&T->C[N])!=0 )                         //SHRT_LV only deals with lattice - should be fine
+src/efnc.c:	    if( CELL_VOL(&T->C[N]) > 0.5*V )
+src/efnc.c:	      if( T->JS!=2 && !(T->ml>(10^-10) || T->cl>(10^-10)) )
+src/efnc.c:		if(T->ND==3)
+src/efnc.c:		  SCALE_Cell(&T->C[N], pow(CELL_VOL(&T->C[N])/V,-1.0/3.0) + 0.1*Random());
+src/efnc.c:		if(T->ND==2)
+src/efnc.c:		  SCALE_Cell(&T->C[N], pow(CELL_VOL(&T->C[N])/V,-1.0/2.0) + 0.1*Random());
+src/efnc.c:	      if(T->NSPC>1)
+src/efnc.c:		for(i=s=0;i<T->C[N].N;i++)
+src/efnc.c:		  if(Random()<T->ps)
+src/efnc.c:		    for(j=i;T->C[N].ATMN[i]==T->C[N].ATMN[j%T->C[N].N];j++);
+src/efnc.c:		    j = ( j + (int)(Random()*(double)(T->C[N].N-T->SPCN[T->C[N].ATMN[i]])) )%T->C[N].N;  // swap only different species
+src/efnc.c:                      dSwap(&T->C[N].X[i][q],&T->C[N].X[j][q]);
+src/efnc.c:	      if( CHCK_Rm(&T->C[N],T->Rm,1.0)==1 || ADJT_CL(&T->C[N],T->Rm,T->C[p].N/4)==1 )
+src/efnc.c:		Copy_C(&T->C[N],&T->C[p]);
+src/efnc.c:	  if(T->C[p].XT==1)
+src/efnc.c:	    Relative(&T->C[p]);
+src/efnc.c:	Real(&T->C[p]);	
+src/efnc.c:	if(CHCK_Rm(&T->C[p],T->Rm,1.0)==1) 
+src/efnc.c:	  T->P1[p] = T->C[k1].P;
+src/efnc.c:	  T->P2[p] = T->C[k2].P;
+src/efnc.c:	  Relative(&T->C[p]);
+src/efnc.c:          printf("%s %3d\n",T->NES[J],p);
+src/efnc.c:          sprintf(buf,"%3d %3d %s %3d %3d % lf\n",T->n,p,T->NES[J],k1,k2,frac);
+src/efnc.c:  if(m==T->Nm)
+src/efnc.c:    sprintf(buf,"EXIT in %s: exceeded %3d tries\n",T->NES[J],T->Nm);
+src/efnc.c:    fprintf(stderr,"EXIT in %s: exceeded %3d tries\n",T->NES[J],T->Nm);
+src/efnc.c:  for(p=T->N;p<2*T->N;p++)
+src/efnc.c:  if( p>=T->SES[J] && p<T->FES[J] )
+src/efnc.c:    for(qq=i=0;qq<T->NSPC-1;qq++)
+src/efnc.c:      for(j=0;j<T->C[p].SPCN[qq];j++)
+src/efnc.c:	for(k=i;k<T->C[p].N;k++)
+src/efnc.c:	  if(T->C[p].ATMN[k]==qq)
+src/efnc.c:	if(k==T->C[p].N)
+src/efnc.c:	  dSwap(&T->C[p].X[i][q],&T->C[p].X[k][q]);
+src/efnc.c:	iSwap(&T->C[p].ATMN[i],&T->C[p].ATMN[k]);
+src/efnc.c:  for(k=0;k<T->N;k++)
+src/efnc.c:    Real(&T->C[k]);
+src/efnc.c:  for(p=T->N;p<2*T->N;p++)   //cleaning up atomic positions
+src/efnc.c:  if( p>=T->SES[J] && p<T->FES[J] )
+src/efnc.c:    Real(&T->C[p]);
+src/efnc.c:    SHRT_LV(&T->C[p]);
+src/efnc.c:    JAR(&T->C[p]);
+src/efnc.c:    LIST(&T->C[p],0);
+src/efnc.c:  f = make_d1D(T->N+1);
+src/efnc.c:  for(m=0,p=T->N;p<2*T->N&&m<T->Nm;p++)
+src/efnc.c:  if( p>=T->SES[J] && p<T->FES[J] )
+src/efnc.c:    for(j=1,f[0]=0.0;j<T->N+1;j++)
+src/efnc.c:      f[j] = f[j-1] + T->f[j-1];
+src/efnc.c:    for(j=0;j<T->N+1;j++)
+src/efnc.c:      f[j] /= f[T->N];
+src/efnc.c:    for(k=0;k<T->N-1&&f[k+1]<r;k++); //selects random k
+src/efnc.c:    Copy_C(&T->C[k],&T->C[p]);
+src/efnc.c:    V = CELL_VOL(&T->C[p]);
+src/efnc.c:    if( SHKE_CL(&T->C[p],T->cl,T->C[p].R0*T->ca)==0 || SHRT_LV(&T->C[p])==0 || fabs( CELL_VOL(&T->C[p])/V-1.0 ) > 0.5 )
+src/efnc.c:      if( T->JS!=2 && !(T->ml>(10^-10) || T->cl>(10^-10)) )
+src/efnc.c:	if(T->ND==3)
+src/efnc.c:	  SCALE_Cell(&T->C[p], pow(CELL_VOL(&T->C[p])/V,-1.0/3.0) + 0.1*(0.5-Random()));
+src/efnc.c:	if(T->ND==2)
+src/efnc.c:	  SCALE_Cell(&T->C[p], pow(CELL_VOL(&T->C[p])/V,-1.0/2.0) + 0.1*(0.5-Random()));
+src/efnc.c:      if(T->NSPC>1)
+src/efnc.c:	for(i=s=0;i<T->C[p].N;i++)
+src/efnc.c:	  if(Random()<T->cs)
+src/efnc.c:	    for(j=i;T->C[p].ATMN[i]==T->C[p].ATMN[j%T->C[p].N];j++);
+src/efnc.c:	    j = ( j + (int)(Random()*(double)(T->C[p].N-T->SPCN[T->C[p].ATMN[i]])) )%T->C[p].N;  // swap only different species
+src/efnc.c:	      dSwap(&T->C[p].X[i][q],&T->C[p].X[j][q]);
+src/efnc.c:      if( CHCK_Rm(&T->C[p],T->Rm,1.0)==1 || ADJT_CL(&T->C[p],T->Rm,T->C[p].N/4)==1 )
+src/efnc.c:	T->P1[p] = T->P2[p] = T->C[k].P;
+src/efnc.c:	printf("%s %3d\n",T->NES[J],p);
+src/efnc.c:	sprintf(buf,"%3d %3d %s %3d %3d\n",T->n,p,T->NES[J],k,k);
+src/efnc.c:    sprintf(T->C[p].TAG,"%3d %3d",T->n,p);
+src/efnc.c:  sprintf(buf,"% 5d mutation tries out of % 5d\n",m,T->Nm);
+src/efnc.c:  if(m==T->Nm)
+src/efnc.c:    sprintf(buf,"EXIT in %s: exceeded %3d tries\n",T->NES[J],T->Nm);
+src/efnc.c:    fprintf(stderr,"EXIT in %s: exceeded %3d tries\n",T->NES[J],T->Nm);
+src/emod.c:    SES[n] = T->SES[n];
+src/emod.c:    FES[n] = T->FES[n];
+src/emod.c:  if(FES[3]==T->N)    
+src/emod.c:    T->FES[0] = T->SES[1] = T->FES[1] = T->SES[2] = T->FES[2] = T->SES[3] = T->FES[3] = 2*T->N; // generate random NPs with NANO_TETR by default
+src/emod.c:    T->FES[0] = T->SES[1] = T->N      + (int)((double)(FES[0]-SES[0])/(double)(FES[3]-SES[0])*(double)T->N);
+src/emod.c:    T->FES[1] = T->SES[2] = T->SES[1] + (int)((double)(FES[1]-SES[1])/(double)(FES[3]-SES[0])*(double)T->N);
+src/emod.c:    T->FES[2] = T->SES[3] = T->SES[2] + (int)((double)(FES[2]-SES[2])/(double)(FES[3]-SES[0])*(double)T->N);
+src/emod.c:    T->FES[3] =             T->SES[3] + (int)((double)(FES[3]-SES[3])/(double)(FES[3]-SES[0])*(double)T->N);
+src/emod.c:    if( T->FES[3] != 2*T->N )
+src/emod.c:    if( (T->FES[n]-T->SES[n]) > 0)
+src/emod.c:      printf("INIT %3d %s %3d %3d %3d\n",n,T->NES[n],T->FES[n]-T->SES[n],T->SES[n],T->FES[n]);
+src/emod.c:  N = 2*T->N;
+src/emod.c:  for(k=0;k<T->NSPC;k++)               //scan through array of types of elements
+src/emod.c:    i = T->SPCZ[k];
+src/emod.c:      sprintf(buf,"Element %d is not in the library\n",T->SPCZ[k]);
+src/emod.c:      fprintf(stderr,"Element %d is not in the library\n",T->SPCZ[k]);
+src/emod.c:    if( T->p >= T->minpres[0] && T->p <= T->maxpres[0] )
+src/emod.c:      atom_symb(i,T->SS[k]);
+src/emod.c:      scale = (T->p-T->minpres[0])/(T->maxpres[0]-T->minpres[0]);
+src/emod.c:      dista = (T->minpres[i]-T->maxpres[i]);
+src/emod.c:      T->Rm[k] = (T->minpres[i]-dista*scale)*T->Rhc;
+src/emod.c:      if(T->Rm[k]<0.00001)
+src/emod.c:	sprintf(buf,"Equilibrium distance for element %d is not correct\n",T->SPCZ[k]);
+src/emod.c:	fprintf(stderr,"Equilibrium distance for element %d is not correct\n",T->SPCZ[k]);
+src/emod.c:      sprintf(buf,"Pressure %lf for element %d is not in the defined range (% lf-% lf)\n",T->p,T->SPCZ[k],T->minpres[0],T->maxpres[0]);
+src/emod.c:      fprintf(stderr,"Pressure %lf for element %d is not in the defined range (% lf-% lf)\n",T->p,T->SPCZ[k],T->minpres[0],T->maxpres[0]);
+src/emod.c:  for(k=0;k<T->NSPC;k++)
+src/emod.c:    sprintf(buf,"%3d %3s %3d  % lf % lf\n",T->SPCZ[k],T->SS[k],T->SPCN[k],T->Rm[k]/T->Rhc,T->Rm[k]);
+src/emod.c:  for(p=0;p<2*T->N+2;p++)
+src/emod.c:    T->C[p].R0 = 1.0;                  //set equilibrium bond length of C
+src/emod.c:    T->C[p].NSPC=T->NSPC;
+src/emod.c:    for(k=0;k<T->NSPC;k++)               //seting the number of each type for C[p]
+src/emod.c:      T->C[p].SPCN[k] = T->SPCN[k];
+src/emod.c:    for(k=0;k<T->NSPC;k++)
+src/emod.c:      T->C[p].SPCZ[k] = T->SPCZ[k];
+src/emod.c:    for(k=i=0;k<T->NSPC;k++)             //set each atom in C[p] to the appropriate atom type
+src/emod.c:      for(j=0;j<T->SPCN[k];j++,i++)
+src/emod.c:	T->C[p].ATMN[i] = k;
+src/emod.c:    T->C[p].N = i;                     //defining number of atoms for C[p]
+src/emod.c:    for(k=0;k<T->C[p].N;k++)
+src/emod.c:      T->C[p].ATMZ[k] = T->C[p].ATMZ[i];
+src/emod.c:    T->C[p].MNT = T->C[p].NSPC = T->NSPC;  //Setting max number of atom types
+src/emod.c:  if(T->ND==3)                         //for crystals: define hard sphere volume for all the atoms
+src/emod.c:    for(i=0,T->VOL=0.0;i<T->NSPC;i++)
+src/emod.c:      T->VOL += (4.0/3.0*Pi)*pow(T->Rm[i]/0.70,3.0)*(double)T->SPCN[i];
+src/emod.c:  if(T->ND==2)                         //for thin films: define hard sphere volume for all the atoms
+src/emod.c:    for(i=0,T->VOL=0.0;i<T->NSPC;i++)
+src/emod.c:      T->VOL += (1.0/1.0*Pi)*pow(T->Rm[i]/0.70,2.0)*(double)T->SPCN[i];
+src/emod.c:  sprintf(buf,"%lf\n",T->VOL);
+src/emod.c:  if(T->n<=0)                   // if T->n < 0 the particles will be re-generated for REFL and INVS
+src/emod.c:    for(p=T->N;p<2*T->N;p++)    //fill the second half of the array of cells (first half is for energy ordering)
+src/emod.c:      if(T->ND==3)              // generate crystals
+src/emod.c:	if(T->JS==0)            // start from random structures
+src/emod.c:	  RAND_CL(T,&T->C[p],&T->C[N],0);
+src/emod.c:	  SHRT_LV(&T->C[p]);
+src/emod.c:	else if(T->JS==1)            // start from specified structures
+src/emod.c:	  READ_CELL(&T->C[N],buf);
+src/emod.c:	  TEMP_CL(T,&T->C[N],p);
+src/emod.c:	else if(T->JS==2 )            // start from random structures but keep LV constant - fixed atoms too
+src/emod.c:	  READ_CELL(&T->C[p],buf);
+src/emod.c:	  RAND_CL(T,&T->C[p],&T->C[N],1);
+src/emod.c:      if(T->ND==2)              // generate films (beta version)
+src/emod.c:	if(T->JS==0)            // start from random structures
+src/emod.c:	  RAND_CL(T,&T->C[p],&T->C[N],0);
+src/emod.c:	  SHRT_LV(&T->C[p]);
+src/emod.c:        else if(T->JS==1)            // start from specified structures
+src/emod.c:	  READ_CELL(&T->C[N],buf);
+src/emod.c:	  TEMP_CL(T,&T->C[N],p);
+src/emod.c:      if(T->ND==0)              // generate particles, cubic lattice cell is always fixed
+src/emod.c:	if( p>=T->SES[0] && p< T->FES[0] )
+src/emod.c:	  NANO_TETR(T,0,&T->C[N],p);
+src/emod.c:	if( p>=T->SES[1] && p< T->FES[1] )
+src/emod.c:	if( p>=T->SES[2] && p< T->FES[2] )
+src/emod.c:	  NANO_PACK(T,2,&T->C[N],p);
+src/emod.c:        if( p>=T->SES[3] && p< T->FES[3] )
+src/emod.c:          NANO_BLOB(T,3,&T->C[N],p);
+src/emod.c:      //      LIST(&T->C[p]);
+src/emod.c:      T->C[p].P=0.0;
+src/emod.c:      T->C[p].dE = -0.02;
+src/emod.c:  if(T->CODE!=0)
+src/emod.c:    sprintf(buf,"sed -i 's/XX:XX:XX/%02d:%02d:%02d/' INI/sub",T->time/3600,(T->time/60)%60,T->time%60);
+src/emod.c:  if(T->CODE==1) //===== for VASP =====
+src/emod.c:    sprintf(buf,"sed -i 's/P.PPP/%lf/' INI/INCAR",T->p*10.0);
+src/emod.c:  if(T->n>0)  //If this is not the first step in the EVOS then read in from last step
+src/emod.c:    for(p=0;p<2*T->N;p++)
+src/emod.c:      sprintf(buf,"EVOS/G%03d/M%03d/CONTCAR.0",T->n-1,p);
+src/emod.c:      if(READ_CELL(&T->C[p],buf)==0)
+src/emod.c:      sprintf(buf,"EVOS/G%03d/M%03d/OSZICAR.0",T->n-1,p);
+src/emod.c:      T->C[p].P = Read_OSZI(buf);
+src/emod.c:      if( fabs(T->C[p].P-1.0)<1e-15 )
+src/emod.c:      SHRT_LV(&T->C[p]);
+src/emod.c:      LIST(&T->C[p],0);      
+src/emod.c:      T->P1[p] = T->P2[p] = T->C[p].P;
+src/emod.c:      T->C[p].dE = -0.02;
+src/emod.c:    T->SES[n] = SES[n];
+src/emod.c:    T->FES[n] = FES[n];
+src/emod.c:      sscanf(buf+4,"%d" ,&T->JOBT);
+src/emod.c:  if(T->JOBT!=12)
+src/emod.c:  for(p=T->N;p<T->N*2;p++)
+src/emod.c:    sprintf(buf,"EVOS/G%03d/M%03d/jobid",T->n,p);
+src/emod.c:	if( T->QT==0 )
+src/emod.c:	if( T->QT==1 )
+src/emod.c:  sprintf(buf,"rm -r EVOS/G%03d/",T->n);
+src/emod.c:  sprintf(buf,"Hard exit at iteration %3d \n",T->n);
+src/emod.c:  fprintf(stderr,"Hard exit at iteration %3d \n",T->n);
+src/emod.c:  I = make_i1D(2*T->N);
+src/emod.c:  for(p=0;p<2*T->N;p++)
+src/emod.c:    T->E[p] = T->C[p].P;
+src/emod.c:    if(T->E[p]<Pmin)
+src/emod.c:      Pmin = T->E[p];
+src/emod.c:    if(T->E[p]>Pmax)
+src/emod.c:      Pmax = T->E[p];
+src/emod.c:  for(p=0;p<2*T->N;p++)
+src/emod.c:    T->f[p] = 0.5*( 1.0 - tanh(2.0*(T->E[p]-Pmin)/(Pmax-Pmin)-1.0) );
+src/emod.c:  Sort(T->E,I,2*T->N);
+src/emod.c:  for(p=0;p<2*T->N;p++)
+src/emod.c:    T->S[p] = I[p];
+src/emod.c:  for(p=0;p<2*T->N;p++)
+src/emod.c:    Copy_C(&T->C[    p ],&T->C[2*T->N]);
+src/emod.c:    Copy_C(&T->C[  I[p]],&T->C[    p ]);
+src/emod.c:    Copy_C(&T->C[2*T->N],&T->C[  I[p]]);
+src/emod.c:    dSwap(&T->f[p], &T->f[I[p]]);
+src/emod.c:    dSwap(&T->E[p], &T->E[I[p]]);
+src/emod.c:    dSwap(&T->P1[p],&T->P1[I[p]]);
+src/emod.c:    dSwap(&T->P2[p],&T->P2[I[p]]);
+src/emod.c:    for(k=0;k<2*T->N;k++)
+src/emod.c:  for(p=0;p<2*T->N;p++)
+src/emod.c:    LIST(&T->C[p],0);
+src/emod.c:    RDF(&T->C[p],1);
+src/emod.c:  for(p=2*T->N-1;p>=1;p--)
+src/emod.c:      if( (t=COMP_CL(&T->C[p],&T->C[k])) > T->CUT)
+src/emod.c:	T->f[p] *= 0.001 + (1.0-t)*(1.0-t);
+src/emod.c:  for(p=M=0;p<2*T->N;p++)
+src/emod.c:    if( T->f[p]>1e-10 )
+src/emod.c:      if( M==2*T->N-(int)(2.0*T->HE*(double)T->N) )
+src/emod.c:  sprintf(buf,"discarded all above %3d % 15.6lf\n",p,T->E[p]);
+src/emod.c:  for(;p<2*T->N;p++)
+src/emod.c:    T->f[p] = 1e-15;
+src/emod.c:    for(p=0;p<2*T->N;p++)
+src/emod.c:      sprintf(buf,"%3d % 24.16lf % 24.16lf\n",p,T->E[p],T->f[p]);
+src/emod.c:  for(i=0;i<T->C[0].N;i++)
+src/emod.c:    T->C[0].ATMN[i] = T->C[0].ATMN[i];
+src/emod.c:  SAVE_CELL(&T->C[0],"poscar",0);
+src/emod.c:    SAVE_CELL(&T->C[0],"INI/POSCAR000",0);
+src/emod.c:  f = make_d1D(2*T->N+1);
+src/emod.c:  for(p=1,f[0]=0.0;p<2*T->N+1;p++)
+src/emod.c:    f[p] = f[p-1] + T->f[p-1];
+src/emod.c:  for(p=0;p<2*T->N+1;p++)
+src/emod.c:    f[p] /= f[2*T->N];
+src/emod.c:  for(p=0;p<2*T->N;p++)
+src/emod.c:    T->I[T->n][ p] = 0;
+src/emod.c:  for(p=0;p<T->NB;p++)
+src/emod.c:    T->I[T->n][ p] = 1;
+src/emod.c:  for(k=T->NB;k<T->N;k++)
+src/emod.c:    for(p=1;p<2*T->N&&f[p]<r;p++);
+src/emod.c:    if(T->I[T->n][ p-1]==1)
+src/emod.c:      T->I[T->n][ p-1] = 1;
+src/emod.c:  for(p=0;p<2*T->N;p++)
+src/emod.c:    printf("% 3d %3d % lf %3d % lf\n",p,T->I[T->n][p],f[p],T->S[p],T->E[p]);
+src/emod.c:  for(k=p=0;p<2*T->N;p++)
+src/emod.c:    if(T->I[T->n][ p]==1)
+src/emod.c:      Copy_C(&T->C[p],&T->C[k]);
+src/emod.c:      T->S[ k] = T->S[ p];
+src/emod.c:      T->P1[k] = T->P1[p];
+src/emod.c:      T->P2[k] = T->P2[p];
+src/emod.c:      T->E[ k] = T->E[ p];
+src/emod.c:      T->f[ k] = T->f[ p];
+src/emod.c:      sprintf(buf,"%3d %3d %3d % 15.6lf\n",k,p,T->S[k],T->E[k]);
+src/emod.c:  if(T->n==0)
+src/emod.c:  for(p=0;p<T->N;p++)
+src/emod.c:    fprintf(out1,"%4d % 15.9lf\n",T->n,T->E[p]/(double)T->C[p].N);
+src/emod.c:  if(T->n>0)
+src/emod.c:    for(p=0;p<T->N;p++)
+src/emod.c:      fprintf(out2,"%4d % 15.9lf\n%4d % 15.9lf\n\n%4d % 15.9lf\n%4d % 15.9lf\n\n",T->n-1,T->P1[p]/(double)T->C[p].N,T->n,T->E[p]/(double)T->C[p].N,T->n-1,T->P2[p]/(double)T->C[p].N,T->n,T->E[p]/(double)T->C[p].N);
+src/emod.c:  fprintf(out3,"%4d % 15.9lf\n",T->n,T->E[0]/(double)T->C[0].N);
+src/emod.c:  for(p=0;p<T->N;p++)
+src/emod.c:    fprintf(out4,"% 15.9lf % 15.9lf %4d %4d\n",CELL_VOL(&T->C[p])/(double)T->C[p].N,T->E[p]/(double)T->C[p].N,T->n,p);
+src/emod.c:  for(p=0;p<2*T->N;p++)
+src/emod.c:    T->P1[p] = T->P2[p] = T->E[p];
+src/emod.c:  if(T->JOBT==14)
+src/emod.c:    printf("Analyzed  %3d structures in EVOS/G%03d\n",T->N,T->n);
+src/emod.c:  sprintf(buf,"mkdir -p EVOS/G%03d/M%03d",T->n,p);
+src/emod.c:  if(T->CODE==1) //===== for VASP =====
+src/emod.c:    sprintf(buf,"cp INI/POTCAR EVOS/G%03d/M%03d",T->n,p);
+src/emod.c:    sprintf(buf,"cp INI/INCAR EVOS/G%03d/M%03d",T->n,p);
+src/emod.c:    sprintf(buf,"EVOS/G%03d/M%03d/KPOINTS",T->n,p);
+src/emod.c:    KMESH(&T->C[p],T->KM,buf,T->ND);
+src/emod.c:  sprintf(buf,"EVOS/G%03d/M%03d/POSCAR",T->n,p);
+src/emod.c:  SAVE_CELL(&T->C[p],buf,0);
+src/emod.c:  sprintf(buf,"sed -i 's/GGGG/G%03d/' g%03d",T->n,p);
+src/emod.c:  if( T->JOBT==14 )
+src/emod.c:  if( T->QT==0 )
+src/emod.c:    sprintf(buf,"qsub g%03d >> EVOS/G%03d/M%03d/jobid",p,T->n,p);
+src/emod.c:  if( T->QT==1 )
+src/emod.c:    sprintf(buf,"sbatch g%03d >> EVOS/G%03d/M%03d/jobid",p,T->n,p);
+src/emod.c:  if( T->QT==2 )
+src/emod.c:    sprintf(buf,"bsub < g%03d >> EVOS/G%03d/M%03d/jobid",p,T->n,p);
+src/emod.c:  for(p=T->N;p<T->N*2;p++)
+src/emod.c:    sprintf(buf,"mkdir EVOS/G%03d/M%03d",T->n,p);
+src/emod.c:    sprintf(buf,"EVOS/G%03d/M%03d/POSCAR.0",T->n,p);
+src/emod.c:    SAVE_CELL(&T->C[p],buf,0);
+src/emod.c:    Copy_C(&T->C[p],&T->C[2*T->N+1]);    
+src/emod.c:    CELL_RELX(RR,PP,WW,&T->C[2*T->N+1],LL);
+src/emod.c://    CELL_PHON(RR,PP,WW,&T->C[2*T->N+1],LL);
+src/emod.c:    Copy_C(&T->C[2*T->N+1],&T->C[p]);
+src/emod.c:    sprintf(buf,"EVOS/G%03d/M%03d/CONTCAR.0",T->n,p);
+src/emod.c:    SAVE_CELL(&T->C[2*T->N+1],buf,0);
+src/emod.c:    sprintf(buf,"mv OUTCAR EVOS/G%03d/M%03d/OUTCAR.0",T->n,p);
+src/emod.c:    sprintf(buf,"mv OSZICAR EVOS/G%03d/M%03d/OSZICAR.0",T->n,p);
+src/emod.c:  I = make_i1D(2*T->N);
+src/emod.c:  if( T->JOBT!= 14 )
+src/emod.c:    sprintf(buf,"EVOS/G%03d",T->n);
+src/emod.c:      sprintf(buf,"Directory EVOS/G%03d already exists!\n",T->n);
+src/emod.c:      fprintf(stderr,"Directory EVOS/G%03d already exists!\n",T->n);
+src/emod.c:  sprintf(buf,"mkdir -p EVOS/G%03d",T->n);
+src/emod.c:  if( T->MODE<=0 && T->n>0)
+src/emod.c:    for(p=0;p<T->N;p++)
+src/emod.c:      sprintf(buf,"mkdir EVOS/G%03d/M%03d",T->n,p);
+src/emod.c:      sprintf(buf,"EVOS/G%03d/M%03d/CONTCAR.0",T->n,p);
+src/emod.c:      SAVE_CELL(&T->C[p],buf,0);
+src/emod.c:      sprintf(buf,"cp EVOS/G%03d/M%03d/OSZICAR.0 EVOS/G%03d/M%03d",T->n-1,T->S[p],T->n,p);
+src/emod.c:      sprintf(buf,"cp EVOS/G%03d/M%03d/OUTCAR.0 EVOS/G%03d/M%03d",T->n-1,T->S[p],T->n,p);
+src/emod.c:  if(T->CODE==0)
+src/emod.c:    for(p=T->N;p<2*T->N;p++)
+src/emod.c:    if( T->MODE <= 0 )
+src/emod.c:      for(p=T->N;p<2*T->N;p++)
+src/emod.c:    if( T->MODE < 0 )
+src/emod.c:      printf("Generated %3d structures in EVOS/G%03d\n",T->N,T->n);
+src/emod.c:    p = T->N;
+src/emod.c:    while(p<2*T->N)
+src/emod.c:      for(p=T->N;p<2*T->N;p++)
+src/emod.c:	  sprintf(buf,"EVOS/G%03d/M%03d/OUTCAR.0",T->n,p);
+src/emod.c:	  Q = Check_OUTCAR(&T->C[p],buf);
+src/emod.c:	  sprintf(buf,"EVOS/G%03d/M%03d/stamp",T->n,p);
+src/emod.c:	    sprintf(buf,"EVOS/G%03d/M%03d/CONTCAR.0",T->n,p);
+src/emod.c:	    READ_CELL(&T->C[p],buf);
+src/emod.c:	  if( T->MODE > 0 )
+src/emod.c:	  if( Q==0 || (Q<0 && t1>=0 && t2>=0 && ( (int)(t1-t2) >T->time ) ) || (Q==1 && CHCK_Rm(&T->C[p],T->Rm,0.7)==0) )
+src/emod.c:	    sprintf(buf,"Failed to relax structure %d %d %8d sec %8d %8d % d\n",T->n,p,t1-t2,t1,t2,Q);
+src/emod.c:	    fprintf(stderr,"Failed to relax structure %d %d %8d sec %8d %8d % d\n",T->n,p,t1-t2,t1,t2,Q);
+src/emod.c:	      sprintf(buf,"EVOS/G%03d/M%03d/jobid",T->n,p);
+src/emod.c:		  printf("%3d %3d %s %s\n",T->n,p,buf,buf+i);
+src/emod.c:		  if( T->QT==0 )
+src/emod.c:		  if( T->QT==1 )
+src/emod.c:		  if( T->QT==2 )
+src/emod.c:      for(p=T->N;p<2*T->N;p++)
+src/emod.c:    for(m=0,p=T->N;p<2*T->N;p++)
+src/emod.c:      sprintf(buf,"Iteration %3d: Successfully relaxed %3d members\n",T->n,m);
+src/emod.c:    for(p=T->N;p<2*T->N;p++)
+src/emod.c:	i = p-T->N;
+src/emod.c:	if(T->n==0)
+src/emod.c:	  for(m=1;m<T->N;m++)
+src/emod.c:	    i = T->N + (p+m)%T->N;
+src/emod.c:	sprintf(buf,"rm -r EVOS/G%03d/M%03d/*",T->n,p);
+src/emod.c:	sprintf(buf,"cp    EVOS/G%03d/M%03d/* EVOS/G%03d/M%03d",T->n,i,T->n,p);
+src/emod.c:  for(p=T->N;p<2*T->N;p++)
+src/emod.c:    sprintf(buf,"EVOS/G%03d/M%03d/CONTCAR.0",T->n,p);
+src/emod.c:    READ_CELL(&T->C[p],buf);
+src/emod.c:    sprintf(buf,"EVOS/G%03d/M%03d/OSZICAR.0",T->n,p);
+src/emod.c:    T->C[p].P = Read_OSZI(buf);
+src/emod.c:    if(T->ND==0)
+src/emod.c:      NANO_ROT(&T->C[p],0);
+src/emod.c:  // only T->N random structures are relaxed at n=0
+src/emod.c:  if(T->n==0)
+src/emod.c:    for(p=0;p<T->N;p++)
+src/emod.c:      sprintf(buf,"mkdir EVOS/G%03d/M%03d",T->n,p);
+src/emod.c:      sprintf(buf,"cp EVOS/G%03d/M%03d/CONTCAR.0 EVOS/G%03d/M%03d",T->n,T->N+p,T->n,p);
+src/emod.c:      sprintf(buf,"cp EVOS/G%03d/M%03d/OSZICAR.0 EVOS/G%03d/M%03d",T->n,T->N+p,T->n,p);
+src/emod.c:      sprintf(buf,"cp EVOS/G%03d/M%03d/OUTCAR.0  EVOS/G%03d/M%03d",T->n,T->N+p,T->n,p);
+src/emod.c:      Copy_C(&T->C[T->N+p],&T->C[p]);
+src/emod.c:  if(T->CODE>1)
+src/emod.c:    for(p=T->N;p<2*T->N;p++)
+src/emod.c:    sprintf(buf,"rm -f EVOS/G%03d/M*/OUT* EVOS/G%03d/M*/POTCAR* EVOS/G%03d/M*/INCAR* EVOS/G%03d/M*/KPOINTS*",T->n-2,T->n-2,T->n-2,T->n-2);
+src/emod.c:    if(T->CODE==1)
+src/emod.c:  sprintf(buf,"cp EVOS/G%03d/M000/CONTCAR.0 poscar",T->n);
+src/emod.c:  N = 2*T->N;
+src/emod.c:  if(T->n>=0)
+src/emod.c:  if(J==0||T->n<T->NI-1)
+src/emod.c:    if(T->ND==0)
+src/emod.c:      NANO_TETR(T, 0 ,&T->C[N],-1);  // tetris-type generation of random NPs
+src/emod.c:      NANO_PACK(T, 2 ,&T->C[N],-1);  // seeding NPs with bcc, fcc, hcp
+src/emod.c:      NANO_BLOB(T, 3 ,&T->C[N],-1);  // random generation of NPs
+src/emod.c:      NANO_CHOP(T, 9 ,&T->C[N],-1);  // chopping for creating facets
+src/emod.c:  if(T->JOBT==11)
+src/emod.c:    sprintf(buf,"Soft exit at iteration %d\n",T->n);
+src/emod.c:    if( fabs((E[G]-1.0)*(double)C->N)>1e-14 && E[G]<(E0+T->DE) && Check_OUTCAR(C,s)==1 )
+src/emod.c:      if(CxC(C,D)>T->CUT)
+src/emod.c:  printf("Found %6d structures in %s with enthalpy range  % 12.6lf % 12.6lf\n",G,run[J],E0,E0+T->DE);
+src/emod.c:  printf("Found %6d structures in %s with enthalpy range  % 12.6lf % 12.6lf   different by CxC % lf\n",N,run[J],E0,E0+T->DE,T->CUT);
+src/emod.c:  T->C  = (Cell *)malloc((2*T->N+2)*sizeof(Cell));
+src/emod.c:  for(j=0;j<T->NSPC;j++)
+src/emod.c:    C->SPCZ[j] = T->SPCZ[j];
+src/emod.c:  C->NSPC = T->NSPC;
+src/emod.c:  if(T->JOBT==13)
+src/emod.c:  for(n=0;n<2*T->N+2;n++)
+src/emod.c:    T->C[n].A    = C->A;  // for NANO_ROT we need +2 atoms
+src/emod.c:    T->C[n].N    = C->N;
+src/emod.c:    T->C[n].NM   = C->NM;
+src/emod.c:    T->C[n].ND   = C->ND;
+src/emod.c:    T->C[n].Rmax = C->Rmax;
+src/emod.c:    T->C[n].Rmin = C->Rmin;
+src/emod.c:    T->C[n].DR   = C->DR;
+src/emod.c:    T->C[n].JOBT = C->JOBT;
+src/emod.c:    T->C[n].XT   = 1;
+src/emod.c:    T->C[n].NSPC = C->NSPC;
+src/emod.c:    T->C[n].Rc   = C->Rc = C->Rmax;
+src/emod.c:    T->C[n].rc   = C->rc = C->Rmax;
+src/emod.c:    T->C[n].MODT = C->MODT;
+src/emod.c:    T->C[n].NP   = C->NP;
+src/emod.c:    T->C[n].NB   = C->NB;
+src/emod.c:      T->C[n].SPCZ[k] = T->SPCZ[k];
+src/emod.c:      T->C[n].SPCN[k] = T->SPCN[k];
+src/emod.c:    sprintf(T->C[n].WDIR,"%s",C->WDIR);
+src/emod.c:    Build_Cell(&T->C[n],0);
+src/emod.c:  if(T->JOBT==13)
+src/emod.c:    for(n=0;n<2*T->N+2;n++)
+src/emod.c:      Copy_C(C,&T->C[n]);
+src/emod.c:  if(T->JOBT!=10&&T->JOBT!=14)
+src/emod.c:  if(T->CODE==0)
+src/emod.c:  T->C[2*T->N+1] = *C;
+src/emod.c:  T->pos = 0;
+src/emod.c:  if(T->TES[1]>0)
+src/emod.c:    T->pos = 1;
+src/emod.c:  for(;T->pos<T->N;T->pos++)
+src/emod.c:    sprintf(buf,"INI/POSCAR%03d",T->pos);
+src/emod.c:    if( READ_CELL(&T->C[2*T->N+1],buf)==0 )
+src/emod.c:  sprintf(buf,"PLNT will plant %3d from %3d structures\n",T->TES[1],T->pos);
+src/emod.c:  T->I  = make_i2D(T->NI,2*T->N);
+src/emod.c:  T->S  = make_i1D(2*T->N);
+src/emod.c:  T->E  = make_d1D(2*T->N+1);
+src/emod.c:  T->P1 = make_d1D(2*T->N);
+src/emod.c:  T->P2 = make_d1D(2*T->N);
+src/emod.c:  T->T  = make_d2D(T->NI,2*T->N);
+src/emod.c:  T->f  = make_d1D(2*T->N+1);  
+src/emod.c:  for(n=0;n<2*T->N+2;n++)
+src/emod.c:    T->C[n].P = 1.0e9;
+src/emod.c:  // T->MODE = -1: generate population
+src/emod.c:  // T->MODE =  1: evaluate population
+src/emod.c:  fscanf(in,"%d",&T->n);
+src/emod.c:  sprintf(buf,"ls -l EVOS/G*/M%03d/OUTCAR.0 2>/dev/null | wc -l ",T->N);
+src/emod.c:  fscanf(in,"%d",&T->MODE);
+src/emod.c:  sprintf(buf,"EVOS/G%03d/M%03d",T->n,T->N);
+src/emod.c:  if( T->MODE==T->n && chdir(buf)==0 )
+src/emod.c:    printf("Population EVOS/G%03d already exists and should be run first.\n",T->n);
+src/emod.c:  T->MODE = 2*(T->MODE - T->n)-1;
+src/emod.c:  if( abs(T->MODE)!= 1 )
+src/emod.c:  if(T->seed==0)                          // Check if seed is by hand or auto if so:
+src/emod.c:    T->seed=time(NULL);                   // SET TO TIME
+src/emod.c:  sprintf(buf,"seed:  %ld\n\n",T->seed);
+src/emod.c:  PlantSeeds(T->seed);                    // Initialize random number generator
+src/emod.c:  if(T->JOBT==13)
+src/emod.c:    ANA_EVOS(T,&T->C[0],&T->C[1]);
+src/emod.c:  if(T->JOBT==14)
+src/emod.c:    T->n++;
+src/emod.c:    T->MODE *= -1;
+src/emod.c:  T->MODE = 0;                            // automated EVOS with JOBT=10
+src/emod.c:  if(T->n!=0)                             // If this is a continuation run evolve first
+src/emod.c:  for(;T->n<T->NI&&T->JOBT==10;T->n++)    // for each genertation relax then evolve
+src/emod.c:  if(T->JOBT==12)
+src/emod.c:    sprintf(buf,"Hard exit at iteration %3d \n",T->n);
+src/emod.c.0:    SES[n] = T->SES[n];
+src/emod.c.0:    FES[n] = T->FES[n];
+src/emod.c.0:  if(FES[3]==T->N)    
+src/emod.c.0:    T->FES[0] = T->SES[1] = T->FES[1] = T->SES[2] = T->FES[2] = T->SES[3] = T->FES[3] = 2*T->N; // generate random NPs with NANO_TETR by default
+src/emod.c.0:    T->FES[0] = T->SES[1] = T->N      + (int)((double)(FES[0]-SES[0])/(double)(FES[3]-SES[0])*(double)T->N);
+src/emod.c.0:    T->FES[1] = T->SES[2] = T->SES[1] + (int)((double)(FES[1]-SES[1])/(double)(FES[3]-SES[0])*(double)T->N);
+src/emod.c.0:    T->FES[2] = T->SES[3] = T->SES[2] + (int)((double)(FES[2]-SES[2])/(double)(FES[3]-SES[0])*(double)T->N);
+src/emod.c.0:    T->FES[3] =             T->SES[3] + (int)((double)(FES[3]-SES[3])/(double)(FES[3]-SES[0])*(double)T->N);
+src/emod.c.0:    if( T->FES[3] != 2*T->N )
+src/emod.c.0:    if( (T->FES[n]-T->SES[n]) > 0)
+src/emod.c.0:      printf("INIT %3d %s %3d %3d %3d\n",n,T->NES[n],T->FES[n]-T->SES[n],T->SES[n],T->FES[n]);
+src/emod.c.0:  N = 2*T->N;
+src/emod.c.0:  for(k=0;k<T->NSPC;k++)               //scan through array of types of elements
+src/emod.c.0:    i = T->SPCZ[k];
+src/emod.c.0:      sprintf(buf,"Element %d is not in the library\n",T->SPCZ[k]);
+src/emod.c.0:      fprintf(stderr,"Element %d is not in the library\n",T->SPCZ[k]);
+src/emod.c.0:    if( T->p >= T->minpres[0] && T->p <= T->maxpres[0] )
+src/emod.c.0:      atom_symb(i,T->SS[k]);
+src/emod.c.0:      scale = (T->p-T->minpres[0])/(T->maxpres[0]-T->minpres[0]);
+src/emod.c.0:      dista = (T->minpres[i]-T->maxpres[i]);
+src/emod.c.0:      T->Rm[k] = (T->minpres[i]-dista*scale)*T->Rhc;
+src/emod.c.0:      if(T->Rm[k]<0.00001)
+src/emod.c.0:	sprintf(buf,"Equilibrium distance for element %d is not correct\n",T->SPCZ[k]);
+src/emod.c.0:	fprintf(stderr,"Equilibrium distance for element %d is not correct\n",T->SPCZ[k]);
+src/emod.c.0:      sprintf(buf,"Pressure %lf for element %d is not in the defined range (% lf-% lf)\n",T->p,T->SPCZ[k],T->minpres[0],T->maxpres[0]);
+src/emod.c.0:      fprintf(stderr,"Pressure %lf for element %d is not in the defined range (% lf-% lf)\n",T->p,T->SPCZ[k],T->minpres[0],T->maxpres[0]);
+src/emod.c.0:  for(k=0;k<T->NSPC;k++)
+src/emod.c.0:    sprintf(buf,"%3d %3s %3d  % lf % lf\n",T->SPCZ[k],T->SS[k],T->SPCN[k],T->Rm[k]/T->Rhc,T->Rm[k]);
+src/emod.c.0:  for(p=0;p<2*T->N+2;p++)
+src/emod.c.0:    T->C[p].R0 = 1.0;                  //set equilibrium bond length of C
+src/emod.c.0:    T->C[p].NSPC=T->NSPC;
+src/emod.c.0:    for(k=0;k<T->NSPC;k++)               //seting the number of each type for C[p]
+src/emod.c.0:      T->C[p].SPCN[k] = T->SPCN[k];
+src/emod.c.0:    for(k=0;k<T->NSPC;k++)
+src/emod.c.0:      T->C[p].SPCZ[k] = T->SPCZ[k];
+src/emod.c.0:    for(k=i=0;k<T->NSPC;k++)             //set each atom in C[p] to the appropriate atom type
+src/emod.c.0:      for(j=0;j<T->SPCN[k];j++,i++)
+src/emod.c.0:	T->C[p].ATMN[i] = k;
+src/emod.c.0:    T->C[p].N = i;                     //defining number of atoms for C[p]
+src/emod.c.0:    for(k=0;k<T->C[p].N;k++)
+src/emod.c.0:      T->C[p].ATMZ[k] = T->C[p].ATMZ[i];
+src/emod.c.0:    T->C[p].MNT = T->C[p].NSPC = T->NSPC;  //Setting max number of atom types
+src/emod.c.0:  if(T->ND==3)                         //for crystals: define hard sphere volume for all the atoms
+src/emod.c.0:    for(i=0,T->VOL=0.0;i<T->NSPC;i++)
+src/emod.c.0:      T->VOL += (4.0/3.0*Pi)*pow(T->Rm[i]/0.70,3.0)*(double)T->SPCN[i];
+src/emod.c.0:  if(T->ND==2)                         //for thin films: define hard sphere volume for all the atoms
+src/emod.c.0:    for(i=0,T->VOL=0.0;i<T->NSPC;i++)
+src/emod.c.0:      T->VOL += (1.0/1.0*Pi)*pow(T->Rm[i]/0.70,2.0)*(double)T->SPCN[i];
+src/emod.c.0:  sprintf(buf,"%lf\n",T->VOL);
+src/emod.c.0:  if(T->n<=0)                   // if T->n < 0 the particles will be re-generated for REFL and INVS
+src/emod.c.0:    for(p=T->N;p<2*T->N;p++)    //fill the second half of the array of cells (first half is for energy ordering)
+src/emod.c.0:      if(T->ND==3)              // generate crystals
+src/emod.c.0:	if(T->JS==0)            // start from random structures
+src/emod.c.0:	  RAND_CL(T,&T->C[p],&T->C[N],0);
+src/emod.c.0:	  SHRT_LV(&T->C[p]);
+src/emod.c.0:	else if(T->JS==1)            // start from specified structures
+src/emod.c.0:	  READ_CELL(&T->C[N],buf);
+src/emod.c.0:	  TEMP_CL(T,&T->C[N],p);
+src/emod.c.0:	else if(T->JS==2 )            // start from random structures but keep LV constant - fixed atoms too
+src/emod.c.0:	  READ_CELL(&T->C[p],buf);
+src/emod.c.0:	  RAND_CL(T,&T->C[p],&T->C[N],1);
+src/emod.c.0:      if(T->ND==2)              // generate films (beta version)
+src/emod.c.0:	if(T->JS==0)            // start from random structures
+src/emod.c.0:	  RAND_CL(T,&T->C[p],&T->C[N],0);
+src/emod.c.0:	  SHRT_LV(&T->C[p]);
+src/emod.c.0:        else if(T->JS==1)            // start from specified structures
+src/emod.c.0:	  READ_CELL(&T->C[N],buf);
+src/emod.c.0:	  TEMP_CL(T,&T->C[N],p);
+src/emod.c.0:      if(T->ND==0)              // generate particles, cubic lattice cell is always fixed
+src/emod.c.0:	if( p>=T->SES[0] && p< T->FES[0] )
+src/emod.c.0:	  NANO_TETR(T,0,&T->C[N],p);
+src/emod.c.0:	if( p>=T->SES[1] && p< T->FES[1] )
+src/emod.c.0:	if( p>=T->SES[2] && p< T->FES[2] )
+src/emod.c.0:	  NANO_PACK(T,2,&T->C[N],p);
+src/emod.c.0:        if( p>=T->SES[3] && p< T->FES[3] )
+src/emod.c.0:          NANO_BLOB(T,3,&T->C[N],p);
+src/emod.c.0:      //      LIST(&T->C[p]);
+src/emod.c.0:      T->C[p].P=0.0;
+src/emod.c.0:      T->C[p].dE = -0.02;
+src/emod.c.0:  if(T->CODE!=0)
+src/emod.c.0:    sprintf(buf,"sed -i 's/XX:XX:XX/%02d:%02d:%02d/' INI/sub",T->time/3600,(T->time/60)%60,T->time%60);
+src/emod.c.0:  if(T->CODE==1) //===== for VASP =====
+src/emod.c.0:    sprintf(buf,"sed -i 's/P.PPP/%lf/' INI/INCAR",T->p*10.0);
+src/emod.c.0:  if(T->n>0)  //If this is not the first step in the EVOS then read in from last step
+src/emod.c.0:    for(p=0;p<2*T->N;p++)
+src/emod.c.0:      sprintf(buf,"EVOS/G%03d/M%03d/CONTCAR.0",T->n-1,p);
+src/emod.c.0:      if(READ_CELL(&T->C[p],buf)==0)
+src/emod.c.0:      sprintf(buf,"EVOS/G%03d/M%03d/OSZICAR.0",T->n-1,p);
+src/emod.c.0:      T->C[p].P = Read_OSZI(buf);
+src/emod.c.0:      if( fabs(T->C[p].P-1.0)<1e-15 )
+src/emod.c.0:      SHRT_LV(&T->C[p]);
+src/emod.c.0:      LIST(&T->C[p],0);      
+src/emod.c.0:      T->P1[p] = T->P2[p] = T->C[p].P;
+src/emod.c.0:      T->C[p].dE = -0.02;
+src/emod.c.0:    T->SES[n] = SES[n];
+src/emod.c.0:    T->FES[n] = FES[n];
+src/emod.c.0:      sscanf(buf+4,"%d" ,&T->JOBT);
+src/emod.c.0:  if(T->JOBT!=12)
+src/emod.c.0:  for(p=T->N;p<T->N*2;p++)
+src/emod.c.0:    sprintf(buf,"EVOS/G%03d/M%03d/jobid",T->n,p);
+src/emod.c.0:	if( T->QT==0 )
+src/emod.c.0:	if( T->QT==1 )
+src/emod.c.0:  sprintf(buf,"rm -r EVOS/G%03d/",T->n);
+src/emod.c.0:  sprintf(buf,"Hard exit at iteration %3d \n",T->n);
+src/emod.c.0:  fprintf(stderr,"Hard exit at iteration %3d \n",T->n);
+src/emod.c.0:  I = make_i1D(2*T->N);
+src/emod.c.0:  for(p=0;p<2*T->N;p++)
+src/emod.c.0:    T->E[p] = T->C[p].P;
+src/emod.c.0:    if(T->E[p]<Pmin)
+src/emod.c.0:      Pmin = T->E[p];
+src/emod.c.0:    if(T->E[p]>Pmax)
+src/emod.c.0:      Pmax = T->E[p];
+src/emod.c.0:  for(p=0;p<2*T->N;p++)
+src/emod.c.0:    T->f[p] = 0.5*( 1.0 - tanh(2.0*(T->E[p]-Pmin)/(Pmax-Pmin)-1.0) );
+src/emod.c.0:  Sort(T->E,I,2*T->N);
+src/emod.c.0:  for(p=0;p<2*T->N;p++)
+src/emod.c.0:    T->S[p] = I[p];
+src/emod.c.0:  for(p=0;p<2*T->N;p++)
+src/emod.c.0:    Copy_C(&T->C[    p ],&T->C[2*T->N]);
+src/emod.c.0:    Copy_C(&T->C[  I[p]],&T->C[    p ]);
+src/emod.c.0:    Copy_C(&T->C[2*T->N],&T->C[  I[p]]);
+src/emod.c.0:    dSwap(&T->f[p], &T->f[I[p]]);
+src/emod.c.0:    dSwap(&T->E[p], &T->E[I[p]]);
+src/emod.c.0:    dSwap(&T->P1[p],&T->P1[I[p]]);
+src/emod.c.0:    dSwap(&T->P2[p],&T->P2[I[p]]);
+src/emod.c.0:    for(k=0;k<2*T->N;k++)
+src/emod.c.0:  for(p=0;p<2*T->N;p++)
+src/emod.c.0:    LIST(&T->C[p],0);
+src/emod.c.0:    RDF(&T->C[p],1);
+src/emod.c.0:  for(p=2*T->N-1;p>=1;p--)
+src/emod.c.0:      if( (t=COMP_CL(&T->C[p],&T->C[k])) > T->CUT)
+src/emod.c.0:	T->f[p] *= 0.001 + (1.0-t)*(1.0-t);
+src/emod.c.0:  for(p=M=0;p<2*T->N;p++)
+src/emod.c.0:    if( T->f[p]>1e-10 )
+src/emod.c.0:      if( M==2*T->N-(int)(2.0*T->HE*(double)T->N) )
+src/emod.c.0:  sprintf(buf,"discarded all above %3d % 15.6lf\n",p,T->E[p]);
+src/emod.c.0:  for(;p<2*T->N;p++)
+src/emod.c.0:    T->f[p] = 1e-15;
+src/emod.c.0:    for(p=0;p<2*T->N;p++)
+src/emod.c.0:      sprintf(buf,"%3d % 24.16lf % 24.16lf\n",p,T->E[p],T->f[p]);
+src/emod.c.0:  for(i=0;i<T->C[0].N;i++)
+src/emod.c.0:    T->C[0].ATMN[i] = T->C[0].ATMN[i];
+src/emod.c.0:  SAVE_CELL(&T->C[0],"poscar",0);
+src/emod.c.0:    SAVE_CELL(&T->C[0],"INI/POSCAR000",0);
+src/emod.c.0:  f = make_d1D(2*T->N+1);
+src/emod.c.0:  for(p=1,f[0]=0.0;p<2*T->N+1;p++)
+src/emod.c.0:    f[p] = f[p-1] + T->f[p-1];
+src/emod.c.0:  for(p=0;p<2*T->N+1;p++)
+src/emod.c.0:    f[p] /= f[2*T->N];
+src/emod.c.0:  for(p=0;p<2*T->N;p++)
+src/emod.c.0:    T->I[T->n][ p] = 0;
+src/emod.c.0:  for(p=0;p<T->NB;p++)
+src/emod.c.0:    T->I[T->n][ p] = 1;
+src/emod.c.0:  for(k=T->NB;k<T->N;k++)
+src/emod.c.0:    for(p=1;p<2*T->N&&f[p]<r;p++);
+src/emod.c.0:    if(T->I[T->n][ p-1]==1)
+src/emod.c.0:      T->I[T->n][ p-1] = 1;
+src/emod.c.0:  for(p=0;p<2*T->N;p++)
+src/emod.c.0:    printf("% 3d %3d % lf %3d % lf\n",p,T->I[T->n][p],f[p],T->S[p],T->E[p]);
+src/emod.c.0:  for(k=p=0;p<2*T->N;p++)
+src/emod.c.0:    if(T->I[T->n][ p]==1)
+src/emod.c.0:      Copy_C(&T->C[p],&T->C[k]);
+src/emod.c.0:      T->S[ k] = T->S[ p];
+src/emod.c.0:      T->P1[k] = T->P1[p];
+src/emod.c.0:      T->P2[k] = T->P2[p];
+src/emod.c.0:      T->E[ k] = T->E[ p];
+src/emod.c.0:      T->f[ k] = T->f[ p];
+src/emod.c.0:      sprintf(buf,"%3d %3d %3d % 15.6lf\n",k,p,T->S[k],T->E[k]);
+src/emod.c.0:  if(T->n==0)
+src/emod.c.0:  for(p=0;p<T->N;p++)
+src/emod.c.0:    fprintf(out1,"%4d % 15.9lf\n",T->n,T->E[p]/(double)T->C[p].N);
+src/emod.c.0:  if(T->n>0)
+src/emod.c.0:    for(p=0;p<T->N;p++)
+src/emod.c.0:      fprintf(out2,"%4d % 15.9lf\n%4d % 15.9lf\n\n%4d % 15.9lf\n%4d % 15.9lf\n\n",T->n-1,T->P1[p]/(double)T->C[p].N,T->n,T->E[p]/(double)T->C[p].N,T->n-1,T->P2[p]/(double)T->C[p].N,T->n,T->E[p]/(double)T->C[p].N);
+src/emod.c.0:  fprintf(out3,"%4d % 15.9lf\n",T->n,T->E[0]/(double)T->C[0].N);
+src/emod.c.0:  for(p=0;p<T->N;p++)
+src/emod.c.0:    fprintf(out4,"% 15.9lf % 15.9lf %4d %4d\n",CELL_VOL(&T->C[p])/(double)T->C[p].N,T->E[p]/(double)T->C[p].N,T->n,p);
+src/emod.c.0:  for(p=0;p<2*T->N;p++)
+src/emod.c.0:    T->P1[p] = T->P2[p] = T->E[p];
+src/emod.c.0:  if(T->JOBT==14)
+src/emod.c.0:    printf("Analyzed  %3d structures in EVOS/G%03d\n",T->N,T->n);
+src/emod.c.0:  sprintf(buf,"mkdir -p EVOS/G%03d/M%03d",T->n,p);
+src/emod.c.0:  if(T->CODE==1) //===== for VASP =====
+src/emod.c.0:    sprintf(buf,"cp INI/POTCAR EVOS/G%03d/M%03d",T->n,p);
+src/emod.c.0:    sprintf(buf,"cp INI/INCAR EVOS/G%03d/M%03d",T->n,p);
+src/emod.c.0:    sprintf(buf,"EVOS/G%03d/M%03d/KPOINTS",T->n,p);
+src/emod.c.0:    KMESH(&T->C[p],T->KM,buf,T->ND);
+src/emod.c.0:  sprintf(buf,"EVOS/G%03d/M%03d/POSCAR",T->n,p);
+src/emod.c.0:  SAVE_CELL(&T->C[p],buf,0);
+src/emod.c.0:  sprintf(buf,"sed -i 's/GGGG/G%03d/' g%03d",T->n,p);
+src/emod.c.0:  if( T->JOBT==14 )
+src/emod.c.0:  if( T->QT==0 )
+src/emod.c.0:    sprintf(buf,"qsub g%03d >> EVOS/G%03d/M%03d/jobid",p,T->n,p);
+src/emod.c.0:  if( T->QT==1 )
+src/emod.c.0:    sprintf(buf,"sbatch g%03d >> EVOS/G%03d/M%03d/jobid",p,T->n,p);
+src/emod.c.0:  if( T->QT==2 )
+src/emod.c.0:    sprintf(buf,"bsub < g%03d >> EVOS/G%03d/M%03d/jobid",p,T->n,p);
+src/emod.c.0:  for(p=T->N;p<T->N*2;p++)
+src/emod.c.0:    sprintf(buf,"mkdir EVOS/G%03d/M%03d",T->n,p);
+src/emod.c.0:    sprintf(buf,"EVOS/G%03d/M%03d/POSCAR.0",T->n,p);
+src/emod.c.0:    SAVE_CELL(&T->C[p],buf,0);
+src/emod.c.0:    Copy_C(&T->C[p],&T->C[2*T->N+1]);    
+src/emod.c.0:    CELL_RELX(RR,PP,WW,&T->C[2*T->N+1],LL);
+src/emod.c.0://    CELL_PHON(RR,PP,WW,&T->C[2*T->N+1],LL);
+src/emod.c.0:    Copy_C(&T->C[2*T->N+1],&T->C[p]);
+src/emod.c.0:    sprintf(buf,"EVOS/G%03d/M%03d/CONTCAR.0",T->n,p);
+src/emod.c.0:    SAVE_CELL(&T->C[2*T->N+1],buf,0);
+src/emod.c.0:    sprintf(buf,"mv OUTCAR EVOS/G%03d/M%03d/OUTCAR.0",T->n,p);
+src/emod.c.0:    sprintf(buf,"mv OSZICAR EVOS/G%03d/M%03d/OSZICAR.0",T->n,p);
+src/emod.c.0:  I = make_i1D(2*T->N);
+src/emod.c.0:  if( T->JOBT!= 14 )
+src/emod.c.0:    sprintf(buf,"EVOS/G%03d",T->n);
+src/emod.c.0:      sprintf(buf,"Directory EVOS/G%03d already exists!\n",T->n);
+src/emod.c.0:      fprintf(stderr,"Directory EVOS/G%03d already exists!\n",T->n);
+src/emod.c.0:  sprintf(buf,"mkdir -p EVOS/G%03d",T->n);
+src/emod.c.0:  if( T->MODE<=0 && T->n>0)
+src/emod.c.0:    for(p=0;p<T->N;p++)
+src/emod.c.0:      sprintf(buf,"mkdir EVOS/G%03d/M%03d",T->n,p);
+src/emod.c.0:      sprintf(buf,"EVOS/G%03d/M%03d/CONTCAR.0",T->n,p);
+src/emod.c.0:      SAVE_CELL(&T->C[p],buf,0);
+src/emod.c.0:      sprintf(buf,"cp EVOS/G%03d/M%03d/OSZICAR.0 EVOS/G%03d/M%03d",T->n-1,T->S[p],T->n,p);
+src/emod.c.0:      sprintf(buf,"cp EVOS/G%03d/M%03d/OUTCAR.0 EVOS/G%03d/M%03d",T->n-1,T->S[p],T->n,p);
+src/emod.c.0:  if(T->CODE==0)
+src/emod.c.0:    for(p=T->N;p<2*T->N;p++)
+src/emod.c.0:    if( T->MODE <= 0 )
+src/emod.c.0:      for(p=T->N;p<2*T->N;p++)
+src/emod.c.0:    if( T->MODE < 0 )
+src/emod.c.0:      printf("Generated %3d structures in EVOS/G%03d\n",T->N,T->n);
+src/emod.c.0:    p = T->N;
+src/emod.c.0:    while(p<2*T->N)
+src/emod.c.0:      for(p=T->N;p<2*T->N;p++)
+src/emod.c.0:	  sprintf(buf,"EVOS/G%03d/M%03d/OUTCAR.0",T->n,p);
+src/emod.c.0:	  Q = Check_OUTCAR(&T->C[p],buf);
+src/emod.c.0:	  sprintf(buf,"EVOS/G%03d/M%03d/stamp",T->n,p);
+src/emod.c.0:	    sprintf(buf,"EVOS/G%03d/M%03d/CONTCAR.0",T->n,p);
+src/emod.c.0:	    READ_CELL(&T->C[p],buf);
+src/emod.c.0:	  if( T->MODE > 0 )
+src/emod.c.0:	  if( Q==0 || (Q<0 && t1>=0 && t2>=0 && ( (int)(t1-t2) >T->time ) ) || (Q==1 && CHCK_Rm(&T->C[p],T->Rm,0.7)==0) )
+src/emod.c.0:	    sprintf(buf,"Failed to relax structure %d %d %8d sec %8d %8d % d\n",T->n,p,t1-t2,t1,t2,Q);
+src/emod.c.0:	    fprintf(stderr,"Failed to relax structure %d %d %8d sec %8d %8d % d\n",T->n,p,t1-t2,t1,t2,Q);
+src/emod.c.0:	      sprintf(buf,"EVOS/G%03d/M%03d/jobid",T->n,p);
+src/emod.c.0:		  printf("%3d %3d %s %s\n",T->n,p,buf,buf+i);
+src/emod.c.0:		  if( T->QT==0 )
+src/emod.c.0:		  if( T->QT==1 )
+src/emod.c.0:		  if( T->QT==2 )
+src/emod.c.0:      for(p=T->N;p<2*T->N;p++)
+src/emod.c.0:    for(m=0,p=T->N;p<2*T->N;p++)
+src/emod.c.0:      sprintf(buf,"Iteration %3d: Successfully relaxed %3d members\n",T->n,m);
+src/emod.c.0:    for(p=T->N;p<2*T->N;p++)
+src/emod.c.0:	i = p-T->N;
+src/emod.c.0:	if(T->n==0)
+src/emod.c.0:	  for(m=1;m<T->N;m++)
+src/emod.c.0:	    i = T->N + (p+m)%T->N;
+src/emod.c.0:	sprintf(buf,"rm -r EVOS/G%03d/M%03d/*",T->n,p);
+src/emod.c.0:	sprintf(buf,"cp    EVOS/G%03d/M%03d/* EVOS/G%03d/M%03d",T->n,i,T->n,p);
+src/emod.c.0:  for(p=T->N;p<2*T->N;p++)
+src/emod.c.0:    sprintf(buf,"EVOS/G%03d/M%03d/CONTCAR.0",T->n,p);
+src/emod.c.0:    READ_CELL(&T->C[p],buf);
+src/emod.c.0:    sprintf(buf,"EVOS/G%03d/M%03d/OSZICAR.0",T->n,p);
+src/emod.c.0:    T->C[p].P = Read_OSZI(buf);
+src/emod.c.0:    if(T->ND==0)
+src/emod.c.0:      NANO_ROT(&T->C[p],0);
+src/emod.c.0:  // only T->N random structures are relaxed at n=0
+src/emod.c.0:  if(T->n==0)
+src/emod.c.0:    for(p=0;p<T->N;p++)
+src/emod.c.0:      sprintf(buf,"mkdir EVOS/G%03d/M%03d",T->n,p);
+src/emod.c.0:      sprintf(buf,"cp EVOS/G%03d/M%03d/CONTCAR.0 EVOS/G%03d/M%03d",T->n,T->N+p,T->n,p);
+src/emod.c.0:      sprintf(buf,"cp EVOS/G%03d/M%03d/OSZICAR.0 EVOS/G%03d/M%03d",T->n,T->N+p,T->n,p);
+src/emod.c.0:      sprintf(buf,"cp EVOS/G%03d/M%03d/OUTCAR.0  EVOS/G%03d/M%03d",T->n,T->N+p,T->n,p);
+src/emod.c.0:      Copy_C(&T->C[T->N+p],&T->C[p]);
+src/emod.c.0:  if(T->CODE>1)
+src/emod.c.0:    for(p=T->N;p<2*T->N;p++)
+src/emod.c.0:    sprintf(buf,"rm -f EVOS/G%03d/M*/OUT* EVOS/G%03d/M*/POTCAR* EVOS/G%03d/M*/INCAR* EVOS/G%03d/M*/KPOINTS*",T->n-2,T->n-2,T->n-2,T->n-2);
+src/emod.c.0:    if(T->CODE==1)
+src/emod.c.0:  sprintf(buf,"cp EVOS/G%03d/M000/CONTCAR.0 poscar",T->n);
+src/emod.c.0:  N = 2*T->N;
+src/emod.c.0:  if(T->n>=0)
+src/emod.c.0:  if(J==0||T->n<T->NI-1)
+src/emod.c.0:    if(T->ND==0)
+src/emod.c.0:      NANO_TETR(T, 0 ,&T->C[N],-1);  // tetris-type generation of random NPs
+src/emod.c.0:      NANO_PACK(T, 2 ,&T->C[N],-1);  // seeding NPs with bcc, fcc, hcp
+src/emod.c.0:      NANO_BLOB(T, 3 ,&T->C[N],-1);  // random generation of NPs
+src/emod.c.0:      NANO_CHOP(T, 9 ,&T->C[N],-1);  // chopping for creating facets
+src/emod.c.0:  if(T->JOBT==11)
+src/emod.c.0:    sprintf(buf,"Soft exit at iteration %d\n",T->n);
+src/emod.c.0:    if( fabs((E[G]-1.0)*(double)C->N)>1e-14 && E[G]<(E0+T->DE) && Check_OUTCAR(C,s)==1 )
+src/emod.c.0:      if(CxC(C,D)>T->CUT)
+src/emod.c.0:  printf("Found %6d structures in %s with enthalpy range  % 12.6lf % 12.6lf\n",G,run[J],E0,E0+T->DE);
+src/emod.c.0:  printf("Found %6d structures in %s with enthalpy range  % 12.6lf % 12.6lf   different by CxC % lf\n",N,run[J],E0,E0+T->DE,T->CUT);
+src/emod.c.0:  T->C  = (Cell *)malloc((2*T->N+2)*sizeof(Cell));
+src/emod.c.0:  for(j=0;j<T->NSPC;j++)
+src/emod.c.0:    C->SPCZ[j] = T->SPCZ[j];
+src/emod.c.0:  C->NSPC = T->NSPC;
+src/emod.c.0:  if(T->JOBT==13)
+src/emod.c.0:  for(n=0;n<2*T->N+2;n++)
+src/emod.c.0:    T->C[n].A    = C->A;  // for NANO_ROT we need +2 atoms
+src/emod.c.0:    T->C[n].N    = C->N;
+src/emod.c.0:    T->C[n].NM   = C->NM;
+src/emod.c.0:    T->C[n].ND   = C->ND;
+src/emod.c.0:    T->C[n].Rmax = C->Rmax;
+src/emod.c.0:    T->C[n].Rmin = C->Rmin;
+src/emod.c.0:    T->C[n].DR   = C->DR;
+src/emod.c.0:    T->C[n].JOBT = C->JOBT;
+src/emod.c.0:    T->C[n].XT   = 1;
+src/emod.c.0:    T->C[n].NSPC = C->NSPC;
+src/emod.c.0:    T->C[n].Rc   = C->Rc = C->Rmax;
+src/emod.c.0:    T->C[n].rc   = C->rc = C->Rmax;
+src/emod.c.0:    T->C[n].MODT = C->MODT;
+src/emod.c.0:    T->C[n].NP   = C->NP;
+src/emod.c.0:    T->C[n].NB   = C->NB;
+src/emod.c.0:      T->C[n].SPCZ[k] = T->SPCZ[k];
+src/emod.c.0:      T->C[n].SPCN[k] = T->SPCN[k];
+src/emod.c.0:    sprintf(T->C[n].WDIR,"%s",C->WDIR);
+src/emod.c.0:    Build_Cell(&T->C[n],0);
+src/emod.c.0:  if(T->JOBT==13)
+src/emod.c.0:    for(n=0;n<2*T->N+2;n++)
+src/emod.c.0:      Copy_C(C,&T->C[n]);
+src/emod.c.0:  if(T->JOBT!=10&&T->JOBT!=14)
+src/emod.c.0:  if(T->CODE==0)
+src/emod.c.0:  T->C[2*T->N+1] = *C;
+src/emod.c.0:  T->pos = 0;
+src/emod.c.0:  if(T->TES[1]>0)
+src/emod.c.0:    T->pos = 1;
+src/emod.c.0:  for(;T->pos<T->N;T->pos++)
+src/emod.c.0:    sprintf(buf,"INI/POSCAR%03d",T->pos);
+src/emod.c.0:    if( READ_CELL(&T->C[2*T->N+1],buf)==0 )
+src/emod.c.0:  sprintf(buf,"PLNT will plant %3d from %3d structures\n",T->TES[1],T->pos);
+src/emod.c.0:  T->I  = make_i2D(T->NI,2*T->N);
+src/emod.c.0:  T->S  = make_i1D(2*T->N);
+src/emod.c.0:  T->E  = make_d1D(2*T->N+1);
+src/emod.c.0:  T->P1 = make_d1D(2*T->N);
+src/emod.c.0:  T->P2 = make_d1D(2*T->N);
+src/emod.c.0:  T->T  = make_d2D(T->NI,2*T->N);
+src/emod.c.0:  T->f  = make_d1D(2*T->N+1);  
+src/emod.c.0:  for(n=0;n<2*T->N+2;n++)
+src/emod.c.0:    T->C[n].P = 1.0e9;
+src/emod.c.0:  // T->MODE = -1: generate population
+src/emod.c.0:  // T->MODE =  1: evaluate population
+src/emod.c.0:  fscanf(in,"%d",&T->n);
+src/emod.c.0:  sprintf(buf,"ls -l EVOS/G*/M%03d/OUTCAR.0 2>/dev/null | wc -l ",T->N);
+src/emod.c.0:  fscanf(in,"%d",&T->MODE);
+src/emod.c.0:  sprintf(buf,"EVOS/G%03d/M%03d",T->n,T->N);
+src/emod.c.0:  if( T->MODE==T->n && chdir(buf)==0 )
+src/emod.c.0:    printf("Population EVOS/G%03d already exists and should be run first.\n",T->n);
+src/emod.c.0:  T->MODE = 2*(T->MODE - T->n)-1;
+src/emod.c.0:  if( abs(T->MODE)!= 1 )
+src/emod.c.0:  if(T->seed==0)                          // Check if seed is by hand or auto if so:
+src/emod.c.0:    T->seed=time(NULL);                   // SET TO TIME
+src/emod.c.0:  sprintf(buf,"seed:  %ld\n\n",T->seed);
+src/emod.c.0:  PlantSeeds(T->seed);                    // Initialize random number generator
+src/emod.c.0:  if(T->JOBT==13)
+src/emod.c.0:    ANA_EVOS(T,&T->C[0],&T->C[1]);
+src/emod.c.0:  if(T->JOBT==14)
+src/emod.c.0:    T->n++;
+src/emod.c.0:    T->MODE *= -1;
+src/emod.c.0:  T->MODE = 0;                            // automated EVOS with JOBT=10
+src/emod.c.0:  if(T->n!=0)                             // If this is a continuation run evolve first
+src/emod.c.0:  for(;T->n<T->NI&&T->JOBT==10;T->n++)    // for each genertation relax then evolve
+src/emod.c.0:  if(T->JOBT==12)
+src/emod.c.0:    sprintf(buf,"Hard exit at iteration %3d \n",T->n);
+src/eutl.c:  for(s=0;s<T->Nm;s++)
+src/eutl.c:      if(T->ND==3)
+src/eutl.c:	a = pow( 2.0*T->VOL*(1.0+0.25*(0.5-Random())*2.0),1.0/3.0);
+src/eutl.c:      if(T->ND==2)
+src/eutl.c:        a = pow( 2.0*T->VOL*(1.0+0.25*(0.5-Random())*2.0),1.0/2.0);
+src/eutl.c:      if(T->ND==2)
+src/eutl.c:	C->L[2][2] = T->B;
+src/eutl.c:        for(q=0;q<T->ND;q++)
+src/eutl.c:      if(T->ND==2)
+src/eutl.c:      if(CHCK_Rm(C,T->Rm,1.0)==1||ADJT_CL(C,T->Rm,10)==1)
+src/eutl.c:        for(q=0;q<T->ND;q++)
+src/eutl.c:      if(T->ND==2)
+src/eutl.c:      if(CHCK_Rm(C,T->Rm,1.0)==1 || ADJT_CL(C,T->Rm,10)==1)
+src/eutl.c:	    C->X[i][q] = D->X[i][q]+T->ca*C->R0*RANG();;
+src/eutl.c:      if(T->ND==2)
+src/eutl.c:      if(CHCK_Rm(C,T->Rm,1.0)==1)
+src/eutl.c:  if(s==T->Nm)
+src/eutl.c:    sprintf(buf,"exit in INIT_CL: exceeded %3d\n",T->Nm);
+src/eutl.c:    fprintf(stderr,"exit in INIT_CL: exceeded %3d\n",T->Nm);
+src/eutl.c:  for(m=0,s=0;m<T->Nm;m++)
+src/eutl.c:    Copy_C(C,&T->C[p]);
+src/eutl.c:    V = CELL_VOL(&T->C[p]);
+src/eutl.c:    if( ! (SHKE_CL(&T->C[p],T->cl,T->C[p].R0*T->ca)==0 || SHRT_LV(&T->C[p])==0 || fabs( CELL_VOL(&T->C[p])/V-1.0 ) > 0.5) )
+src/eutl.c:      if( T->JS!=2  && !(T->ml>(10^-10) || T->cl>(10^-10)) )              // added in 4.1
+src/eutl.c:	SCALE_Cell(&T->C[p], pow(CELL_VOL(&T->C[p])/V,-1.0/3.0) + 0.1*(0.5-Random()));
+src/eutl.c:      if(T->NSPC>1)
+src/eutl.c:	for(i=s=0;i<T->C[p].N;i++)
+src/eutl.c:	  if(Random()<T->cs)
+src/eutl.c:	    for(j=i;T->C[p].ATMN[i]==T->C[p].ATMN[j%T->C[p].N];j++);
+src/eutl.c:	    j = ( j + (int)(Random()*(double)(T->C[p].N-T->SPCN[T->C[p].ATMN[i]])) )%T->C[p].N;
+src/eutl.c:	      dSwap(&T->C[p].X[i][q],&T->C[p].X[j][q]);
+src/eutl.c:	      iSwap(&T->C[p].FF[i][q],&T->C[p].FF[j][q]);
+src/eutl.c:      if(CHCK_Rm(&T->C[p],T->Rm,1.0)==1)
+src/eutl.c:	T->P1[p] = T->P2[p] = T->C[p].P;
+src/eutl.c:	sprintf(buf,"gen %4d: %2d %2d are proud parents of cell %2d with                                                 %3d swaps\n",T->n,p ,p ,p,               s);
+src/eutl.c:  if(m==T->Nm)
+src/eutl.c:    sprintf(buf,"failed to clone in %d tries\n",T->Nm);
+src/eutl.c:    fprintf(stderr,"failed to clone in %d tries\n",T->Nm);
+src/mu:./efnc.c:    for(qq=i=0;qq<T->NSPC-1;qq++)
+src/mu:./efnc.c:            C->X[i][q] = a[q]*(R+4.0*T->Rm[C->ATMN[i]])*(1.0+dr*Random());
+src/mu:./efnc.c:                if( t < 1.5*(T->Rm[C->ATMN[i]]+T->Rm[C->ATMN[j]]) )
+src/mu:./efnc.c:                  if( t < 1.0*(T->Rm[C->ATMN[i]]+T->Rm[C->ATMN[j]]) )
+src/mu:./efnc.c:    C->L[i][i] = T->B;
+src/mu:./efnc.c:	  C->X[i][q] = R*T->C[p].X[I[i]][q];
+src/mu:./efnc.c:      if(ADJT_NP(C,T->Rm,R,b,(int)(sqrt(C->N))))
+src/mu:./efnc.c:    C->L[i][i] = T->B;
+src/mu:./efnc.c:              if( NDR(C,i,I[j]) < 1.5*(T->Rm[C->ATMN[i]]+T->Rm[C->ATMN[I[j]]]) )
+src/mu:./efnc.c:              if( NDR(C,i,I[j]) < 1.0*(T->Rm[C->ATMN[i]]+T->Rm[C->ATMN[I[j]]]) )
+src/mu:./efnc.c:    R += T->Rm[i]*(double)T->SPCN[i]/(double)C->N;
+src/mu:./efnc.c:    C->L[i][i] = T->B;
+src/mu:./efnc.c:	C->X[i][q] += T->ca*RANG();
+src/mu:./efnc.c:    for(qq=i=0;qq<T->NSPC-1;qq++)
+src/mu:./emod.c:    if( fabs((E[G]-1.0)*(double)C->N)>1e-14 && E[G]<(E0+T->DE) && Check_OUTCAR(C,s)==1 )
+src/mu:./emod.c:    C->SPCZ[j] = T->SPCZ[j];
+src/mu:./emod.c:  C->NSPC = T->NSPC;
+src/mu:./emod.c:    T->C[n].A    = C->A;  // for NANO_ROT we need +2 atoms
+src/mu:./emod.c:    T->C[n].N    = C->N;
+src/mu:./emod.c:    T->C[n].NM   = C->NM;
+src/mu:./emod.c:    T->C[n].ND   = C->ND;
+src/mu:./emod.c:    T->C[n].Rmax = C->Rmax;
+src/mu:./emod.c:    T->C[n].Rmin = C->Rmin;
+src/mu:./emod.c:    T->C[n].DR   = C->DR;
+src/mu:./emod.c:    T->C[n].JOBT = C->JOBT;
+src/mu:./emod.c:    T->C[n].NSPC = C->NSPC;
+src/mu:./emod.c:    T->C[n].Rc   = C->Rc = C->Rmax;
+src/mu:./emod.c:    T->C[n].rc   = C->rc = C->Rmax;
+src/mu:./emod.c:    T->C[n].MODT = C->MODT;
+src/mu:./emod.c:    T->C[n].NP   = C->NP;
+src/mu:./emod.c:    T->C[n].NB   = C->NB;
+src/mu:./emod.c:    sprintf(T->C[n].WDIR,"%s",C->WDIR);
+src/mu:./eutl.c:	C->L[2][2] = T->B;
+src/mu:./eutl.c:	    C->X[i][q] = D->X[i][q]+T->ca*C->R0*RANG();;
+src/mu:./util.c:    if( strncmp(buf,"JOBT",4) == 0 ) { sscanf(buf+4,"%d" , &R->JOBT); T->JOBT = C->JOBT = R->JOBT; }
+src/mu:./util.c:	R->SPCZ[i] = P->SPCZ[i] = C->SPCZ[i] = C->spcz[i] = T->SPCZ[i];
+src/mu:./util.c:	C->spcn[i]=C->SPCN[i]=T->SPCN[i];
+src/mu:./util.c:  C->p = T->p/eV2GPa;
+src/nprs.c:  if( fabs(ECUT-1.0)<1e-14 ) // if ECUT = 1.0
+src/nprs.c.0:  if( fabs(ECUT-1.0)<1e-14 ) // if ECUT = 1.0
+src/#util.c#:    T->maxpres[i] = maxpres[i];
+src/#util.c#:    T->minpres[i] = minpres[i];
+src/#util.c#:    T->JOBT  = 0;
+src/#util.c#:    T->N     = 0;
+src/#util.c#:    T->SPCN[i]=0;
+src/#util.c#:  T->seed  = 0;
+src/#util.c#:  T->ND    = -1;
+src/#util.c#:  T->te    = 0.0;
+src/#util.c#:  T->p     = 0.0;          // pressure in GPa
+src/#util.c#:  T->No    = 20;           // max number of tries to find the right slice
+src/#util.c#:  T->Ns    = 20;           // max number of random shifts
+src/#util.c#:  T->Nm    = 1000000;      // max number of matings per generation
+src/#util.c#:  T->Nc    = 1000;         // max number of matings per couple
+src/#util.c#:  T->Nu    = 100;          // max number of mutations per couple
+src/#util.c#:  T->NB    = 1;            // number of bests always kept in a generation
+src/#util.c#:  T->Rhc   = 0.80;         // scaling factor for hard-core radius
+src/#util.c#:  T->HE    = 0.10;         // discard p highest enthalpy structures
+src/#util.c#:  T->CUT   = 0.95;         // discard similar structures if CxC is above this
+src/#util.c#:  T->ND    = -1;
+src/#util.c#:  T->QT    = 0;            // default queue type is torque
+src/#util.c#:    if( strncmp(buf,"JOBT",4) == 0 ) { sscanf(buf+4,"%d" , &R->JOBT); T->JOBT = C->JOBT = R->JOBT; }
+src/#util.c#:    if( strncmp(buf,"CODE",4) ==0 ) { sscanf(buf+4,"%d" ,&T->CODE  );       }
+src/#util.c#:    if( strncmp(buf,"QUET",4) ==0 ) { sscanf(buf+4,"%d" ,&T->QT    );       }
+src/#util.c#:    if( strncmp(buf,"NDIM",4) ==0 ) { sscanf(buf+4,"%d" ,&T->ND    );       }
+src/#util.c#:    if( strncmp(buf,"LBOX",4) ==0 ) { sscanf(buf+4,"%lf",&T->B     );       }
+src/#util.c#:    if( strncmp(buf,"NPOP",4) ==0 && J == 1 ) { sscanf(buf+4,"%d" ,&T->N ); }
+src/#util.c#:    if( strncmp(buf,"SITR",4) ==0 && J == 1 ) { sscanf(buf+4,"%d" ,&T->n ); }
+src/#util.c#:    if( strncmp(buf,"NITR",4) == 0          ) { sscanf(buf+4,"%d" ,&T->NI); }
+src/#util.c#:    if( strncmp(buf,"TINI",4) == 0 && J == 1) { sscanf(buf+4,"%d" ,&T->JS); }
+src/#util.c#:    if( strncmp(buf,"SEED",4) == 0) { sscanf(buf+4,"%ld" ,&T->seed);        }
+src/#util.c#:    if( strncmp(buf,"TETR",4) == 0 ) { sscanf(buf+4,"%lf",&t ); T->TES[ 0] = (int)(t*(double)T->N); } sprintf(T->NES[ 0],"TETR");  
+src/#util.c#:    if( strncmp(buf,"PLNT",4) == 0 ) { sscanf(buf+4,"%lf",&t ); T->TES[ 1] = (int)(t*(double)T->N); } sprintf(T->NES[ 1],"PLNT");  
+src/#util.c#:    if( strncmp(buf,"PACK",4) == 0 ) { sscanf(buf+4,"%lf",&t ); T->TES[ 2] = (int)(t*(double)T->N); } sprintf(T->NES[ 2],"PACK");  
+src/#util.c#:    if( strncmp(buf,"BLOB",4) == 0 ) { sscanf(buf+4,"%lf",&t ); T->TES[ 3] = (int)(t*(double)T->N); } sprintf(T->NES[ 3],"BLOB");
+src/#util.c#:    if( strncmp(buf,"MATE",4) == 0 ) { sscanf(buf+4,"%lf",&t ); T->TES[ 4] = (int)(t*(double)T->N); } sprintf(T->NES[ 4],"MATE");  
+src/#util.c#:    if( strncmp(buf,"SWAP",4) == 0 ) { sscanf(buf+4,"%lf",&t ); T->TES[ 5] = (int)(t*(double)T->N); } sprintf(T->NES[ 5],"SWAP");  
+src/#util.c#:    if( strncmp(buf,"RUBE",4) == 0 ) { sscanf(buf+4,"%lf",&t ); T->TES[ 6] = (int)(t*(double)T->N); } sprintf(T->NES[ 6],"RUBE");  
+src/#util.c#:    if( strncmp(buf,"REFL",4) == 0 ) { sscanf(buf+4,"%lf",&t ); T->TES[ 7] = (int)(t*(double)T->N); } sprintf(T->NES[ 7],"REFL");  
+src/#util.c#:    if( strncmp(buf,"INVS",4) == 0 ) { sscanf(buf+4,"%lf",&t ); T->TES[ 8] = (int)(t*(double)T->N); } sprintf(T->NES[ 8],"INVS");  
+src/#util.c#:    if( strncmp(buf,"CHOP",4) == 0 ) { sscanf(buf+4,"%lf",&t ); T->TES[ 9] = (int)(t*(double)T->N); } sprintf(T->NES[ 9],"CHOP");  
+src/#util.c#:    if( strncmp(buf,"MUTE",4) == 0 ) { sscanf(buf+4,"%lf",&t ); T->TES[10] = (int)(t*(double)T->N); } sprintf(T->NES[10],"MUTE");  
+src/#util.c#:    if( strncmp(buf,"MCRS",4) == 0 ) { sscanf(buf+4,"%lf",&T->pm  );        }
+src/#util.c#:    if( strncmp(buf,"SCRS",4) == 0 ) { sscanf(buf+4,"%lf",&T->ps  );        }
+src/#util.c#:    if( strncmp(buf,"LCRS",4) == 0 ) { sscanf(buf+4,"%lf",&T->ml  );        }
+src/#util.c#:    if( strncmp(buf,"ACRS",4) == 0 ) { sscanf(buf+4,"%lf",&T->ma  );        }
+src/#util.c#:    if( strncmp(buf,"SDST",4) == 0 ) { sscanf(buf+4,"%lf",&T->cs  );        }
+src/#util.c#:    if( strncmp(buf,"LDST",4) == 0 ) { sscanf(buf+4,"%lf",&T->cl  );        }
+src/#util.c#:    if( strncmp(buf,"ADST",4) == 0 ) { sscanf(buf+4,"%lf",&T->ca  );        }
+src/#util.c#:    if( strncmp(buf,"ELPS",4) == 0 ) { sscanf(buf+4,"%lf",&T->te  );        }
+src/#util.c#:    if( strncmp(buf,"NSPC",4) == 0 ) { sscanf(buf+4,"%d" ,&T->NSPC);        }
+src/#util.c#:      for(i=0,n=0,k=4; i < T->NSPC;i++,k+=n) sscanf(buf+k,"%d%n",&T->SPCZ[i],&n);
+src/#util.c#:      for(i=0; i < T->NSPC;i++) 
+src/#util.c#:	R->SPCZ[i] = P->SPCZ[i] = C->SPCZ[i] = C->spcz[i] = T->SPCZ[i];
+src/#util.c#:      for(i=0,n=0,k=4; i < T->NSPC;i++,k+=n) 
+src/#util.c#:	sscanf(buf+k,"%d%n",&T->SPCN[i],&n);
+src/#util.c#:      for(i=0; i < T->NSPC;i++) 
+src/#util.c#:	C->spcn[i]=C->SPCN[i]=T->SPCN[i];
+src/#util.c#:    if( strncmp(buf,"TIME",4) == 0 ) { sscanf(buf+4,"%d" ,&T->time);        }
+src/#util.c#:    if( strncmp(buf,"PGPA",4) == 0 ) { sscanf(buf+4,"%lf",&T->p   );        }
+src/#util.c#:    if( strncmp(buf,"KMSH",4) == 0 ) { sscanf(buf+4,"%lf",&T->KM  );        }
+src/#util.c#:    if( strncmp(buf,"DENE",4) == 0 ) { sscanf(buf+4,"%lf",&T->DE   );       }
+src/#util.c#:    if( strncmp(buf,"SLIC",4) == 0 ) { sscanf(buf+4,"%d", &T->No   );       }
+src/#util.c#:    if( strncmp(buf,"SHFT",4) == 0 ) { sscanf(buf+4,"%d", &T->Ns   );       }
+src/#util.c#:    if( strncmp(buf,"MAGN",4) == 0 ) { sscanf(buf+4,"%d", &T->Nm   );       }
+src/#util.c#:    if( strncmp(buf,"MACP",4) == 0 ) { sscanf(buf+4,"%d", &T->Nc   );       }
+src/#util.c#:    if( strncmp(buf,"MUCP",4) == 0 ) { sscanf(buf+4,"%d", &T->Nu   );       }
+src/#util.c#:    if( strncmp(buf,"BEST",4) == 0 ) { sscanf(buf+4,"%d", &T->NB   );       }
+src/#util.c#:    if( strncmp(buf,"RHRD",4) == 0 ) { sscanf(buf+4,"%lf",&T->Rhc  );       }
+src/#util.c#:    if( strncmp(buf,"ECUT",4) == 0 ) { sscanf(buf+4,"%lf",&T->HE   );R->ECUT = T->HE;}
+src/#util.c#:    if( strncmp(buf,"SCUT",4) == 0 ) { sscanf(buf+4,"%lf",&T->CUT  );       }
+src/#util.c#:  if( T->seed == 0 ) 
+src/#util.c#:    T->seed = time(NULL);
+src/#util.c#:  R->seed=T->seed;
+src/#util.c#:  PlantSeeds(T->seed);
+src/#util.c#:  C->p = T->p/eV2GPa;
+src/#util.c#:  for(n=1,T->SES[0]=T->N,T->FES[0]=T->N+T->TES[0]; n < 11;n++)
+src/#util.c#:    T->SES[n] = T->SES[n-1] + T->TES[n-1];
+src/#util.c#:    T->FES[n] = T->FES[n-1] + T->TES[n  ];
+src/#util.c#:  if( T->JOBT == 1 && T->ND == 0 && T->TES[8] > 0 )
+src/#util.c#:    for(n=i=0; i < T->NSPC;i++)
+src/#util.c#:      n += T->SPCN[i]%2;
+src/#util.c#:    if( n > 1 || (T->JS == 0 && (n-T->SPCN[0]%2) > 0) )
+src/#util.c#:      T->TES[7] += T->TES[8];
+src/#util.c#:      T->TES[8]  = 0;
+src/#util.c#:  if( T->JOBT == 1 )
+src/#util.c#:      if( T->TES[n] > 0 )
+src/#util.c#:        printf("EVLV %3d %s %3d %3d %3d\n",n,T->NES[n],T->TES[n],T->SES[n],T->FES[n]);
+src/#util.c#:  if( T->ND == 0 && T->JOBT == 1 && T->FES[10] != 2*T->N )
+src/#util.c#:  sprintf(T->VER,VERSION);
+src/util.c:    T->maxpres[i] = maxpres[i];
+src/util.c:    T->minpres[i] = minpres[i];
+src/util.c:    T->JOBT  = 0;
+src/util.c:    T->N     = 0;
+src/util.c:    T->SPCN[i]=0;
+src/util.c:  T->seed  = 0;
+src/util.c:  T->ND    = -1;
+src/util.c:  T->te    = 0.0;
+src/util.c:  T->p     = 0.0;          // pressure in GPa
+src/util.c:  T->No    = 20;           // max number of tries to find the right slice
+src/util.c:  T->Ns    = 20;           // max number of random shifts
+src/util.c:  T->Nm    = 1000000;      // max number of matings per generation
+src/util.c:  T->Nc    = 1000;         // max number of matings per couple
+src/util.c:  T->Nu    = 100;          // max number of mutations per couple
+src/util.c:  T->NB    = 1;            // number of bests always kept in a generation
+src/util.c:  T->Rhc   = 0.80;         // scaling factor for hard-core radius
+src/util.c:  T->HE    = 0.10;         // discard p highest enthalpy structures
+src/util.c:  T->CUT   = 0.95;         // discard similar structures if CxC is above this
+src/util.c:  T->ND    = -1;
+src/util.c:  T->QT    = 0;            // default queue type is torque
+src/util.c:    if( strncmp(buf,"JOBT",4) == 0 ) { sscanf(buf+4,"%d" , &R->JOBT); T->JOBT = C->JOBT = R->JOBT; }
+src/util.c:    if( strncmp(buf,"CODE",4) ==0 ) { sscanf(buf+4,"%d" ,&T->CODE  );       }
+src/util.c:    if( strncmp(buf,"QUET",4) ==0 ) { sscanf(buf+4,"%d" ,&T->QT    );       }
+src/util.c:    if( strncmp(buf,"NDIM",4) ==0 ) { sscanf(buf+4,"%d" ,&T->ND    );       }
+src/util.c:    if( strncmp(buf,"LBOX",4) ==0 ) { sscanf(buf+4,"%lf",&T->B     );       }
+src/util.c:    if( strncmp(buf,"NPOP",4) ==0 && J == 1 ) { sscanf(buf+4,"%d" ,&T->N ); }
+src/util.c:    if( strncmp(buf,"SITR",4) ==0 && J == 1 ) { sscanf(buf+4,"%d" ,&T->n ); }
+src/util.c:    if( strncmp(buf,"NITR",4) == 0          ) { sscanf(buf+4,"%d" ,&T->NI); }
+src/util.c:    if( strncmp(buf,"TINI",4) == 0 && J == 1) { sscanf(buf+4,"%d" ,&T->JS); }
+src/util.c:    if( strncmp(buf,"SEED",4) == 0) { sscanf(buf+4,"%ld" ,&T->seed);        }
+src/util.c:    if( strncmp(buf,"TETR",4) == 0 ) { sscanf(buf+4,"%lf",&t ); T->TES[ 0] = (int)(t*(double)T->N); } sprintf(T->NES[ 0],"TETR");  
+src/util.c:    if( strncmp(buf,"PLNT",4) == 0 ) { sscanf(buf+4,"%lf",&t ); T->TES[ 1] = (int)(t*(double)T->N); } sprintf(T->NES[ 1],"PLNT");  
+src/util.c:    if( strncmp(buf,"PACK",4) == 0 ) { sscanf(buf+4,"%lf",&t ); T->TES[ 2] = (int)(t*(double)T->N); } sprintf(T->NES[ 2],"PACK");  
+src/util.c:    if( strncmp(buf,"BLOB",4) == 0 ) { sscanf(buf+4,"%lf",&t ); T->TES[ 3] = (int)(t*(double)T->N); } sprintf(T->NES[ 3],"BLOB");
+src/util.c:    if( strncmp(buf,"MATE",4) == 0 ) { sscanf(buf+4,"%lf",&t ); T->TES[ 4] = (int)(t*(double)T->N); } sprintf(T->NES[ 4],"MATE");  
+src/util.c:    if( strncmp(buf,"SWAP",4) == 0 ) { sscanf(buf+4,"%lf",&t ); T->TES[ 5] = (int)(t*(double)T->N); } sprintf(T->NES[ 5],"SWAP");  
+src/util.c:    if( strncmp(buf,"RUBE",4) == 0 ) { sscanf(buf+4,"%lf",&t ); T->TES[ 6] = (int)(t*(double)T->N); } sprintf(T->NES[ 6],"RUBE");  
+src/util.c:    if( strncmp(buf,"REFL",4) == 0 ) { sscanf(buf+4,"%lf",&t ); T->TES[ 7] = (int)(t*(double)T->N); } sprintf(T->NES[ 7],"REFL");  
+src/util.c:    if( strncmp(buf,"INVS",4) == 0 ) { sscanf(buf+4,"%lf",&t ); T->TES[ 8] = (int)(t*(double)T->N); } sprintf(T->NES[ 8],"INVS");  
+src/util.c:    if( strncmp(buf,"CHOP",4) == 0 ) { sscanf(buf+4,"%lf",&t ); T->TES[ 9] = (int)(t*(double)T->N); } sprintf(T->NES[ 9],"CHOP");  
+src/util.c:    if( strncmp(buf,"MUTE",4) == 0 ) { sscanf(buf+4,"%lf",&t ); T->TES[10] = (int)(t*(double)T->N); } sprintf(T->NES[10],"MUTE");  
+src/util.c:    if( strncmp(buf,"MCRS",4) == 0 ) { sscanf(buf+4,"%lf",&T->pm  );        }
+src/util.c:    if( strncmp(buf,"SCRS",4) == 0 ) { sscanf(buf+4,"%lf",&T->ps  );        }
+src/util.c:    if( strncmp(buf,"LCRS",4) == 0 ) { sscanf(buf+4,"%lf",&T->ml  );        }
+src/util.c:    if( strncmp(buf,"ACRS",4) == 0 ) { sscanf(buf+4,"%lf",&T->ma  );        }
+src/util.c:    if( strncmp(buf,"SDST",4) == 0 ) { sscanf(buf+4,"%lf",&T->cs  );        }
+src/util.c:    if( strncmp(buf,"LDST",4) == 0 ) { sscanf(buf+4,"%lf",&T->cl  );        }
+src/util.c:    if( strncmp(buf,"ADST",4) == 0 ) { sscanf(buf+4,"%lf",&T->ca  );        }
+src/util.c:    if( strncmp(buf,"ELPS",4) == 0 ) { sscanf(buf+4,"%lf",&T->te  );        }
+src/util.c:    if( strncmp(buf,"NSPC",4) == 0 ) { sscanf(buf+4,"%d" ,&T->NSPC);        }
+src/util.c:      for(i=0,n=0,k=4; i < T->NSPC;i++,k+=n) sscanf(buf+k,"%d%n",&T->SPCZ[i],&n);
+src/util.c:      for(i=0; i < T->NSPC;i++) 
+src/util.c:	R->SPCZ[i] = P->SPCZ[i] = C->SPCZ[i] = C->spcz[i] = T->SPCZ[i];
+src/util.c:      for(i=0,n=0,k=4; i < T->NSPC;i++,k+=n) 
+src/util.c:	sscanf(buf+k,"%d%n",&T->SPCN[i],&n);
+src/util.c:      for(i=0; i < T->NSPC;i++) 
+src/util.c:	C->spcn[i]=C->SPCN[i]=T->SPCN[i];
+src/util.c:    if( strncmp(buf,"TIME",4) == 0 ) { sscanf(buf+4,"%d" ,&T->time);        }
+src/util.c:    if( strncmp(buf,"PGPA",4) == 0 ) { sscanf(buf+4,"%lf",&T->p   );        }
+src/util.c:    if( strncmp(buf,"KMSH",4) == 0 ) { sscanf(buf+4,"%lf",&T->KM  );        }
+src/util.c:    if( strncmp(buf,"DENE",4) == 0 ) { sscanf(buf+4,"%lf",&T->DE   );       }
+src/util.c:    if( strncmp(buf,"SLIC",4) == 0 ) { sscanf(buf+4,"%d", &T->No   );       }
+src/util.c:    if( strncmp(buf,"SHFT",4) == 0 ) { sscanf(buf+4,"%d", &T->Ns   );       }
+src/util.c:    if( strncmp(buf,"MAGN",4) == 0 ) { sscanf(buf+4,"%d", &T->Nm   );       }
+src/util.c:    if( strncmp(buf,"MACP",4) == 0 ) { sscanf(buf+4,"%d", &T->Nc   );       }
+src/util.c:    if( strncmp(buf,"MUCP",4) == 0 ) { sscanf(buf+4,"%d", &T->Nu   );       }
+src/util.c:    if( strncmp(buf,"BEST",4) == 0 ) { sscanf(buf+4,"%d", &T->NB   );       }
+src/util.c:    if( strncmp(buf,"RHRD",4) == 0 ) { sscanf(buf+4,"%lf",&T->Rhc  );       }
+src/util.c:    if( strncmp(buf,"ECUT",4) == 0 ) { sscanf(buf+4,"%lf",&T->HE   );R->ECUT = T->HE;}
+src/util.c:    if( strncmp(buf,"SCUT",4) == 0 ) { sscanf(buf+4,"%lf",&T->CUT  );       }
+src/util.c:  if( T->seed == 0 ) 
+src/util.c:    T->seed = time(NULL);
+src/util.c:  R->seed=T->seed;
+src/util.c:  PlantSeeds(T->seed);
+src/util.c:  C->p = T->p/eV2GPa;
+src/util.c:  for(n=1,T->SES[0]=T->N,T->FES[0]=T->N+T->TES[0]; n < 11;n++)
+src/util.c:    T->SES[n] = T->SES[n-1] + T->TES[n-1];
+src/util.c:    T->FES[n] = T->FES[n-1] + T->TES[n  ];
+src/util.c:  if( T->JOBT == 1 && T->ND == 0 && T->TES[8] > 0 )
+src/util.c:    for(n=i=0; i < T->NSPC;i++)
+src/util.c:      n += T->SPCN[i]%2;
+src/util.c:    if( n > 1 || (T->JS == 0 && (n-T->SPCN[0]%2) > 0) )
+src/util.c:      T->TES[7] += T->TES[8];
+src/util.c:      T->TES[8]  = 0;
+src/util.c:  if( T->JOBT == 1 )
+src/util.c:      if( T->TES[n] > 0 )
+src/util.c:        printf("EVLV %3d %s %3d %3d %3d\n",n,T->NES[n],T->TES[n],T->SES[n],T->FES[n]);
+src/util.c:  if( T->ND == 0 && T->JOBT == 1 && T->FES[10] != 2*T->N )
+src/util.c:  sprintf(T->VER,VERSION);

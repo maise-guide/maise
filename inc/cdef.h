@@ -2,6 +2,7 @@
 #define CDEF
 
 extern const int D3; // dimensionality of my universe
+extern int DN; // dimensionality of hyperspace
 extern const int linesize;
 
 //=====  Cell parameters  =====
@@ -82,7 +83,10 @@ typedef struct
   double Rmin;    // Rmin for CxC
   double DR;      // Gaussian spread for RDF
   double Rm[96];  // min allowed radius distance in INI/atoms
-  
+  double rm[96];    // hard core radius just as in T->Rm for cmin
+  double minp[96];  // to calculate hard core radius
+  double maxp[96];  // to calculate hard core radius
+
   int    SGN;       // space group number
   char   SGS[10];   // space group symbol
   int    NSG;       // # of space group operations
@@ -117,6 +121,10 @@ typedef struct
   double LJa;       // Lennard-Jones parameter, to be generalized
   double LJe;       // Lennard-Jones parameter, to be generalized 
   double DISP;      // displacement in Ang for frozen phonon calculation
+  double MNOT;      // starting spring constant in hyperspatial optimization
+  double BETA;      // spring constant increase in hyperspatial optimization
+  int    HMAP;      // mapping of normal coordinates for hyperspatial optimization
+  int    STEP;      // number of steps in hyperspatial optimization
 
   int    NW;
   double WW[16][50];   // parameters in classical potentials with up to 4 species

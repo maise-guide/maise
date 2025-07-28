@@ -371,17 +371,17 @@ void Build_LNK(LNK *L, int N, int NM, int D, int EFS)
   L->Fi  = make_i1D(N);
   L->EA  = make_d1D(N);
   L->F   = make_d2D(N,3);  
-  L->f   = make_d2D(N,3);
+  L->f   = make_d2D(N,DN);
   L->S   = make_d1D(6);
   L->s   = make_d1D(6);
   L->Cn  = make_d2D(N,D);
 
   if( EFS > 0 )
   {
-    L->Fn  = make_d4D(N,NM+1,D,3);
+    L->Fn  = make_d4D(N,NM+1,D,DN);
     L->Sn  = make_d3D(N,D,6);
-    L->DNi = make_i2D(N,NM+1);
-    L->DNs = make_i2D(N,NM+1);
+    L->DNi = make_i2D(N,NM);
+    L->DNs = make_i2D(N,NM);
     for(i=0;i<N;i++)
       L->MRK[i] = L->Fi[i] = L->DNn[i] = 0;
   }
@@ -709,7 +709,7 @@ int symb_atom(char *s)
   if ( strcmp(s,"Ta") == 0 || strcmp(s,"ta") == 0 ) return 73  ;
   if ( strcmp(s,"W" ) == 0 || strcmp(s,"w" ) == 0 ) return 74  ;
   if ( strcmp(s,"Re") == 0 || strcmp(s,"re") == 0 ) return 75  ;
-  if ( strcmp(s,"Os") == 0 || strcmp(s,"os") == 0 ) return 76  ;
+  if ( strcmp(s,"Or") == 0 || strcmp(s,"or") == 0 ) return 76  ;
   if ( strcmp(s,"Ir") == 0 || strcmp(s,"ir") == 0 ) return 77  ;
   if ( strcmp(s,"Pt") == 0 || strcmp(s,"pt") == 0 ) return 78  ;
   if ( strcmp(s,"Au") == 0 || strcmp(s,"au") == 0 ) return 79  ;
@@ -725,7 +725,7 @@ int symb_atom(char *s)
   if ( strcmp(s,"Ac") == 0 || strcmp(s,"ac") == 0 ) return 89  ;
   if ( strcmp(s,"Th") == 0 || strcmp(s,"th") == 0 ) return 90  ;
   if ( strcmp(s,"Pa") == 0 || strcmp(s,"pa") == 0 ) return 91  ;
-  if ( strcmp(s,"U" ) == 0 || strcmp(s,"u" ) == 0 ) return 92  ;
+  if ( strcmp(s,"Ul") == 0 || strcmp(s,"ul") == 0 ) return 92  ;
   if ( strcmp(s,"Np") == 0 || strcmp(s,"np") == 0 ) return 93  ;
   if ( strcmp(s,"Pu") == 0 || strcmp(s,"pu") == 0 ) return 94  ;
   if ( strcmp(s,"Am") == 0 || strcmp(s,"am") == 0 ) return 95  ;
@@ -816,7 +816,7 @@ void  atom_symb(int i, char *s)
   if ( i == 73 ) strcpy(s,"Ta" );
   if ( i == 74 ) strcpy(s,"W" );
   if ( i == 75 ) strcpy(s,"Re" );
-  if ( i == 76 ) strcpy(s,"Os" );
+  if ( i == 76 ) strcpy(s,"Or" );
   if ( i == 77 ) strcpy(s,"Ir" );
   if ( i == 78 ) strcpy(s,"Pt" );
   if ( i == 79 ) strcpy(s,"Au" );
@@ -832,7 +832,7 @@ void  atom_symb(int i, char *s)
   if ( i == 89 ) strcpy(s,"Ac" );
   if ( i == 90 ) strcpy(s,"Th" );
   if ( i == 91 ) strcpy(s,"Pa" );
-  if ( i == 92 ) strcpy(s,"U"  );
+  if ( i == 92 ) strcpy(s,"Ul" );
   if ( i == 93 ) strcpy(s,"Np" );
   if ( i == 94 ) strcpy(s,"Pu" );
   if ( i == 95 ) strcpy(s,"Am" );

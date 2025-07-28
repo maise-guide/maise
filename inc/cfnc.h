@@ -10,6 +10,7 @@
 
 extern const double Pi;
 extern const int D3;
+extern int DN;
 
 int    FIND_NDIM(Cell *C);
 void   KILL_DBL (Cell *C, double tol);

@@ -219,6 +219,7 @@ void dfunc_num_gsl(gsl_vector *x, void *params, gsl_vector *d)
     set(d,i,func_gsl(x,params));
     set(x,i,o - dx);
     set(d,i,(d(i)-func_gsl(x,params))/(2.0*dx));
+    printf("we got to nmin.c, red alert");
     set(x,i,o);
   }  
   X2W_GSL(x);

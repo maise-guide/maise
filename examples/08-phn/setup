@@ -1,8 +1,0 @@
-=============================================================================================================
-                                        PHONON SETTINGS
-=============================================================================================================
-JOBT  22                phonon calculation
-DISP  0.001             size of the displacement made to each atom in Angstroms
-NPAR  8                 number of cores for parallel NN training or cell simulation
-NDIM  3                 (3) crystal; (0) cluster
-=============================================================================================================

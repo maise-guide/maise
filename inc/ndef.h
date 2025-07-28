@@ -115,8 +115,8 @@ typedef struct
   char   VER[200]; // version
   double Rc;
   int    PENE;    // 0 for parse based on energy; 1 for enthalpy
-  double UREP;    // repulsive potential for short distances
-  double FRAC;    // repulsive potential cutoff for rejection
+  int    UREP;    // repulsive potential for short distances
+
 }ANN;
 
 typedef struct

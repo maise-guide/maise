@@ -271,7 +271,7 @@ void READ_SG(Cell *C)
 int sym_dataset(Cell *C, const double origin_shift[3], char w[], int equivalent_atoms[], double tol, int J) 
 {
   SpglibDataset *dataset;
-  const char    *wl = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ";
+  const char    *wl = "abcdefghijklmnopqrstuvwxyz";
   char          symbol[11];
   int           i, q, N;
   int           types[C->A];

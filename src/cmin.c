@@ -3,8 +3,6 @@
 #define x(X)  gsl_vector_get(x, X)
 #define d(X)  gsl_vector_get(d, X)
 #define p(X)  gsl_vector_get(p, X)
-/////////// get p?
-//#define o(X)  gsl_vector_get(o, X)
 #define set(V, X, Y) gsl_vector_set(V, X, Y)
 long ECNTC,FCNTC;
 
@@ -17,27 +15,163 @@ PRS  *PPC;
 PRS  *WWW;
 Cell *CCC;
 LNK  *LLC;
+double mu;
+int    FF;
+
+//==================================================================
+//     Check if atoms are too close; MUCH faster than using List
+//==================================================================
+int CHCK_Rm_DN(Cell *C, double *Rm, double s)
+{
+  int i,j,q,q1,ic[3],N[3];
+  double x,r;
+
+  for(q=0;q<D3;q++)
+    N[q] = 1;
+  if(C->ND==2)
+    N[2] = 0;
+
+  for(i=0;i<C->N;i++)
+  {
+    for(j=0;j<C->N;j++)
+      if(j!=i)
+      {
+        for(q=0,r=0.0;q<DN;q++)
+          r += (C->X[j][q]-C->X[i][q])*(C->X[j][q]-C->X[i][q]);
+        if( sqrt(r) < (Rm[C->ATMN[i]]+Rm[C->ATMN[j]])*s )
+          return 0;
+      }
+    if(C->ND>0)
+      for(j=0;j<C->N;j++)
+	for(ic[0]=-N[0];ic[0]<=N[0];ic[0]++)
+	for(ic[1]=-N[1];ic[1]<=N[1];ic[1]++)
+	for(ic[2]=-N[2];ic[2]<=N[2];ic[2]++)
+	  if( !(ic[0]==0&&ic[1]==0&&ic[2]==0) )
+	  {
+            for(q=0,r=0.0;q<DN;q++)
+            {
+              x = 0.0;
+              if(q<D3)
+                for(q1=0;q1<D3;q1++) 
+                  x += (double)(ic[q1]) *C->L[q1][q]; 
+              x += C->X[j][q]-C->X[i][q]; 
+              r += x*x; 
+            }
+	    if( sqrt(r) < (Rm[C->ATMN[i]]+Rm[C->ATMN[j]])*s )
+	    {
+	      return 0;
+	    }
+	  }
+  }
+  return 1;
+}
+//==================================================================
+//     Pull atoms apart in extra dimensions to help satisty Rm condition
+//==================================================================
+int ADJT_NP_DN(Cell *C, double *Rm, double RM, int N)
+{
+  int    i,j,q,n,D0;
+  double a,r,R,c[3];
+
+  D0 = 0; // 0 for all coordinates adjusted, D3 for only the extra
+
+  a = 0.2;
+  for(n=0;n<N;n++)
+  {
+    for(i=0;i<C->N;i++)
+      for(q=D0;q<DN;q++)
+        C->F[i][q] = 0.0;
+    for(i=0;i<C->N;i++)
+      for(j=0;j<C->N;j++)
+	if(i!=j)
+	{
+	  R = Rm[C->ATMN[i]]+Rm[C->ATMN[C->Ni[i][j]]];
+	  r = NDR(C,i,j)/R;
+	  r = pow(r,-13.0);
+	  for(q=D0;q<DN;q++)
+	    C->F[i][q] -= (C->X[j][q]-C->X[i][q])/R*r;
+	}
+    for(i=0;i<C->N;i++)
+    {
+      //===== use attractive spring beyond targeted RM sphere =====
+      for(q=D0,r=0.0;q<DN;q++)
+	r += C->X[i][q]*C->X[i][q];
+      r = sqrt(r);
+      if( r > RM )
+	for(q=D0;q<DN;q++)
+	  C->F[i][q] -= C->X[i][q]/r*(r-RM)/Rm[C->ATMN[i]]*10.0;
+      //===== reduce the force to maximum 2.0 =====
+      for(q=D0,R=0.0;q<DN;q++)
+	R += C->F[i][q]*C->F[i][q];
+      R = sqrt(R);
+      if( R > 2.0 )
+        for(q=D0;q<DN;q++)
+          C->F[i][q] *= 2.0/R;
+    }
+    for(i=0;i<C->N;i++)
+      for(q=D0;q<DN;q++)
+        C->X[i][q] += a*C->F[i][q];
+  }
+  return CHCK_Rm_DN(C,Rm,1.0);
+}
+//==================================================================
+//     Pull atoms apart in extra dimensions to help satisty Rm condition
+//==================================================================
+int ADJT_CL_DN(Cell *C, double *Rm, int N)
+{
+  int i,j,q,n;
+  double a,r,R;
+
+  a = 0.2;
+  for(n=0;n<N;n++)
+  {
+    if(CHCK_Rm_DN(C,Rm,0.7)==0)    // 0.7 here is NOT hard-core factor
+      return 0;
+    LIST(C,0);
+    for(i=0;i<C->N;i++)
+      for(q=D3;q<DN;q++)
+        C->F[i][q] = 0.0;
+    for(i=0;i<C->N;i++)
+      for(j=0;j<C->Nn[i];j++)
+      {
+        R = Rm[C->ATMN[i]]+Rm[C->ATMN[C->Ni[i][j]]];
+        r = NDX(C,i,j)/R;
+        r = pow(r,-13.0);
+        for(q=D3;q<DN;q++)
+          C->F[i][q] -= DX(C,i,j,q)/R*r;
+      }
+    for(i=0;i<C->N;i++)
+    {
+      for(q=D3,R=0.0;q<DN;q++)
+        R += C->F[i][q]*C->F[i][q];
+      R = sqrt(R);
+      if( R > 2.0 )
+        for(q=D3;q<DN;q++)
+          C->F[i][q] *= 2.0/R;
+    }
+    for(i=0;i<C->N;i++)
+      for(q=D3;q<DN;q++)
+        C->X[i][q] += a*C->F[i][q];
+    LIST(C,0);
+  }
+  JAR(C);
+  return CHCK_Rm_DN(C,Rm,1.0);
+}
+//==================================================================
 
 //======================================================================
 void STR_BUF(gsl_vector *x)
 {
-  int i,q,j=0;
-  
+  int i,q,j=0;  
   Relative(CCC);
   if(CCC->RLXT!=7)
   for(i=0;i<CCC->N;i++)
-    for(q=0;q<3;q++)
+    for(q=0;q<DN;q++)
       if(CCC->FF[i][q]==1)
 	set(x,j++,CCC->X[i][q]);
+
   if(CCC->RLXT==2)
     return;
-
-  if(CCC->RLXT>7)
-  {
-    set(x,j++,CCC->L[2][2]);
-    return;
-  }
-
   set(x,j++,CCC->L[0][0]);
   set(x,j++,CCC->L[1][1]);
   set(x,j++,CCC->L[2][2]);
@@ -57,7 +191,7 @@ void BUF_STR(const gsl_vector *x)
 
   if(CCC->RLXT!=7)
   for(i=0;i<CCC->N;i++)
-    for(q=0;q<3;q++)
+    for(q=0;q<DN;q++)
       if(CCC->FF[i][q]==1)
         CCC->X[i][q] = x(j++);
 
@@ -66,14 +200,6 @@ void BUF_STR(const gsl_vector *x)
     Real(CCC);
     return;
   }
-
-  if(CCC->RLXT>7)
-  {
-    CCC->L[2][2] = x(j++);
-    Real(CCC);
-    return;
-  }
-
   CCC->L[0][0] = x(j++);
   CCC->L[1][1] = x(j++);
   CCC->L[2][2] = x(j++);
@@ -89,8 +215,10 @@ void BUF_STR(const gsl_vector *x)
 //======================================================================
 double cfunc_gsl(const gsl_vector *x, void *params) 
 {  
+  int i,q;
   double E;
   int EFS;
+  double lsq = 0.0;
 
   EFS = PPC->EFS;
   PPC->EFS = 0;
@@ -100,28 +228,39 @@ double cfunc_gsl(const gsl_vector *x, void *params)
   PPC->EFS = EFS;
   STR_BUF((gsl_vector*) x);
 
+  for(i=0;i<CCC->N;i++)
+    for(q=D3;q<DN;q++)
+      lsq += x(DN*i+q)*x(DN*i+q);
+
   ECNTC++;
-  return E;
+  return E + (0.5*mu*lsq);
 }
 //======================================================================
 void cdfunc_gsl(const gsl_vector *x, void* params, gsl_vector *d) 
 {
   int i,q,k,j=0;
   double V,s[3];
+  int max;
 
   FCNTC++;
   BUF_STR(x);
   V = CELL_VOL(CCC);
   Reciprocal(CCC);
   CELL_FRC(RRC,PPC,WWW,CCC,LLC);
-  
-  if(CCC->RLXT!=7)
-    for(i=0;i<CCC->N;i++)//,printf("\n"))
-    for(q=0;q<3;q++)
-      if(CCC->FF[i][q]==1)
-	for(k=0,set(d,j++,0.0);k<3;k++)
-	  set(d,j-1,d(j-1) - CCC->F[i][k]*CCC->L[q][k] );
 
+  if(CCC->RLXT!=7)
+    for(i=0;i<CCC->N;i++)
+      for(q=0;q<DN;q++)
+	if(CCC->FF[i][q]==1)
+	  for(k=0,set(d,j++,0.0);k<DN;k++)
+	  if( FF==1 || ( FF==0 && k<D3 ) ) // for HMAP=3 set forces to zero for initial STEP
+	  {
+	    if(k<D3 && q<D3)
+	      set(d,j-1,d(j-1) - CCC->F[i][k]*CCC->L[q][k]);
+	    else
+	      if(k==q)
+		set(d,j-1,d(j-1) - (CCC->F[i][k]-(mu * x(DN*i+k))));
+	  }
   if(CCC->RLXT==2)
   {
     STR_BUF((gsl_vector*) x);
@@ -136,22 +275,18 @@ void cdfunc_gsl(const gsl_vector *x, void* params, gsl_vector *d)
     CCC->U[q] -= CCC->p*V;
   }
 
-  if(CCC->RLXT>7)
-    set(d,j++,-( CCC->U[2]*CCC->R[2][2] ) );    
-  else
-  {
-    set(d,j++,-( CCC->U[0]*CCC->R[0][0] + CCC->U[3]*CCC->R[0][1] + CCC->U[5]*CCC->R[0][2] ) );
-    set(d,j++,-( CCC->U[3]*CCC->R[1][0] + CCC->U[1]*CCC->R[1][1] + CCC->U[4]*CCC->R[1][2] ) );
-    set(d,j++,-( CCC->U[5]*CCC->R[2][0] + CCC->U[4]*CCC->R[2][1] + CCC->U[2]*CCC->R[2][2] ) );
-    
-    set(d,j++,-( CCC->U[3]*CCC->R[0][0] + CCC->U[1]*CCC->R[0][1] + CCC->U[4]*CCC->R[0][2] ) );
-    set(d,j++,-( CCC->U[5]*CCC->R[1][0] + CCC->U[4]*CCC->R[1][1] + CCC->U[2]*CCC->R[1][2] ) );
-    set(d,j++,-( CCC->U[0]*CCC->R[2][0] + CCC->U[3]*CCC->R[2][1] + CCC->U[5]*CCC->R[2][2] ) );
-    
-    set(d,j++,-( CCC->U[0]*CCC->R[1][0] + CCC->U[3]*CCC->R[1][1] + CCC->U[5]*CCC->R[1][2] ) );
-    set(d,j++,-( CCC->U[3]*CCC->R[2][0] + CCC->U[1]*CCC->R[2][1] + CCC->U[4]*CCC->R[2][2] ) );
-    set(d,j++,-( CCC->U[5]*CCC->R[0][0] + CCC->U[4]*CCC->R[0][1] + CCC->U[2]*CCC->R[0][2] ) );
-  }
+  set(d,j++,-( CCC->U[0]*CCC->R[0][0] + CCC->U[3]*CCC->R[0][1] + CCC->U[5]*CCC->R[0][2] ) );
+  set(d,j++,-( CCC->U[3]*CCC->R[1][0] + CCC->U[1]*CCC->R[1][1] + CCC->U[4]*CCC->R[1][2] ) );
+  set(d,j++,-( CCC->U[5]*CCC->R[2][0] + CCC->U[4]*CCC->R[2][1] + CCC->U[2]*CCC->R[2][2] ) );
+
+  set(d,j++,-( CCC->U[3]*CCC->R[0][0] + CCC->U[1]*CCC->R[0][1] + CCC->U[4]*CCC->R[0][2] ) );
+  set(d,j++,-( CCC->U[5]*CCC->R[1][0] + CCC->U[4]*CCC->R[1][1] + CCC->U[2]*CCC->R[1][2] ) );
+  set(d,j++,-( CCC->U[0]*CCC->R[2][0] + CCC->U[3]*CCC->R[2][1] + CCC->U[5]*CCC->R[2][2] ) );
+
+  set(d,j++,-( CCC->U[0]*CCC->R[1][0] + CCC->U[3]*CCC->R[1][1] + CCC->U[5]*CCC->R[1][2] ) );
+  set(d,j++,-( CCC->U[3]*CCC->R[2][0] + CCC->U[1]*CCC->R[2][1] + CCC->U[4]*CCC->R[2][2] ) );
+  set(d,j++,-( CCC->U[5]*CCC->R[0][0] + CCC->U[4]*CCC->R[0][1] + CCC->U[2]*CCC->R[0][2] ) );
+
 
   for(q=0;q<3;q++)
     CCC->U[q] = s[q];
@@ -160,8 +295,8 @@ void cdfunc_gsl(const gsl_vector *x, void* params, gsl_vector *d)
     if(fabs(d(i))<1e-10)
       set(d,i,0.0);
 
-  STR_BUF((gsl_vector *) x);
 
+  STR_BUF((gsl_vector *) x);
   return;
 }
 //======================================================================
@@ -169,8 +304,38 @@ void cdfunc_gsl(const gsl_vector *x, void* params, gsl_vector *d)
 //======================================================================
 void cfdfunc_gsl(const gsl_vector *x, void *params, double *f, gsl_vector *df) 
 {
+  int max;
   *f = cfunc_gsl(x, params); 
+
   cdfunc_gsl(x, params, df);
+}
+//======================================================================
+void cdcheck_gsl(const gsl_vector *x, void* params, gsl_vector *d, int N)
+{
+  int    i,q;
+  double p,o,dx;
+  gsl_vector *t;
+
+  dx = 1e-9;
+
+  t = gsl_vector_alloc (N);
+
+  for(i=0;i<N;i++)
+    set(t,i,x(i));
+
+  for(i=0;i<N;i++)
+  {
+    o = gsl_vector_get(t,i);
+    set(t,i,o+dx);
+    p = cfunc_gsl(t,params);
+    set(t,i,o-dx);
+    p = (p-cfunc_gsl(t,params))/(2.0*dx);
+    set(t,i,o);
+
+    if( fabs(d(i)-p)>1e-4)
+      printf("%3d % 18.12lf % 18.12lf % 18.12lf\n",i,d(i),p,d(i)-p);
+  }
+  gsl_vector_free (t);
 }
 //======================================================================
 //======================================================================
@@ -178,9 +343,14 @@ double CELL_MIN(ANN *R, PRS *P, PRS *W, Cell *C, LNK *L)
 {
   gsl_vector *p;
   void       *params;
-  double      E,O,rmin,frac;
-  int         i,q,iter,N,status,ok,stat;
-  char        min[200];
+  double      E,O,r,b[3],R3,RN,a,MAP;
+  int         i,q,iter,N,status,n,coniter,m,k;
+  char        min[200],buf[200];
+  double      dist[6];
+  FILE        *out;
+  
+  double mu0  =  C->MNOT;
+  double beta =  C->BETA;
 
   RRC = R; PPC = P; CCC = C; LLC = L; WWW = W;
 
@@ -192,13 +362,11 @@ double CELL_MIN(ANN *R, PRS *P, PRS *W, Cell *C, LNK *L)
   N = 0;
   if(CCC->RLXT!=7)
   for(i=0;i<CCC->N;i++)
-    for(q=0;q<3;q++)
+    for(q=0;q<DN;q++)
       if(CCC->FF[i][q]==1)
-	N++;  
+	N++;
   if(CCC->RLXT==3||CCC->RLXT==7)
     N += 9;
-  if(CCC->RLXT==8)
-    N += 1;
 
   if(RRC->MINT==0)
     sprintf(min,"%s","BFGS2");
@@ -222,10 +390,125 @@ double CELL_MIN(ANN *R, PRS *P, PRS *W, Cell *C, LNK *L)
   gsl_fdf.fdf = cfdfunc_gsl;
   gsl_fdf.params = params;
 
+  if(R->seed2==0)
+    R->seed2=time(NULL);
+  PlantSeeds(R->seed2);
+  printf("DN distortion is %lf\n",R->DELT);
+
+  for(k=0;k<C->NSPC;k++)
+  {
+    i = C->SPCZ[k];
+    C->rm[k] = 0.8*(C->minp[i]-(C->minp[i]-C->maxp[i])*(C->p*eV2GPa-C->minp[0])/(C->maxp[0]-C->minp[0]));
+    printf("%3d %3d % lf % lf\n",k,i,C->rm[k],C->p*eV2GPa);
+  }
+
+  //===== displace atoms randomly into extra dimensions =====
+  if( C->HMAP ==0 || C->HMAP ==3 )
+    for(i=0;i<C->N;i++)
+      for(q=D3;q<DN;q++)
+	C->X[i][q] = R->DELT*((Random()*2.0)-1.0);
+
+  //===== shrink the real space and then expand into extra dimensions to satisfy Rm =====
+  if( C->HMAP ==1 )
+  {
+    LIST(C,1);
+    for(i=0,r=0.0;i<C->N;i++)
+      r += pow(NDX(C,i,0),2.0)/(double)C->N;
+
+    //===== the average distance squared between two points generated independently in [-1,1] in D dimensions is D*2/3 =====
+    a = (double)(DN-D3)*2.0/3.0*R->DELT*R->DELT / r;
+    //===== do not shrink the normal space by more than 0.5 =====
+    if( a > 3.0/4.0 )
+      MAP = 0.5;
+    else
+      MAP = sqrt( 1.0 - a );
+    
+    //===== randomize extra dimension coordinates =====    
+    for(i=0;i<C->N;i++)
+      for(q=D3;q<DN;q++)
+	C->X[i][q] = R->DELT*((Random()*2.0)-1.0);
+
+    if( C->ND==0 )
+    {
+      CENTER(C,0.0);
+      for(i=0,R3=0.0;i<C->N;i++)
+	if( (r  = VectorLen(C->X[i],3)) > R3 )
+	  R3 = r;
+      R3 += 1e-10;
+      RN  = R3 * MAP;
+
+      for(i=0;i<C->N;i++)
+        for(q=0;q<D3;q++)
+          C->X[i][q] *= MAP;
+      for(m=0; m<100 && CHCK_Rm_DN(C,C->rm,1.0)==0 ;m++)
+        ADJT_NP_DN(C,C->rm,RN,1);
+    }
+    //===== shrink the unit cell for normal coordinates =====
+    if( C->ND>0 )
+    {
+      Relative(C);
+      for(i=0;i<D3;i++)
+	for(q=0;q<D3;q++)
+	  C->L[i][q] *= MAP;
+      Real(C);
+      for(m=0; m<100 && CHCK_Rm_DN(C,C->rm,1.0)==0 ;m++)
+        ADJT_CL_DN(C,C->rm,1);
+    }
+  }
+
+  //===== remap normal coordinates to maintain uniform atomic density, does not depend on DELT  =====
+  if( C->HMAP ==2 )
+  {
+    if( C->ND>0 )
+    {
+      printf("HMAP = 2 works only for clusters");
+      exit(0);
+    }
+
+    CENTER(C,0.0);
+    for(i=0,R3=0.0;i<C->N;i++)
+      if( (r  = VectorLen(C->X[i],3)) > R3 )
+	R3 = r;
+    R3 += 1e-10; 
+    RN = R3 * 1.082 * pow((double)C->N,-1.0/12.0); // for DN = 4 only 
+    
+    printf("R3 = % lf  R4 = % lf  %3d\n",R3,RN,m);
+    
+    for(i=0;i<C->N;i++)
+    {
+      r = VectorLen(C->X[i],3);
+      a = RN * sqrt( 1.0 + 1e-10 - pow( 1.0 - pow(r/R3,2.0), 0.694) ) / r;
+      
+      for(q=0;q<D3;q++)
+	C->X[i][q] *= a;
+      r  = VectorLen(C->X[i],3);
+      //===== randomize etra dimension coordinates =====
+      for(q=D3;q<DN;q++)
+	if( RN*RN - r*r > 0.0 )
+	  C->X[i][q] = sqrt( RN*RN - r*r )*((Random()*2.0)-1.0);
+	else
+	  C->X[i][q] = 0.0;
+    }
+    for(m=0; m<100 && CHCK_Rm_DN(C,C->rm,1.0)==0 ;m++)
+      ADJT_NP_DN(C,C->rm,RN,1);      
+    
+    printf("R3 = % 8.4lf  R4 = % 8.4lf  %3d\n",R3,RN,m);
+  }
+
+  if(0)
+  {
+    out = fopen("map.dat","w");
+    for(i=0;i<C->N;i++)
+      fprintf(out,"% 8.4lf   % 8.4lf\n",VectorLen(C->X[i],3),fabs(C->X[i][3]));
+    fclose(out);
+  }    
+
   p = gsl_vector_alloc (N);
   STR_BUF(p);
   O = cfunc_gsl(p, params);
   iter = 0;
+
+  mu = mu0;
 
   T = gsl_multimin_fdfminimizer_vector_bfgs2;
   if(RRC->MINT==0)
@@ -242,47 +525,67 @@ double CELL_MIN(ANN *R, PRS *P, PRS *W, Cell *C, LNK *L)
 
   E = O;
 
-  gsl_multimin_fdfminimizer_set (s, &gsl_fdf, p, 0.01, 0.001);
-  do
+  coniter = 0;
+
+  RRC->MITR /= C->STEP;
+
+  for(n=0,FF=1;n<C->STEP;n++)
   {
-    C->it++;
-    iter++;
 
-    stat = status = gsl_multimin_fdfminimizer_iterate (s);
-    
-    if(status && status!=27)
+    if( C->HMAP == 3 && n==0 )
+      FF = 0;
+    if( C->HMAP == 3 && n==1 )
+      FF = 1;
+
+    if(n==C->STEP-1)
+      for(i=0;i<C->N;i++)
+	for(q=D3;q<DN;q++)
+	  set(p,DN*i+q,0.0);
+
+    C->it = iter = 0;
+    if(n!=0)
+      gsl_multimin_fdfminimizer_restart(s);
+    gsl_multimin_fdfminimizer_set (s, &gsl_fdf, p, 0.01, 0.001);
+    do
     {
-      printf("ERROR %s. Try a different MINT in setup.\n",gsl_strerror(status));
-      sprintf(min,"echo >> OUTCAR;echo ERROR %s. Try a different MINT in setup. >> OUTCAR",gsl_strerror(status));
-      system(min);
-      break;
+      C->it++;
+      iter++;
+      coniter++;
+ 
+      status = gsl_multimin_fdfminimizer_iterate (s);
+
+      if(status) 
+      {
+	sprintf(min,"echo >> OUTCAR;echo ERROR %s. Try a different MINT. >> OUTCAR",gsl_strerror(status));
+	system(min);
+	printf("ERROR %s. Try a different MINT.\n",gsl_strerror(status));
+      }
+
+      status = gsl_multimin_test_size( fabs(C->H-E), RRC->ETOL);
+
+      // cdcheck_gsl(s->x,params,s->gradient,N);
+
+      for(i=0,r=0.0;i<C->N;i++)
+	r += gsl_vector_get(s->x,3);
+      printf("%5d % 24.16lf % 24.16lf % 24.16lf %3d % 8.2lf % 20.12lf\n",iter, C->H,C->H-E,E,CELL_OK(C),mu,sqrt(fabs(r)/(double)C->N));
+      E = C->H;
+      
+      if( C->OUT%10==2)
+      {
+	Real(C);
+	CELL_OUT(C);    
+	Relative(C);
+      }
     }
+    while (status == GSL_CONTINUE && iter < RRC->MITR );
 
-    status = gsl_multimin_test_size( fabs(C->H-E), RRC->ETOL);
+    BUF_STR(s->x);
+    STR_BUF(p);
 
-    Real(C);
-    ok = CELL_OK(R, C, &rmin, &frac);
-    Relative(C);
-    printf("%5d % 24.16lf % 24.16lf %3d %24.8lf \n",iter,C->H,C->H-E,ok,frac);
-    E = C->H;
+    mu *= beta;
 
-    if( C->OUT%10==2)
-    {
-      Real(C);
-      CELL_OUT(C);    
-      Relative(C);
-    }
   }
-  while (status == GSL_CONTINUE && iter < RRC->MITR );
-
-  //===== TODO =====
-  if(0 && stat==27)
-  {
-    printf("WARNING %s. Try a different MINT in setup.\n",gsl_strerror(stat));
-    sprintf(min,"echo >> OUTCAR;echo WARNING %s. Try a different MINT in setup. >> OUTCAR",gsl_strerror(stat));
-    system(min);
-  }
-
+  
   C->H=s->f;
   E = C->H;
   BUF_STR(s->x);
