@@ -60,6 +60,7 @@ typedef struct
   double ma;      // mating:  mutation strength for atomic potisions
   double te;      // tetris:  nanoparticle ellipticity
   int    pos;     // plant:   number of POSCAR files in INI to seed
+  double COMP;    // random:  compression for clusters
 
   double p;       // pressure
   double KM;      // k-mesh
@@ -81,5 +82,9 @@ typedef struct
   double maxpres[96];  // min. equi. dist. at 000 GPa
   double minpres[96];  // min. equi. dist. at 110 GPa
   int    MODE;    // operation mode for manual EVOS (JOBT=14)
+  int    **TORD;  // manual table of type order in TETR generation
+  double **CORD;  // manual table of min distances along c in TETR
+  int    NORD;    // number of manual options to order types in INI/ORDINI
+  int    JITT;    // jitter the cluster core to avoid bias
 }Tribe;
 #endif

@@ -14,7 +14,7 @@ void   MATE_LT(Cell *C1, Cell *C2, Cell *C, double s);
 int    SHKE_CL(Cell *C, double dL, double dX);
 void   RAND_VC(double *a);
 void   RAND_LV(Cell *C);
-void   RAND_CL(Tribe *T, Cell *C, Cell *D, int J);
+void   RAND_CL(Tribe *T, Cell *C, Cell *D, int J, double *Rc, int *MIN, int *MAX);
 double COMP_CL(Cell *C, Cell *D);
 void   TEMP_CL(Tribe *T, Cell *C, int p);
 void   RAND_SYMM(Tribe *T, Cell *C, int p);

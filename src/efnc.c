@@ -1,25 +1,307 @@
 #include "efnc.h"
 
+#define RESET   "\033[0m"
+#define RED     "\033[31m"
+#define GREEN   "\033[32m"
+#define YELLOW  "\033[33m"
+#define BLUE    "\033[34m"
+#define MAGENTA "\033[35m"
+#define CYAN    "\033[36m"
+
+//==================================================================
+// Read in block information for tetris
+//==================================================================
+int READ_BLOCK(Cell *C, int II[30], int JJ[30], int S[30][30], double RR[30][30], double AA[30][30], double ZZ[30][30], double *Rc, int *MIN, int *MAX)
+{
+  int  n,k,Q;
+  FILE *in;
+  char buf[200];
+
+  if( in = fopen("INI/BLOCK","r") )
+  {
+    //===== read in blocks for TETRIS =====
+    fgets(buf,200,in);
+    fgets(buf,200,in);
+    sscanf(buf,"%d",&Q);
+    for(k=0;k<Q;k++)
+    {
+      fgets(buf,200,in);
+      JJ[k] = 0;
+      sscanf(buf,"%d %d",&II[k],&JJ[k]);
+      for(n=0;n<II[k];n++)
+      {
+	fgets(buf,200,in);
+	sscanf(buf,"%d %lf %lf %lf",&S[k][n],&RR[k][n],&AA[k][n],&ZZ[k][n]);
+      }
+    }
+    //===== read in bonds for TETRIS and RANDOM =====
+    fgets(buf,200,in);
+    for(k=0;k<C->NSPC;k++)
+    {
+      fgets(buf,200,in);
+      sscanf(buf,"%lf %d %d",&Rc[k],&MIN[k],&MAX[k]);
+      Rc[k] *= Rc[k];
+    }
+    fclose(in);
+  }
+  //===== if INI/BLOCK is not specified just use single atoms of each species =====
+  else
+  {
+    Q = C->NSPC;
+    for(k=0;k<Q;k++)
+    {
+      II[k]    = 1;
+      JJ[k]    = 0;
+      S[k][0]  = k;
+      RR[k][0] = 0.0;
+      AA[k][0] = 0.0;
+      ZZ[k][0] = 0.0;
+      Rc[k]    = 0.0;
+      MIN[k]   = 0;
+      MAX[k]   = 0;
+    }
+  }
+
+  return Q;
+}
+//==================================================================
+void ROT_BLOCK(int N, double *RR, double *AA, double *ZZ, int *S)
+{
+  int    i,q,k;
+  double R[3][3],X[30][3],r[3];
+
+  //===== convert polar coordinates to cartesian =====
+  for(i=0;i<N;i++)
+  {
+    X[i][0] = RR[i]*cos(AA[i]*Pi/180.0);
+    X[i][1] = RR[i]*sin(AA[i]*Pi/180.0);
+    X[i][2] = ZZ[i];
+  }
+  //===== shift the center of mass to the origin =====
+  for(q=0;q<3;q++)
+    for(i=0,r[q]=0.0;i<N;i++)
+      r[q] += X[i][q]/(double)N;
+  for(i=0;i<N;i++)
+    for(q=0;q<3;q++)
+      X[i][q] -= r[q];
+  //===== generate a random rotation matrix with quaternions =====
+  RAND_ROT(R);
+
+  //===== rotate all atoms in the block by random angles =====
+  for(i=0;i<N;i++)
+  {
+    for(q=0;q<3;q++)
+      for(k=0,r[q]=0.0;k<3;k++)
+	r[q] += R[q][k]*X[i][k];
+    for(q=0;q<3;q++)
+      X[i][q] = r[q];
+  }
+
+  //===== check the center of mass after rotation =====
+  for(q=0;q<3;q++)
+    for(i=0,r[q]=0.0;i<N;i++)
+      r[q] += X[i][q]/(double)N;
+  if( fabs(r[0])>1E-12 || fabs(r[1])>1E-12 || fabs(r[2])>1E-12 )
+    printf("WARNING in ROTATION:% lf % lf % lf\n",r[0],r[1],r[2]);
+
+  //===== convert cartesian coordinates back to polar =====
+  for(i=0;i<N;i++)
+  {
+    RR[i] = sqrt(X[i][0]*X[i][0]+X[i][1]*X[i][1]);
+    if( RR[i]<1e-12 )
+      AA[i] = 0.0;
+    else
+      AA[i] = acos( X[i][0]/RR[i] )*180.0/Pi;
+    if( X[i][1] < 0.0 )
+      AA[i] *= -1.0;
+    ZZ[i] = X[i][2];
+  }
+  //===== place the first atom to have the lowest z =====
+  for(k=0,i=1,r[2]=ZZ[0];i<N;i++)
+    if( ZZ[i]<r[2] )
+    {
+      r[2] = ZZ[i];
+      k    = i;
+    }
+  dSwap(&RR[0],&RR[k]);
+  dSwap(&AA[0],&AA[k]);
+  dSwap(&ZZ[0],&ZZ[k]);
+  iSwap( &S[0], &S[k]);
+
+  for(i=0;i<N;i++)
+    ZZ[i] -= r[2];
+
+}
+//==================================================================
+int CHCK_BOND(Cell *C, double *Rc, int *MIN, int *MAX)
+{
+  int    i,j,q,q1,ic[3];
+  double x,r;
+
+  for(i=0;i<C->N;i++)
+  if( MAX[C->ATMN[i]]>0 )  // if MAX for a species is zero, the condition is fullfilled automatically
+  {
+    C->Nn[i] = 0;
+    for(j=0;j<C->N;j++)
+      for(ic[0]=-1;ic[0]<=1;ic[0]++)
+      for(ic[1]=-1;ic[1]<=1;ic[1]++)
+      for(ic[2]=-1;ic[2]<=1;ic[2]++)
+      if(! (i==j&&ic[0]==0&&ic[1]==0&&ic[2]==0) )
+      {
+	for(q=0,r=0.0;q<D3;q++)
+	{
+	  for(q1=0,x=0.0;q1<D3;q1++) 
+	    x += (double)(ic[q1]) *C->L[q1][q]; 
+	  x += C->X[j][q]-C->X[i][q]; 
+	  r += x*x; 
+	}
+	if(r<Rc[C->ATMN[i]])
+	  C->Nn[i]++;
+      }
+  }
+    
+  for(i=0;i<C->N;i++)
+    if( MAX[C->ATMN[i]]>0 && ( C->Nn[i]<MIN[C->ATMN[i]] || C->Nn[i]>MAX[C->ATMN[i]] ) )
+      return 0;
+  return 1;
+}
+//==================================================================
+// Generate starting order of atoms for tetris
+//==================================================================
+int GEN_TETR(Tribe *T, Cell *C, double *D, int *I, int *B, int *U, int Y[30], int S[30][30], int Q)
+{
+  int    i,j,m,k,n,N[10],O[10],M,K,q,p,F[10];
+  double fi,fj,e,t;
+
+  Random();
+
+  for(p=0;p<10000;p++)
+  {
+    for(k=0;k<C->NSPC;k++)
+      N[k] = 0;
+    for(k=1,O[0]=0;k<T->NSPC;k++)
+      O[k] = O[k-1]+T->SPCN[k-1];
+    for(n=0;n<Q;n++)                 // any block is possible
+      F[n] = 1;
+    
+    for(i=K=0,q=Q;i<C->N&&q>0;)
+    {
+      m = (int)(Random()*(double)q); // pick random block
+
+      for(n=j=0;n<Q&&j<=m;n++,j++)
+	if(F[n]==0)
+	  j--;
+      n--;
+      for(k=0;k<Y[n];k++)
+	N[S[n][k]]++;
+      for(k=0;k<C->NSPC;k++)         // check if block addition makes any species exceed limit
+	if( N[k]>C->SPCN[k] )
+	  break;
+      if( k<C->NSPC )                // if some species exceeds limit, exclude nth block
+      {
+	for(k=0;k<Y[n];k++)
+	  N[S[n][k]]--;
+	F[n] = 0;
+	q--;
+      }
+      else
+      {
+	U[K] = i;                    // atom number after K blocks
+	for(k=0;k<Y[n];k++,i++)      // species type for ith atom
+	  I[i] = O[S[n][k]]++;       // type of Kth block
+	B[K++] = n;
+      }
+      // printf("%4d   Qq %3d %3d   mn %3d %3d   N %3d   BL %3d %3d  SP %3d %3d\n",p,Q,q,m,n,i,F[0],F[1],N[0],N[1]);
+    }
+    if(q>0)
+      break;
+  }
+
+  if(p==1000)
+  {
+    printf("Could not select any block combinations to match the number of each species\n");
+    exit(0);
+  }
+
+  return K;
+}
 //==================================================================
 // Generate starting order of atoms for random or core-shell NPs
 //==================================================================
 void GEN_TYPE(Tribe *T, Cell *C, double *D, int *I)
 {
-  int i;
+  int i,k,n,N[10],K[10];
 
-  if(T->NSPC==1)
+  printf("%d\n",T->NORD);
+
+  if(T->NSPC==1||T->NORD==1)
   {
     for(i=0;i<C->N;i++)
       I[i] = i;
     return;
   }
-  if(T->NSPC>1)
+  if(T->NORD==0)
   {
     for(i=0;i<C->N;i++)
       D[i] = Random();
     Sort(D,I,C->N);      // pick random i not to bias atom type           
     return;
   }
+  if(T->NORD==2)
+  {
+    //===== define random species number =====    
+    for(k=0;k<C->NSPC;k++)
+      D[k] = Random();
+    Sort(D,K,C->NSPC);
+    for(k=1,N[0]=0;k<T->NSPC;k++)
+      N[k] = N[k-1]+T->SPCN[k-1];
+
+    for(k=i=0;k<C->NSPC;k++)
+      for(n=0;n<C->SPCN[K[k]];n++,i++)
+	I[i] = N[K[k]] + n;
+    for(i=0;i<C->N;i++)
+      printf("%3d %3d\n",i,I[i]);
+  }
+  return;
+  //===== meant for PACK but not used anymore =====
+  if(T->NORD>0)
+  {
+    n = (int)(Random()*(double)T->NORD);  // pick random set from INI/ORDINI
+    for(k=1,N[0]=0;k<T->NSPC;k++)
+      N[k] = N[k-1]+T->SPCN[k-1];         // set counter for each species
+    for(i=0;i<C->N;i++)
+    {
+      D[i] = T->CORD[n][i];               // set i to min distance along c
+      I[i] = N[T->TORD[n][i]]++;          // set i to species and increase counter
+    }
+    return;
+  }
+}
+//=========================================================================
+// Gives distance between atoms i and j; with x-y boundary conditions
+//=========================================================================
+double NDB(Cell *C, int i, int j)
+{
+  int    m,n,q;
+  double x,r,t,d;
+
+  t = 0.0;
+  x = C->X[j][2] - C->X[i][2];
+  r = x*x;
+  d = 1000.0;
+  for(m=-1;m<=1;m++)
+    for(n=-1;n<=1;n++)
+    {
+      for(q=0,t=0.0;q<2;q++)
+      {
+	x = C->X[j][q] - C->X[i][q] + (double)m*C->L[0][q] + (double)n*C->L[1][q];
+	t += x*x;
+      }
+      if( t<d )
+	d = t;
+    }
+  r += d;
+  return sqrt(r);
 }
 //==================================================================
 // Order atoms by type
@@ -205,7 +487,7 @@ void NANO_CHOP(Tribe *T, int J, Cell *C, int P)
 //==================================================================
 void NANO_RAND(Tribe *T, int J, Cell *C, int P)
 {
-  int i,q,s,n,*I,p;
+  int i,q,s,n,*I,p,m;
   double V,R,*D,b[3],c[3],t;
   char buf[200];
 
@@ -214,7 +496,7 @@ void NANO_RAND(Tribe *T, int J, Cell *C, int P)
 
   for(i=0,V=0.0;i<T->NSPC;i++)    
     V += pow(T->Rm[i],3.0)*(double)T->SPCN[i];
-  R = pow(V,1.0/3.0)*1.5;
+  R = pow(V,1.0/3.0)*1.5/T->COMP;
 
   for(i=0;i<3;i++)
     for(q=0;q<3;q++)
@@ -248,18 +530,24 @@ void NANO_RAND(Tribe *T, int J, Cell *C, int P)
 	    c[q] = T->C[p].X[n][q]*b[q];
 	  }
       }
-      for(i=0;i<T->C[p].N;i++)
-	D[i] = VectorLen(T->C[p].X[i],3);
-      Sort(D,I,T->C[p].N);      
+      //===== for generation of core-shell structures =====
+      if(0) 
+      {
+	for(i=0;i<T->C[p].N;i++)
+	  D[i] = VectorLen(T->C[p].X[i],3);
+	Sort(D,I,T->C[p].N);      
+      }
+      GEN_TYPE(T,C,D,I);
       for(i=0;i<T->C[p].N;i++)
 	for(q=0;q<3;q++)
 	  C->X[i][q] = R*T->C[p].X[I[i]][q];
-      GEN_TYPE(T,C,D,I);
       //===== adjust interatomic distances =====
-      if(ADJT_NP(C,T->Rm,R,b,(int)(sqrt(C->N))))
-        break;
+      for(m=0;m<C->N/2;m++)
+	if(ADJT_NP(C,T->Rm,R,b,1))
+	  break;
+      if( m<C->N/2 )
+	break;
     }
-    //    printf("%8d %8d %lf %lf %lf %lf\n",p,s,R,b[0],b[1],b[2]);
 
     if(s==T->Nm)
     {
@@ -363,6 +651,17 @@ void NANO_TETR(Tribe *T, int J, Cell *C, int P)
         }
         for(q=0;q<3;q++)
           C->X[i][q] = r[q];
+
+	//===== shake the core N^1/3 atoms to avoid bias at the origin =====
+	if( T->JITT = 1 && n == (int)pow((double)C->N,1.0/3.0) )
+	{	  
+	  //===== vector a is a random point inside a sphere of radius 1.0 =====
+	  //===== to be a uniform shift, rely only on the cutoff of atom i =====
+          RAND_VC(a);
+	  for( j=0;j<=n;j++ )
+	    for(q=0;q<3;q++)
+	      C->X[I[j]][q] += a[q]*b[q]*T->Rm[C->ATMN[i]];
+	}
       }
       for(i=0;i<C->N;i++)
         for(q=0;q<3;q++)
@@ -1431,11 +1730,14 @@ void NANO_MUTE(Tribe *T, int J)
 //==================================================================
 void BULK_RAND(Tribe *T, int J, Cell *C, int P)
 {
-  int  p,N,q;
-  char buf[200],s[200],w[3][200],*t;
-  FILE *in;
+  int    p,N,q,S[30][30],II[30],JJ[30],MIN[5],MAX[5];;
+  double RR[30][30],AA[30][30],ZZ[30][30],Rc[5];
+  char   buf[200],s[200],w[3][200],*t;
+  FILE   *in;
 
   N = 2*T->N;
+
+  READ_BLOCK(C,II,JJ,S,RR,AA,ZZ,Rc,MIN,MAX);
 
   for(p=T->N;p<2*T->N;p++)
   if( p==P || ( (P<0) && (p>=T->SES[J]) && (p<T->FES[J] ) ) )
@@ -1443,7 +1745,7 @@ void BULK_RAND(Tribe *T, int J, Cell *C, int P)
     //===== generate random structures =====
     if(T->JS==0)
     {
-      RAND_CL(T,&T->C[p],&T->C[N],0);
+      RAND_CL(T,&T->C[p],&T->C[N],0,Rc,MIN,MAX);
       SHRT_LV(&T->C[p]);
     }
     //===== randomize specified structures =====
@@ -1458,7 +1760,7 @@ void BULK_RAND(Tribe *T, int J, Cell *C, int P)
     {
       sprintf(buf,"INI/POSCAR%03d",0);
       READ_CELL(&T->C[p],buf);
-      RAND_CL(T,&T->C[p],&T->C[N],1);
+      RAND_CL(T,&T->C[p],&T->C[N],1,Rc,MIN,MAX);
     }
     else if(T->JS==3 && T->ND==3)
     {
@@ -1469,16 +1771,57 @@ void BULK_RAND(Tribe *T, int J, Cell *C, int P)
   }
 }
 //==================================================================
+void CELL_PLOT(Cell *C, double s)
+{
+  int   i,q,m,n,**X,N,M;
+  char  buf[200];
+
+  return;
+
+  N = 50;
+  M = 100;
+
+  Relative(C);
+  sprintf(buf,"sleep %6.2lf; clear",s);
+  system(buf);
+  printf("% 10.4lf  % 10.4lf\n",C->L[0][0],C->L[2][2]);
+  for(m=0;m<M;m++)
+    printf("-");
+  printf("\n\n");
+  for(n=0;n<N;n++,printf("\n"))
+  {
+    for(m=0;m<M;m++)
+    {
+      sprintf(buf," ");
+      for(i=0;i<C->N;i++)
+	if( (int)((double)N*(1.0-C->X[i][2]))==n && (int)((double)M*C->X[i][0])==m )
+	  sprintf(buf,"%d",C->ATMN[i]);
+//      printf("%s%s%s",(C->ATMN[0] == 1) ? RED : (C->ATMN[0] == 2) ? GREEN : (C->ATMN[0] == 3) ? YELLOW : RESET, buf, RESET);
+      printf("%s",buf);
+    }
+  }
+
+  for(m=0;m<M;m++)
+    printf("-");
+  printf("\n\n");
+  Real(C);
+}
+//==================================================================
 //     Generate random crystals using TETRIS algorithm
 //==================================================================
 void BULK_TETR(Tribe *T, int J, Cell *C, int P)
 {
-  int i,j,q,s,w,W,n,m,M,*I,p;
-  double t,a[3],A,V,*D,L,R,dr,r[3],b[3],c[3],X[3],Rm;
-  char buf[200];
+  int    i,j,q,s,w,W,n,m,M,*I,p,Z,k,S[30][30],K,Q,h,ii,o,F,O,ww,*B,*U,*Y,II[30],JJ[30],MIN[5],MAX[5];
+  double t,a[3],A,V,*D,L,R,dr,r[3],b[3],c[3],X[3],Rm,z,RR[30][30],AA[30][30],ZZ[30][30],rr[30][3],Rc[5],x[3],oo[30][3];
+  char   buf[200];
 
   I = make_i1D(C->N);
+  U = make_i1D(C->N);
+  Y = make_i1D(C->N);
+  B = make_i1D(C->N);
   D = make_d1D(C->N);
+
+  Q = READ_BLOCK(C,II,JJ,S,RR,AA,ZZ,Rc,MIN,MAX);
 
   for(i=0,V=0.0;i<T->NSPC;i++)    
     V += (4.0/3.0*Pi)*pow(T->Rm[i]/0.7,3.0)*(double)T->SPCN[i];
@@ -1488,16 +1831,15 @@ void BULK_TETR(Tribe *T, int J, Cell *C, int P)
 
   dr = 0.02;
 
-  for(q=0;q<3;q++)
-    r[q] = 0.0;
-
   for(p=T->N;p<2*T->N;p++)
   if( p==P || ( (P<0) && (p>=T->SES[J]) && (p<T->FES[J] ) ) )
   {
     printf("%s %3d\n",T->NES[J],p);
+    Z = 0;
+    z = 1000.0;
     for(s=0;s<T->Nm;s++)
     {
-      GEN_TYPE(T,C,D,I);
+      K = GEN_TETR(T,C,D,I,B,U,II,S,Q);
 
       if(T->JS==0)
       {
@@ -1505,68 +1847,140 @@ void BULK_TETR(Tribe *T, int J, Cell *C, int P)
 	t = pow( 2.0*T->VOL*(1.0+0.25*(0.5-Random())*2.0),1.0/3.0);
 	SCALE_LATTICE(C,t);
 	SHRT_LV(C);
-	SHRT_LV(C);     // strangly, a single call does not straightened LVs for some
 	Lat_Align(C);
+	abc(C);
       }
       if(T->JS==2)
 	READ_CELL(C,"INI/POSCAR000");
-      
+
       //===== atoms at drop point should not see neighbors along the c-axis =====      
       for(q=0;q<3;q++)
 	C->L[2][q] *= 3.0;
-      R = VectorLen(C->L[2],3);      
       R = C->L[2][2];
+      Reciprocal(C);
       
       CrossProd(C->L[0],C->L[1],a);                // find the unit cell base area
       W = 5*(1+(int)(VectorLen(a,2)/(Pi*Rm*Rm)));  // 5 times the number of atoms per base
       M = (int)(R*0.5/dr)-1; 
 
-      for(n=0;n<C->N;n++)
+      for(i=0;i<C->N;i++)
+	for(q=0;q<3;q++)
+	  C->X[i][q] = 0.0;
+
+      for(n=0;n<K;n++)                             // loop over blocks
       {
-        i = I[n];
-	L = C->L[2][2]*0.5;
-        for(w=0,j=0;w<W;w++)
-        {
+	L = C->L[2][2];	
+	if( II[B[n]]>1 && JJ[B[n]]>0 )
+	  ROT_BLOCK(II[B[n]],RR[B[n]],AA[B[n]],ZZ[B[n]],S[B[n]]);
+	for(w=j=0;w<W;w++)
+	{
 	  X[0] = Random();
 	  X[1] = Random();
-	  X[2] = 0.5;                              // start at 1.5 = 3.0*0.5 fractional height
+	  X[2] = 0.5+0.1*Random();                 // start at no lower than 1.5 = 3.0*0.5 fractional height
 
-          for(m=0;m<M;m++)
-          {
+	  for(m=0;m<M;m++)
+	  {
 	    X[2] -= dr/R;
-	    for(q=0;q<D3;q++)
-	      for(j=0,C->X[i][q]=0.0;j<D3;j++)
-		C->X[i][q] += X[j]*C->L[j][q];
-            for(j=n-1;j>=0;j--)
-              if( NDR(C,i,I[j]) < 1.5*(T->Rm[C->ATMN[i]]+T->Rm[C->ATMN[I[j]]]) )
-              {
-                m = M;
-                break;
-              }
-          }
-          if( C->X[i][2] < L )
-          {
-            for(;j>=0;j--)
-              if( NDR(C,i,I[j]) < 1.0*(T->Rm[C->ATMN[i]]+T->Rm[C->ATMN[I[j]]]) )
-                break;
-            if(j==-1)
+            for(o=O=0;o<36;o++)
             {
-              L = C->X[i][2];
-              for(q=0;q<3;q++)
-                r[q] = C->X[i][q];
-            }
-          }
-        }
-        for(q=0;q<3;q++)
-          C->X[i][q] = r[q];
-      }
-      for(q=0;q<3;q++)
-        C->L[2][q] /= 3.0;
-      if( CHCK_Rm(C,T->Rm,1.0)==1 || ADJT_CL(C,T->Rm,3)==1 )
-        break;
+              for(ii=0;ii<II[B[n]];ii++)
+              {
+                i = I[U[n]+ii];
+                for(q=0;q<D3;q++)
+                  for(k=0,C->X[i][q]=0.0;k<D3;k++)
+                    C->X[i][q] += X[k]*C->L[k][q];
+                C->X[i][0] += RR[B[n]][ii]*cos((AA[B[n]][ii]+5.0*(double)o)*Pi/180.0);
+                C->X[i][1] += RR[B[n]][ii]*sin((AA[B[n]][ii]+5.0*(double)o)*Pi/180.0);
+		C->X[i][2] += ZZ[B[n]][ii];
 
-      ORDER(C);
+		//===== put the atom in the cell, only lateral shifts are needed =====
+		for(q=0;q<3;q++)
+		  for(k=0,x[q]=0.0;k<3;k++)
+		    x[q] += C->X[i][k]*C->R[q][k];
+		for(q=0;q<2;q++)
+		{
+		  while(x[q] <  0.0)
+		    x[q] += 1.0;
+		  while(x[q] >= 1.0)
+		    x[q] -= 1.0;
+                  for(k=0,C->X[i][q]=0.0;k<3;k++)
+                    C->X[i][q] += x[k]*C->L[k][q];
+		}
+              }
+              for(ii=F=0;ii<II[B[n]];ii++)
+              {
+                i = I[U[n]+ii];
+                if( U[n]+ii > 0 )
+                  for(j=U[n]+ii-1;j>=0;j--)
+                  {
+                    if( NDB(C,i,I[j]) < 1.2*(T->Rm[C->ATMN[i]]+T->Rm[C->ATMN[I[j]]]) )
+                    {
+                      F = 1;                         // if at least one distance is too short, go to next angle o 
+                      j = -1;
+                      ii = II[B[n]];
+                    }
+                  }
+              }
+              if( F==0 || (m==0&&o==0) )             // save positions of atoms in block n that do not crash into others 
+              {
+		for(ii=0;ii<II[B[n]];ii++)
+		  for(q=0;q<D3;q++)
+		    oo[ii][q] = C->X[I[U[n]+ii]][q];;
+		if(F==0)
+		  O = 1;
+              }
+              if( II[B[n]]==1 )                     // do not rotate if there is just one atom 
+                break;
+	    }
+
+            if( O==0 )                             // if distances too short at any angle, freeze z
+	      if(1)                                // if 0, allow blocks to explore full range of z
+		break;
+	  }
+	  if( oo[0][2] < L )                       // keep the block with the lowest z coordinate
+	  {
+	    L = oo[0][2];
+	    for(ii=0;ii<II[B[n]];ii++)
+	      for(q=0;q<D3;q++)
+		rr[ii][q] = oo[ii][q];
+	  }
+	}
+	for(ii=0;ii<II[B[n]];ii++)
+          for(q=0;q<D3;q++)
+            C->X[I[U[n]+ii]][q] = rr[ii][q];
+      }
+
+      if( CHCK_Rm(C,T->Rm,0.95)==1 && CHCK_BOND(C,Rc,MIN,MAX)==1 )
+      {
+	L = C->L[2][2];
+	for(q=0;q<3;q++)
+	  C->L[2][q] *= 0.99;
+	while( CHCK_Rm(C,T->Rm,0.95)==1 && CHCK_BOND(C,Rc,MIN,MAX)==1 )
+	  for(q=0;q<3;q++)
+	    C->L[2][q] *= 0.99;
+	for(q=0;q<3;q++)
+	  C->L[2][q] /= 0.99;
+	L = C->L[2][2]/L;
+
+	if( L < z )
+	{
+	  Copy_C(C,&T->C[2*T->N]);
+	  z = L;
+	}
+	//===== accept cell with c axis no longer than the original or best out of 10 =====
+	if( z < 1.0/3.0 || Z==10 )
+	{
+	  Z = 0;
+	  L = z;
+	  z = 1000.0;
+	  break;
+	}
+	Z++;
+      }
     }
+
+    Copy_C(&T->C[2*T->N],C);
+
     if(s==T->Nm)
     {
       sprintf(buf,"EXIT in %s: exceeded %3d tries\n",T->NES[J],T->Nm);
@@ -1574,17 +1988,30 @@ void BULK_TETR(Tribe *T, int J, Cell *C, int P)
       Print_LOG(buf);
       exit(1);
     }
+
+    //===== shorten the c lattice constant to remove gap =====
     Copy_C(C,&T->C[p]);
-    JAR(&T->C[p]);
-    ORDER_Z(&T->C[p]);
-    abc(C);
-    t = ( C->LAT[0]<C->LAT[1] ) ? C->LAT[0] : C->LAT[1];
-    sprintf(buf,"%3d %3d %s %3d %3d %3.2lf\n",T->n,p,T->NES[J],-1,-1,C->LAT[2]/t);
-    Print_LOG(buf);
+    if( ADJT_CL(&T->C[p],T->Rm,10)==1 )         // It was not adjusted before to caluclate the c-axis mismatch easily
+    {
+      JAR(&T->C[p]);
+      ORDER_Z(&T->C[p]);
+      abc(C);
+      t = ( C->LAT[0]<C->LAT[1] ) ? C->LAT[0] : C->LAT[1];
+      sprintf(buf,"%3d %3d %s %3d %3d %3.2lf %3.3lf %3.3lf\n",T->n,p,T->NES[J],-1,-1,C->LAT[2]/t,L,CELL_VOL(&T->C[p])/(double)T->C[p].N);
+      Print_LOG(buf);
+    }
+    else
+    {
+      printf("WARNING in TETRIS: cell discarded because the interatomic distances are too short\n");
+      p--;
+    }
   }
   ORDER_TYPE(T,J);
 
   free_i1D(I);
+  free_i1D(U);
+  free_i1D(Y);
+  free_i1D(B);
   free_d1D(D);
 
 }

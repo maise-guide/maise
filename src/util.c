@@ -127,6 +127,43 @@ void EXIT(char *s)
   exit(1);
 }
 //==============================================================================
+double NORM() 
+{
+  double u1 = (Random() + 1.0) / (RAND_MAX + 1.0); // Uniform (0, 1]
+  double u2 = (Random() + 1.0) / (RAND_MAX + 1.0); // Uniform (0, 1]
+    
+  return sqrt(-2.0 * log(u1)) * cos(2.0 * M_PI * u2);
+}
+//==============================================================================
+//     Create a rotation matrix with random angles using quaternions
+//==============================================================================
+void RAND_ROT(double R[3][3])
+{
+  double q0 = NORM();
+  double q1 = NORM();
+  double q2 = NORM();
+  double q3 = NORM();
+
+  double norm = sqrt(q0*q0 + q1*q1 + q2*q2 + q3*q3);
+  q0 /= norm;
+  q1 /= norm;
+  q2 /= norm;
+  q3 /= norm;
+
+  R[0][0] = 1.0 - 2.0 * (q2 * q2 + q3 * q3);
+  R[0][1] =       2.0 * (q1 * q2 - q0 * q3);
+  R[0][2] =       2.0 * (q1 * q3 + q0 * q2);
+
+  R[1][0] =       2.0 * (q1 * q2 + q0 * q3);
+  R[1][1] = 1.0 - 2.0 * (q1 * q1 + q3 * q3);
+  R[1][2] =       2.0 * (q2 * q3 - q0 * q1);
+
+  R[2][0] =       2.0 * (q1 * q3 - q0 * q2);
+  R[2][1] =       2.0 * (q2 * q3 + q0 * q1);
+  R[2][2] = 1.0 - 2.0 * (q1 * q1 + q2 * q2);
+
+}
+//==============================================================================
 //
 //==============================================================================
 double RANG()
@@ -228,7 +265,7 @@ double sign(double a)
   return -1.0;
 }
 //==============================================================================
-long TIME(char file[200])
+long TIME(const char *file)
 {
   long t;
   FILE *in;
@@ -249,7 +286,43 @@ int TIME_DIF(int t1, int t2)
   return t1 - t2;
 }
 //==============================================================================
-void Sort(double *x, int *I, int N)
+int partition(double *x, int *I, int low, int high) 
+{
+  double pivot = x[I[high]];
+  int i = low - 1;
+
+  for (int j = low; j < high; j++) 
+    if (x[I[j]] < pivot) 
+    {
+      i++;
+      iSwap(&I[i], &I[j]);
+    }
+  iSwap(&I[i + 1], &I[high]);
+  return i + 1;
+}
+//==============================================================================
+void quicksort(double *x, int *I, int low, int high) 
+{
+  if (low < high) 
+  {
+    int pi = partition(x, I, low, high);
+
+    quicksort(x, I, low, pi - 1);
+    quicksort(x, I, pi + 1, high);
+  }
+}
+//==============================================================================
+void Sort(double *x, int *I, int N) 
+{
+  int i;
+
+  for(i=0; i < N;i++)
+    I[i] = i;
+
+  quicksort(x, I, 0, N - 1);
+}
+//==============================================================================
+void sort(double *x, int *I, int N)
 {
   int i,j;
 
@@ -1357,6 +1430,9 @@ void READ_MAIN(Tribe *T, ANN *R, PRS *P, Cell *C, int J, int ARGC)
   C->DISP  = 1e-3;         // displacement in Ang for frozen phonon calculation
   R->UREP  = 100.0;        // use repulsive potential for short distances by default
   R->FRAC  = 1.0;          // reject structures in EVOS below this fraction
+  T->COMP  = 1.0;          // compresssion of clusters for RAND generation
+  T->NORD  = 0;            // ordering in NANO_TETR
+  T->JITT  = 1;            // jitter the the cluster core in NANO_TETR to avoid bias
   strcpy(C->WDIR,".");
   strcpy(R->depo,".");
   strcpy(R->data,".");
@@ -1421,6 +1497,9 @@ void READ_MAIN(Tribe *T, ANN *R, PRS *P, Cell *C, int J, int ARGC)
     if( strncmp(buf,"LDST",4) == 0 ) { sscanf(buf+4,"%lf",&T->cl  );        }
     if( strncmp(buf,"ADST",4) == 0 ) { sscanf(buf+4,"%lf",&T->ca  );        }
     if( strncmp(buf,"ELPS",4) == 0 ) { sscanf(buf+4,"%lf",&T->te  );        }
+    if( strncmp(buf,"COMP",4) == 0 ) { sscanf(buf+4,"%lf",&T->COMP);        }
+    if( strncmp(buf,"NORD",4) == 0 ) { sscanf(buf+4,"%d" ,&T->NORD);        }
+    if( strncmp(buf,"JITT",4) == 0 ) { sscanf(buf+4,"%d" ,&T->JITT);        }
     //==================== species parameters  ==============================
     if( strncmp(buf,"NSPC",4) == 0 ) { sscanf(buf+4,"%d" ,&T->NSPC);        }
     if( strncmp(buf,"NSPC",4) == 0 ) { sscanf(buf+4,"%d" ,&R->NSPC);        }

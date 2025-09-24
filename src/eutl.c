@@ -38,9 +38,7 @@ int CHCK_Rm(Cell *C, double *Rm, double s)
 	  r += x*x;
 	}
 	if( sqrt(r) < (Rm[C->ATMN[i]]+Rm[C->ATMN[j]])*s )
-	{
 	  return 0;
-	}
       }	
   }
   return 1;
@@ -70,14 +68,19 @@ int ADJT_NP(Cell *C, double *Rm, double RM, double *b, int N)
 	r = pow(r,-13.0);
 	for(q=0;q<3;q++)
 	  C->F[i][q] -= (C->X[j][q]-C->X[i][q])/R*r;
-	for(q=0;q<3;q++)
-	  c[q] = C->X[i][q]*b[q];
-	r = VectorLen(c,3);
-	//===== use attractive spring beyond targeted RM sphere =====
-	if( r > RM )
-	  for(q=0;q<3;q++)
-	    C->F[i][q] -= C->X[i][q]/r*(r-RM)/R;
       }
+
+    //===== use attractive spring beyond targeted RM sphere =====
+    for(i=0;i<C->N;i++)
+    {
+      for(q=0;q<3;q++)
+	c[q] = C->X[i][q]*b[q];
+      r = VectorLen(c,3);
+      if( r > RM )
+	for(q=0;q<3;q++)
+	  C->F[i][q] -= C->X[i][q]/r*(r-RM)/Rm[C->ATMN[i]]*10.0;
+    }
+
     for(i=0;i<C->N;i++)
       if( (R=VectorLen(C->F[i],3)) > 2.0 )
 	for(q=0;q<3;q++)
@@ -270,11 +273,11 @@ void RAND_LV(Cell *C)
 //==================================================================
 //     Generate random Cell
 //==================================================================
-void RAND_CL(Tribe *T, Cell *C, Cell *D, int J)
+void RAND_CL(Tribe *T, Cell *C, Cell *D, int J,double *Rc, int *MIN, int *MAX)
 {
-  int i,q,s;
-  double a;
-  char buf[200];
+  int    i,j,q,s,k,M;
+  double a,r;
+  char   buf[200];
 
   Copy_C(C,D);     //COPY STRUCTURE READ IN FROM FILE TO A SECOND C - to work from
 
@@ -315,7 +318,36 @@ void RAND_CL(Tribe *T, Cell *C, Cell *D, int J)
       Real(C);
 
       if(CHCK_Rm(C,T->Rm,1.0)==1||ADJT_CL(C,T->Rm,10)==1)
-	break;
+      {
+	for(k=0;k<C->NSPC;k++)
+	  if( MAX[C->ATMN[i]]>0 )
+	    break;
+        //===== if BLOCK file specifies no conditions for bonds proceed =====
+	if(k==C->NSPC)
+	  break;
+
+	r = C->Rc;
+	for(k=0,C->Rc=0.0;k<C->NSPC;k++)
+	  if( C->Rc<Rc[k] )
+	    C->Rc = Rc[k];
+	C->Rc = sqrt(C->Rc);
+
+	LIST(C,1);
+	for(i=0;i<C->N;i++)
+	  if( MAX[C->ATMN[i]]>0 )
+	  {
+	    for( j=0,M=0;j<C->Nn[i];j++)
+	      M++;
+	    //===== if the number of neighbors is not within range discard the cell =====
+	    //printf("%3d %3d % lf % lf\n",i,M,C->Rc,Rc[C->ATMN[i]]);
+	    if( M<MIN[C->ATMN[i]] || M>MAX[C->ATMN[i]] )
+	      break;
+	  }
+	
+	C->Rc = r;
+	if(i==C->N)
+	  break; 
+      }
     }
     if(J==1)                        //KEEP LV and random X (except for the fixed positions)
     {

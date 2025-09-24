@@ -18,7 +18,7 @@ MAISE has been developed by
 ---
 ## General info
 
-Current version 2.9.02 works on Linux platforms and combines 3 modules for modeling, optimizing, and analyzing atomic structures.
+Current version 3.0.00 works on Linux platforms and combines 3 modules for modeling, optimizing, and analyzing atomic structures.
 
 1 The neural network (NN) module builds, tests, and uses NN models to
 describe interatomic interactions with near-ab initio accuracy at a
@@ -235,7 +235,7 @@ comparison.
 ### Main EVOS         
 [CODE](#code) [DENE](#dene) [KMSH](#kmsh) [LBOX](#lbox) [NDIM](#ndim) [NITR](#nitr) [NNJB](#nnjb) [NPOP](#npop) [RAND](#rand) [RUNT](#runt) [SEED](#seed) [SITR](#sitr) [TINI](#tini)  
 ### EVOS operations      
-[BLOB](#blob) [CHOP](#chop) [INVS](#invs) [MATE](#mate) [MUTE](#mute) [PACK](#pack) [PLNT](#plnt) [REFL](#refl) [RUBE](#rube) [SWAP](#swap) [TETR](#tetr) [COMP](#comp) 
+[BLOB](#blob) [CHOP](#chop) [INVS](#invs) [MATE](#mate) [MUTE](#mute) [PACK](#pack) [PLNT](#plnt) [REFL](#refl) [RUBE](#rube) [SWAP](#swap) [TETR](#tetr)   
 ### EVOS crossover/mutation 
 [ACRS](#acrs) [ADST](#adst) [ELPS](#elps) [LCRS](#lcrs) [LDST](#ldst) [MCRS](#mcrs) [SCRS](#scrs) [SDST](#sdst)   
 ### Molecular dynamics             
@@ -330,9 +330,3 @@ comparison.
 | <a name="ldst"></a>LDST |  0.00              distortion: mutation strength for lattice vectors|
 | <a name="adst"></a>ADST |  0.20              distortion: mutation strength for atomic positions|
 | <a name="elps"></a>ELPS |  0.30              random:     nanoparticle ellipticity|
-| <a name="comp"></a>COMP |  1.00              random:     compression for clusters|
-| <a name="tord"></a>TORD |  XX                manual table of type order in TETR generation|
-| <a name="cord"></a>CORD |  XX                manual table of min distances along c in TETR|
-| <a name="nord"></a>NORD |  0.00              number of manual options to order types in INI/ORDINI|   
-| <a name="jitt"></a>JITT |  1                 tetr:      jitter the cluster core to avoid bias|   
-

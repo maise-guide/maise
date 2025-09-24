@@ -12,9 +12,10 @@ PRS  WW[9];
 //==================================================================
 void INIT_TR(Tribe *T)
 {
-  int i,j,k,p,N,SES[4],FES[4],n;
+  int i,j,k,p,N,SES[4],FES[4],n,I[10];
   double dista,scale;
-  char buf[200];
+  char buf[200],*s;
+  FILE *in;
 
   system("mkdir -p EVOS\n");
 
@@ -42,6 +43,7 @@ void INIT_TR(Tribe *T)
       }
     }
   }
+
   if( T->ND>0 )
   {
     if( FES[0]==T->N )
@@ -133,6 +135,42 @@ void INIT_TR(Tribe *T)
   sprintf(buf,"%lf\n",T->VOL);
   Print_LOG(buf);
 
+  //===== Check and read in manual order for types in TETR generation ===== 
+  /*
+  T->NORD = 0;
+  if( in = fopen("INI/ORDINI","r") )
+  {
+    fgets(buf,200,in);
+    sscanf(buf,"%d",&T->NORD);
+    T->TORD = make_i2D(T->NORD,T->C[0].N);
+    T->CORD = make_d2D(T->NORD,T->C[0].N);
+    for(n=0;n<T->NORD;n++)
+    {
+      for(k=0;k<T->NSPC;k++)
+        I[k] = 0;
+      for(i=0;i<T->C[0].N;i++)
+      {
+        fgets(buf,200,in);
+        sscanf(buf,"%d %d %lf",&k,&T->TORD[n][i],&T->CORD[n][i]);
+        I[T->TORD[n][i]]++;
+      }
+      for(k=0;k<T->NSPC;k++)
+        if(I[k]!=T->SPCN[k])
+          break;
+      if(k<T->NSPC)
+      {
+        printf("The species types in INI/ORDINI do not add up\n");
+        for(n=0;n<T->NSPC;n++)
+          printf("%3d %3d %3d\n",n,T->SPCN[n],I[n]);
+        exit(0);
+      }
+    }
+    fclose(in);
+    for(i=0;i<T->C[0].N;i++,printf("\n"))
+      for(n=0,printf("%3d ",i);n<T->NORD;n++)
+	printf("%3d % 3.2lf  ",T->TORD[n][i],T->CORD[n][i]);
+  }
+  */
   //If this is the first step of a EVOS run then generate structures
   if(T->n<=0)                   // if T->n < 0 the particles will be re-generated for REFL and INVS
     for(p=T->N;p<2*T->N;p++)    //fill the second half of the array of cells (first half is for energy ordering)
@@ -310,21 +348,24 @@ void RANK_TR(Tribe *T)
 	I[k] = I[p];
   }  
 
-  for(p=0;p<2*T->N;p++)
+  if( T->CUT<1.0 )
   {
-    LIST(&T->C[p],0);
-    RDF(&T->C[p],1);
+    for(p=0;p<2*T->N;p++)
+    {
+      LIST(&T->C[p],0);
+      RDF(&T->C[p],1);
+    }
+    
+    for(p=2*T->N-1;p>=1;p--)
+      for(k=p-1;k>=0;k--)
+	if( (t=COMP_CL(&T->C[p],&T->C[k])) > T->CUT)
+	{
+	  sprintf(buf,"found a duplicate %3d %3d % 24.16lf\n",k,p,t);
+	  Print_LOG(buf);
+	  T->f[p] *= 0.001 + (1.0-t)*(1.0-t);
+	  break;
+	}  
   }
-
-  for(p=2*T->N-1;p>=1;p--)
-    for(k=p-1;k>=0;k--)
-      if( (t=COMP_CL(&T->C[p],&T->C[k])) > T->CUT)
-      {
-        sprintf(buf,"found a duplicate %3d %3d % 24.16lf\n",k,p,t);
-	Print_LOG(buf);
-	T->f[p] *= 0.001 + (1.0-t)*(1.0-t);
-	break;
-      }  
   for(p=M=0;p<2*T->N;p++)
     if( T->f[p]>1e-10 )
     {
@@ -371,15 +412,18 @@ void SLCT_TR(Tribe *T)
   for(p=0;p<T->NB;p++)
     T->I[T->n][ p] = 1;
 
-  for(k=T->NB;k<T->N;k++)
-  {
-    r = Random();
-    for(p=1;p<2*T->N&&f[p]<r;p++);
-    if(T->I[T->n][ p-1]==1)
-      k--;
-    else
-      T->I[T->n][ p-1] = 1;
-  }    
+  //===== do not do selection if T->CUT > 1.0 =====
+  if( T->CUT < 1.0 )
+    for(k=T->NB;k<T->N;k++)
+    {
+      r = Random();
+      for(p=1;p<2*T->N&&f[p]<r;p++);
+      if(T->I[T->n][ p-1]==1)
+	k--;
+      else
+	T->I[T->n][ p-1] = 1;
+    }    
+
   for(p=0;p<2*T->N;p++)
     printf("% 3d %3d % lf %3d % lf\n",p,T->I[T->n][p],f[p],T->S[p],T->E[p]);
 
@@ -509,6 +553,7 @@ void RELX_TR(Tribe *T)
 {
   int i,p,Q,t1,t2,*I,m;
   char buf[400],s[200];
+  double E;
   FILE *in;
 
   I = make_i1D(2*T->N);
@@ -635,6 +680,19 @@ void RELX_TR(Tribe *T)
       Print_LOG(buf);
     }
 
+    //===== find the worst relaxed structure and replace all failed structures with it =====
+    for(p=m=T->N,E=-1e10;p<2*T->N;p++)
+      if(I[p]==1)
+      {
+	sprintf(buf,"EVOS/G%03d/M%03d/OSZICAR.0",T->n,p);                                                                                                                        
+	T->C[p].P = Read_OSZI(buf);
+	if( m==T->N || T->C[p].P>E )
+	{
+	  m = p;
+	  E = T->C[p].P;
+	}
+      }
+
     for(p=T->N;p<2*T->N;p++)
       if(I[p]==-1)
       {
@@ -642,19 +700,13 @@ void RELX_TR(Tribe *T)
 	i = p-T->N;
 	//=== if the relaxation failed in generation = 0 copy from the     same generation ===
 	if(T->n==0)
-	  for(m=1;m<T->N;m++)
-	  {
-	    i = T->N + (p+m)%T->N;
-	    if(I[i]==1)
-	      break;
-	  }
+	  i = m;
 	sprintf(buf,"rm -r EVOS/G%03d/M%03d/*",T->n,p);
 	system(buf);
 	sprintf(buf,"cp    EVOS/G%03d/M%03d/* EVOS/G%03d/M%03d",T->n,i,T->n,p);
 	system(buf);
       }
   }
-
   for(p=T->N;p<2*T->N;p++)
   {
     sprintf(buf,"EVOS/G%03d/M%03d/CONTCAR.0",T->n,p);
@@ -671,17 +723,22 @@ void RELX_TR(Tribe *T)
   if(T->n==0)
     for(p=0;p<T->N;p++)
     {
-      sprintf(buf,"mkdir EVOS/G%03d/M%03d",T->n,p);
-      system(buf);
-      sprintf(buf,"cp EVOS/G%03d/M%03d/CONTCAR.0 EVOS/G%03d/M%03d",T->n,T->N+p,T->n,p);
-      system(buf);
-      sprintf(buf,"cp EVOS/G%03d/M%03d/OSZICAR.0 EVOS/G%03d/M%03d",T->n,T->N+p,T->n,p);
-      system(buf);
-      sprintf(buf,"cp EVOS/G%03d/M%03d/OUTCAR.0  EVOS/G%03d/M%03d",T->n,T->N+p,T->n,p);
-      system(buf);
-      Copy_C(&T->C[T->N+p],&T->C[p]);
+      if( T->CUT<1.0 )
+      {
+	sprintf(buf,"mkdir EVOS/G%03d/M%03d",T->n,p);
+	system(buf);
+	sprintf(buf,"cp EVOS/G%03d/M%03d/CONTCAR.0 EVOS/G%03d/M%03d",T->n,T->N+p,T->n,p);
+	system(buf);
+	sprintf(buf,"cp EVOS/G%03d/M%03d/OSZICAR.0 EVOS/G%03d/M%03d",T->n,T->N+p,T->n,p);
+	system(buf);
+	sprintf(buf,"cp EVOS/G%03d/M%03d/OUTCAR.0  EVOS/G%03d/M%03d",T->n,T->N+p,T->n,p);
+	system(buf);
+	Copy_C(&T->C[T->N+p],&T->C[p]);
+      }
+      //===== fill in the first 0:T->N-1 cells with the worst members =====
+      else
+	Copy_C(&T->C[m],&T->C[p]);
     }
-
   if(T->CODE>1)
   {
     for(p=T->N;p<2*T->N;p++)
@@ -970,7 +1027,14 @@ void INIT_EVOS(Tribe *T, Cell *C)
       Copy_C(C,&T->C[n]);
 
   if(T->JOBT!=10&&T->JOBT!=14)
+  {
+    if(T->JOBT==11||T->JOBT==12)
+    {
+      printf("JOBT %d forces the EVOS run to quit. Please adjust JOBT\n",T->JOBT);
+      exit(0);
+    }
     return;
+  }
 
   if(T->CODE==0)
     READ_POT(C,".");
@@ -1002,7 +1066,6 @@ void INIT_EVOS(Tribe *T, Cell *C)
   T->f  = make_d1D(2*T->N+1);  
   for(n=0;n<2*T->N+2;n++)
     T->C[n].P = 1.0e9;
-  
   return;
 }
 //==================================================================
