@@ -894,7 +894,7 @@ void SORT_FIT(int *NFIT, double *EFIT, int *RFIT, double *FFIT, double *EDIF, in
 
   M = (int)((double)N*ECUT);
 
-  for(i=n,Emin = 10^6,Emax =-10^6;i<N+n;i++)
+  for(i=n,Emin = 1e6,Emax =-1e6;i<N+n;i++)
   {
     NFIT[i] = TAG; // first: directory's default TAG assigned to all!
     if(EFIT[i]<Emin)
