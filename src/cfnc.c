@@ -534,7 +534,7 @@ void FIND_SPG(Cell *C, Cell *D, double tol, int NM, char input[])
     for(k=10;k>0;k--)
     {
       o = (double)k*pow(10.0,(double)n)-1e-12;
-      if( o < tol )
+      if( o < tol && o > 1e-14 )
       {
 	READ_CELL(C,input);
 	FIND_WYC(C,D,o,1);
@@ -609,7 +609,8 @@ void MAKE_SUP(Cell *C, Cell *D, int argc, char ARGV[20][200], int NM, char input
 	if(M[n+q*3]>k) k = M[n+q*3];
 	if(M[n+q*3]<m) m = M[n+q*3];
       }
-      N[n] = k-m;
+      //===== not full-proof, added +1 to deal with highly skewed unit cells =====
+      N[n] = k-m+1;
       if(N[n]<=0)
       {
 	printf("The specified expansion has no component along axis %d\n",n);
@@ -739,6 +740,7 @@ void EIGM_CELL(Cell *C, int argc, char ARGV[20][200])
         printf("EV file is inconsistent with POSCAR\n");
         exit(0);
       }
+    if(0)
     for(q=0;q<3;q++)
       if( fabs(C->V[i][q])<0.05 )
         C->V[i][q] = 0.0;
