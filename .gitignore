@@ -1,1 +1,8 @@
-maise
+# Ignore object files and libraries
+*.o
+*.a
+*.d
+obj/
+bin/
+# Ignore specific test directories
+TEST/

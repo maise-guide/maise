@@ -1014,6 +1014,28 @@ void CELL_EXAM(Cell *C, Cell *D, int argc, char **argv)
     SAVE_CELL(C,"CONTCAR",0);
     exit(0);
   }
+  //================ make a gap with shifts  ================
+  if(strncmp(ARGV[1],"-gap",4)==0)
+  {
+    INIT_CELL(C,input,1,NM,1);
+    if(argc>2)
+      m  = (int)atoi(ARGV[2]);
+    //===== make a gap above =====
+    if(argc>3)
+      L = (double)atof(ARGV[3]);
+    C->L[m][m] += L;
+    //===== make a gap below =====
+    if(argc>4)
+    {
+      L = (double)atof(ARGV[4]);
+      C->L[m][m] += L;
+      for(i=0;i<C->N;i++)
+	C->X[i][m] += L;
+    }
+    C->POS = 0;
+    SAVE_CELL(C,"CONTCAR",0);
+    exit(0);
+  }
   //================ order atoms by species  ================
   if(strncmp(ARGV[1],"-ord",4)==0)
   {
@@ -1114,6 +1136,7 @@ void CELL_EXAM(Cell *C, Cell *D, int argc, char **argv)
     printf("        options: [ tolerance, max near. neigh. ]                        \n");
     printf("-rot    rotate  a nanoparticle along eigenvectors of moments of inertia \n");
     printf("-mov    move atoms along one direction by a constant shift              \n");
+    printf("-gap    make      a gap in Ang along one axis in minus plus directions  \n");
     printf("-ord    order atoms by species                                          \n");
     printf("-dim    find    whether POSCAR is periodic (3) or non-periodic (0)      \n");
     printf("-box    reset   the box size for nanoparticles                          \n");
@@ -1139,6 +1162,7 @@ void CELL_EXAM(Cell *C, Cell *D, int argc, char **argv)
   printf("-cif    convert   str.cif into CONV and PRIM                              \n");
   printf("-rot    rotate    a nanoparticle along eigenvectors of moments of inertia \n");
   printf("-mov    move      atoms along one direction by a constant shift           \n");
+  printf("-gap    make      a gap in Ang along one axis in minus plus directions    \n");
   printf("-ord    order     atoms by species                                        \n");
   printf("-dim    find      whether POSCAR is periodic (3) or non-periodic (0)      \n");
   printf("-box    reset     the box size for nanoparticles                          \n");

@@ -1,8 +1,0 @@
-JOBT  20		cell simulation (20) relaxation
-NDIM  3                 dimensionality (3) crystal
-NPAR  8                 number of cores for parallel run 
-MINT  0                 gsl minimier type (0) BFGS2
-MITR  0                 maximum of cell opimization steps
-RLXT  3                 cell optimization type (3) full cell
-ETOL  1e-8              error tolerance of optimization convergence
-COUT  12                output options (12) EF all steps
