@@ -1,120 +1,174 @@
 #!/bin/bash
-#setup
+
 ver="1.11.2.1"
-url="https://github.com/spglib/spglib/archive/v$ver.tar.gz"
-dir="spglib.tar.gz"
-test_OS=$(uname) 
-test_cmake=$(cmake --version 2>&1 | grep -o "command not found")
-test_wget=$(wget --version 2>&1 | grep -o "command not found")
-test_curl=$(curl --version 2>&1 | grep -o "command not found")
-#commands
-if [ "$test_wget" != "command not found" ]; then
-  GET="wget $url -O $dir"
-elif [ "$test_curl" != "command not found" ]; then
-  GET="curl -L --output $dir $url"
-fi
-if [ "$test_OS" == Linux ]; then
-  SED="sed -i"
-  LIBTOOL="libtoolize"
-elif [ "$test_OS" == Darwin ]; then
-  SED="sed -i -e"
-  LIBTOOL="glibtoolize"
-fi
-#working directories
-mkdir -p lib/include
-mkdir -p dep-ext
-cd       dep-ext
-#download
-if [ ! -e spglib.tar.gz ] ; then
-  echo "downloading...spglib-1.11.2.1 to $PWD"
-  echo "downloading...spglib-1.11.2.1 to $PWD" &> spglib.log
-  $GET >> spglib.log 2>&1
-fi
-#unpack
-if [ ! -e spglib-$ver ] ; then
-  echo "unpacking.....in $PWD"
-  echo "unpacking.....in $PWD" >> spglib.log 2>&1 
-  tar -xf spglib.tar.gz >> spglib.log 2>&1
-fi
-#compiling
-echo "compiling.....in $PWD/spglib-$ver"
-echo "compiling.....in $PWD/spglib-$ver" >> spglib.log 2>&1
-cd spglib-$ver
-#compile with cmake or autotools
-if [ "$test_cmake" != "command not found" ]; then
-  mkdir -p _build
-  cd    _build
-  cmake .. >> ../spglib.log 2>&1
-  make     >> ../spglib.log 2>&1
-  make  >> spglib.log >> ../spglib.log 2>&1 && make install DESTDIR=$PWD/../ >> ../spglib.log 2>&1
-  cd ../
-else 
-#compile with autotools
-  mkdir -p m4   > /dev/null 2>&1
-  test_libtool=$($LIBTOOL --version 2>&1 | grep -o "command not found")
-  $SED "s/AM_PROG_LIBTOOL/LT_INIT/" configure.ac
-  if [ "$test_OS" != Darwin ]; then
-    $SED "s/m4_esyscmd_s/m4_esyscmd/" configure.ac
-    if [ "$test_libtool" == "command not found" ]; then
-      LIBTOOL="$PWD/lib-tool/usr/bin/libtoolize --force --install --copy"
-      dir="libtool.deb"
-      url="http://ftp.br.debian.org/debian/pool/main/libt/libtool/libtool_2.4.2-1.11_all.deb"
-      if [ "$test_wget" != "command not found" ]; then
-        GET="wget $url -O $dir"
-      elif [ "$test_curl" != "command not found" ]; then
-        GET="curl -L --output $dir $url"
-      fi
-      mkdir -p lib-tool 2>&1  
-      cd  lib-tool 2>&1
-      $GET >> ../../spglib.log 2>&1
-      ar  -x $dir >> ../../spglib.log 2>&1
-      tar -xf data.tar.xz >> ../../spglib.log 2>&1
-      old="=/usr"
-      new="=$PWD/usr"
-      sed -i "s@$old@$new@" ./usr/bin/libtoolize 
-      export ACLOCAL_PATH=$PWD/usr/share/aclocal:$ACLOCAL_PATH
-      unlink $PWD/usr/share/libtool/config/config.guess
-      unlink $PWD/usr/share/libtool/config/config.sub
-      cd ../ 2>&1
+url="https://github.com/spglib/spglib/archive/v${ver}.tar.gz"
+
+root="$PWD"
+depdir="$root/dep-ext"
+libdir="$root/lib"
+archive="$depdir/spglib.tar.gz"
+srcdir="$depdir/spglib-$ver"
+log="$depdir/spglib.log"
+
+mkdir -p "$depdir" "$libdir/include"
+: > "$log"
+
+fail() {
+    echo "$1"
+    echo "$1" >> "$log"
+    echo "spglib installation failed!"
+    exit 1
+}
+
+run() {
+    echo "+ $*" >> "$log"
+    "$@" >> "$log" 2>&1
+}
+
+download_spglib() {
+    echo "downloading...spglib-$ver to $depdir"
+    echo "downloading...spglib-$ver to $depdir" >> "$log"
+
+    if command -v wget >/dev/null 2>&1; then
+        run wget -q "$url" -O "$archive" || fail "ERROR: failed to download SPGLIB with wget"
+    elif command -v curl >/dev/null 2>&1; then
+        run curl -fsSL "$url" -o "$archive" || fail "ERROR: failed to download SPGLIB with curl"
+    else
+        fail "ERROR: neither wget nor curl is available"
     fi
-  fi
+}
 
-  aclocal       >> ../spglib.log 2>&1
-  autoheader    >> ../spglib.log 2>&1
-  $LIBTOOL      >> ../spglib.log 2>&1
-  touch INSTALL NEWS README AUTHORS
-  automake -acf >> ../spglib.log 2>&1
-  autoconf      >> ../spglib.log 2>&1
-  ./configure   >> ../spglib.log 2>&1
+unpack_spglib() {
+    echo "unpacking.....in $depdir"
+    echo "unpacking.....in $depdir" >> "$log"
+    run tar -xf "$archive" -C "$depdir" || fail "ERROR: failed to unpack $archive"
+}
 
-  if [ "$test_libtool" == "command not found" ]; then
-    cp ./config.guess ./lib-tool/usr/share/libtool/config
-    cp ./config.sub ./lib-tool/usr/share/libtool/config
-    aclocal       >> ../spglib.log 2>&1
-    autoheader    >> ../spglib.log 2>&1
-    $LIBTOOL      >> ../spglib.log 2>&1
-    automake -acf >> ../spglib.log 2>&1
-    autoconf      >> ../spglib.log 2>&1
-    ./configure   >> ../spglib.log 2>&1
-  fi
+copy_artifacts() {
+    local built_lib="$1"
 
-  make >> ../spglib.log 2>&1 && make install DESTDIR=$PWD >> ../spglib.log 2>&1
+    if [ ! -s "$built_lib" ]; then
+        fail "ERROR: SPGLIB static library was not created"
+    fi
+
+    if [ ! -s "$srcdir/src/spglib.h" ]; then
+        fail "ERROR: SPGLIB header src/spglib.h was not found"
+    fi
+
+    echo "installing....to $libdir"
+    echo "installing....to $libdir" >> "$log"
+
+    cp "$built_lib" "$libdir/libsymspg.a" >> "$log" 2>&1 || fail "ERROR: failed to copy libsymspg.a"
+    cp "$srcdir/src/spglib.h" "$libdir/include/spglib.h" >> "$log" 2>&1 || fail "ERROR: failed to copy spglib.h"
+}
+
+build_with_cmake() {
+    local builddir="$srcdir/_maise_build"
+    local built_lib=""
+
+    command -v cmake >/dev/null 2>&1 || return 1
+
+    echo "compiling.....in $srcdir with cmake"
+    echo "compiling.....in $srcdir with cmake" >> "$log"
+
+    mkdir -p "$builddir" || return 1
+    cd "$builddir" || return 1
+
+    if ! run cmake .. -DCMAKE_POLICY_VERSION_MINIMUM=3.5 -DCMAKE_INSTALL_PREFIX=/usr/local; then
+        cd "$root" || true
+        return 1
+    fi
+
+    if ! run make symspg_static; then
+        cd "$root" || true
+        return 1
+    fi
+
+    built_lib="$(find "$builddir" -name 'libsymspg.a' -type f 2>/dev/null | head -n 1)"
+
+    cd "$root" || return 1
+
+    if [ -n "$built_lib" ] && [ -s "$built_lib" ]; then
+        copy_artifacts "$built_lib"
+        return 0
+    fi
+
+    return 1
+}
+
+build_directly() {
+    local cc="${CC:-gcc}"
+    local builddir="$srcdir/_maise_direct"
+    local objs=""
+    local src=""
+    local base=""
+    local obj=""
+
+    command -v "$cc" >/dev/null 2>&1 || fail "ERROR: C compiler '$cc' was not found"
+    command -v ar >/dev/null 2>&1 || fail "ERROR: ar was not found"
+
+    echo "compiling.....in $srcdir directly with $cc"
+    echo "compiling.....in $srcdir directly with $cc" >> "$log"
+
+    mkdir -p "$builddir" || fail "ERROR: failed to create direct build directory"
+    rm -f "$builddir"/*.o "$builddir"/libsymspg.a
+
+    cd "$srcdir" || fail "ERROR: failed to enter $srcdir"
+
+    for src in src/*.c; do
+        base="$(basename "$src")"
+
+        if [ "$base" = "test.c" ]; then
+            continue
+        fi
+
+        obj="$builddir/${base%.c}.o"
+
+        echo "+ $cc -O3 -fPIC -Isrc -c $src -o $obj" >> "$log"
+        "$cc" -O3 -fPIC -Isrc -c "$src" -o "$obj" >> "$log" 2>&1 || fail "ERROR: direct SPGLIB compilation failed at $base"
+
+        objs="$objs $obj"
+    done
+
+    cd "$root" || fail "ERROR: failed to return to $root"
+
+    if [ -z "${objs// /}" ]; then
+        fail "ERROR: no SPGLIB source files were compiled"
+    fi
+
+    run ar rcs "$builddir/libsymspg.a" $objs || fail "ERROR: failed to create libsymspg.a with ar"
+
+    if command -v ranlib >/dev/null 2>&1; then
+        run ranlib "$builddir/libsymspg.a" || true
+    fi
+
+    copy_artifacts "$builddir/libsymspg.a"
+}
+
+if [ ! -s "$archive" ]; then
+    download_spglib
 fi
-#installation to ./lib
-echo "installing....to $PWD/../../lib"
-echo "installing....to $PWD/../../lib" >> ../spglib.log 2>&1
-cp ./usr/local/lib/libsymspg.a ../../lib >> ../spglib.log 2>&1
-cp ./src/spglib.h ../../lib/include      >> ../spglib.log 2>&1
-cd ../../ >> ../spglib.log 2>&1
-#installation check
-if [ ! -e ./lib/libsymspg.a ]; then
-  echo "spglib installation failed!"
-  echo "spglib installation failed!"
-else 
-  echo "Done"
+
+if [ ! -d "$srcdir" ]; then
+    unpack_spglib
 fi
-exit
-Usage: grep [OPTION]... PATTERN [FILE]...
-Try 'grep --help' for more information.
-Usage: grep [OPTION]... PATTERN [FILE]...
-Try 'grep --help' for more information.
+
+if [ ! -d "$srcdir" ]; then
+    fail "ERROR: SPGLIB source directory $srcdir was not created"
+fi
+
+if ! build_with_cmake; then
+    echo "cmake build did not produce libsymspg.a; falling back to direct static build"
+    echo "cmake build did not produce libsymspg.a; falling back to direct static build" >> "$log"
+    build_directly
+fi
+
+if [ ! -s "$libdir/libsymspg.a" ]; then
+    fail "ERROR: final check failed: $libdir/libsymspg.a is missing"
+fi
+
+if [ ! -s "$libdir/include/spglib.h" ]; then
+    fail "ERROR: final check failed: $libdir/include/spglib.h is missing"
+fi
+
+echo "Done"
